@@ -1,15 +1,25 @@
 import { site } from "@/data/site";
 import { serviceLinks } from "@/data/services";
 import { productLinks } from "@/data/products";
+import { getAllPosts } from "@/lib/blog";
 import type { MetadataRoute } from "next";
 
 const BASE = site.url;
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const posts = await getAllPosts();
   return [
     { url: BASE, lastModified: new Date(), changeFrequency: "monthly", priority: 1 },
     { url: `${BASE}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/industries`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE}/careers`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
+    { url: `${BASE}/blogs`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
+    ...posts.map((post) => ({
+      url: `${BASE}/blogs/${post.slug}`,
+      lastModified: new Date(post.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
     ...serviceLinks.map(({ slug }) => ({
       url: `${BASE}/services/${slug}`,
       lastModified: new Date(),

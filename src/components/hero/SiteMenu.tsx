@@ -13,7 +13,10 @@ const links = (onHome: boolean) => [
 ];
 
 /** Plain rows listed after the accordion groups. */
-const trailingLinks = [{ label: "Industries", href: "/industries" }];
+const trailingLinks = [
+  { label: "Industries", href: "/industries" },
+  { label: "Contact Us", href: "/industries" }
+];
 
 /** Rows that open an accordion of sub-pages instead of navigating. */
 const groups = [
@@ -186,7 +189,7 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
             })}
             {trailingLinks.map((link, index) => (
               <a
-                key={link.href}
+                key={link.label}
                 href={link.href}
                 className={styles.link}
                 aria-current={pathname === link.href ? "page" : undefined}
@@ -204,9 +207,9 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
 
           <div className={styles.bottom}>
             <div className={styles.utilityLinks}>
-              <a href={onHome ? "#services" : "/#services"} tabIndex={open ? 0 : -1}><RollText text="Process" /></a>
               <a href={site.links.careers} tabIndex={open ? 0 : -1}><RollText text="Careers" /></a>
-              <a href={site.links.blog} tabIndex={open ? 0 : -1}><RollText text="Journal" /></a>
+              <a href={site.links.blog} tabIndex={open ? 0 : -1}><RollText text="Blogs" /></a>
+              {/* <a href={site.links.careers} tabIndex={open ? 0 : -1}><RollText text="Contact Us" /></a> */}
             </div>
             <div className={styles.socials}>
               <a href={site.social.instagram} target="_blank" rel="noreferrer" tabIndex={open ? 0 : -1} aria-label="Instagram">

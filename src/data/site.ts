@@ -19,8 +19,8 @@ export const site = {
     linkedin: "https://www.linkedin.com/company/bytebloom-solutionss",
   },
   links: {
-    careers: "https://bytesplatform.com/careers",
-    blog: "https://bytesplatform.com/blogs",
+    careers: "/careers",
+    blog: "/blogs",
     privacy: "https://bytesplatform.com/privacy-policy",
     terms: "https://bytesplatform.com/terms-conditions",
     refund: "https://bytesplatform.com/refund-policy",
