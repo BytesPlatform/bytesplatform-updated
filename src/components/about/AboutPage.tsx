@@ -69,7 +69,6 @@ export default function AboutPage() {
     const el = root.current;
     if (!el) return;
     const reduced = prefersReducedMotion();
-    const nav = document.querySelector<HTMLElement>("[data-hero-nav]");
     const footer = document.querySelector<HTMLElement>("[data-site-footer]");
     const stage = footer?.parentElement;
 
@@ -80,8 +79,15 @@ export default function AboutPage() {
           trigger: stage,
           start: "top bottom",
           end: "bottom bottom",
-          onToggle: (self) => { footer.style.visibility = self.isActive || self.progress === 1 ? "visible" : "hidden"; },
-          onUpdate: (self) => { if (nav) nav.style.transform = `translate3d(0, ${-self.progress * stage.offsetHeight}px, 0)`; },
+          // Driven from onUpdate rather than onToggle: a jump straight past the
+          // whole range never toggles. Hiding waits for the corners to flatten
+          // (see onCornersSettled), so the way back animates like the way in.
+          onUpdate: (self) => {
+            const lifted = self.progress > 0;
+            if (lifted) footer.style.visibility = "visible";
+            // The lift only toggles the corners; CSS animates them in and out.
+            el.toggleAttribute("data-lifted", lifted);
+          },
         });
       }
       if (reduced) return;
@@ -137,14 +143,22 @@ export default function AboutPage() {
       });
     }, el);
 
+    const onCornersSettled = (event: TransitionEvent) => {
+      if (event.target === el && event.propertyName.startsWith("border") && !el.hasAttribute("data-lifted") && footer) {
+        footer.style.visibility = "hidden";
+      }
+    };
+    el.addEventListener("transitionend", onCornersSettled);
+
     // Late webfonts change line breaks, and with them every trigger position.
     let cancelled = false;
     void fontsReady().then(() => { if (!cancelled) ScrollTrigger.refresh(); });
 
     return () => {
       cancelled = true;
+      el.removeEventListener("transitionend", onCornersSettled);
       context.revert();
-      if (nav) nav.style.transform = "";
+      el.removeAttribute("data-lifted");
       if (footer) footer.style.visibility = "";
     };
   }, []);

@@ -44,7 +44,6 @@ export default function IntroExperience() {
     const services = container.querySelector<HTMLElement>("[data-services]")!;
     const work = container.querySelector<HTMLElement>("[data-featured-work]")!;
     const footer = container.querySelector<HTMLElement>("[data-site-footer]")!;
-    const nav = container.querySelector<HTMLElement>("[data-hero-nav]")!;
     const start = container.querySelector<HTMLElement>("[data-media-start]")!;
     const end = container.querySelector<HTMLElement>("[data-media-end]")!;
     const video = container.querySelector<HTMLVideoElement>("[data-fluid-video]")!;
@@ -54,6 +53,15 @@ export default function IntroExperience() {
     const reduced = prefersReducedMotion();
     const coarse = isCoarsePointer();
     const loading = new AbortController();
+    // The lift only toggles the radius; the transition animates it in and out.
+    canvas.style.transition = "border-radius 1.0s cubic-bezier(0.16, 1, 0.3, 1)";
+    // True from the first pixel of lift until the corners have flattened again,
+    // so the footer stays behind them for the whole way back.
+    let cornersOut = false;
+    const onCornersSettled = (event: TransitionEvent) => {
+      if (event.propertyName.startsWith("border") && canvas.style.borderRadius === "0px") cornersOut = false;
+    };
+    canvas.addEventListener("transitionend", onCornersSettled);
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
@@ -220,17 +228,18 @@ export default function IntroExperience() {
         const departure = -workDeparture;
         canvas.style.transform = `translate3d(0, ${departure}px, 0)`;
         canvas.style.borderRadius = `0 0 ${radius}px ${radius}px`;
-        nav.style.transform = `translate3d(0, ${departure}px, 0)`;
         canvasLayer.style.zIndex = "2";
         canvasLayer.style.pointerEvents = "none";
         footer.style.visibility = "visible";
+        cornersOut = true;
       } else {
         canvas.style.transform = "none";
-        canvas.style.borderRadius = "0";
-        nav.style.transform = "none";
-        canvasLayer.style.zIndex = "0";
-        canvasLayer.style.pointerEvents = "";
-        footer.style.visibility = "hidden";
+        canvas.style.borderRadius = "0px";
+        if (!cornersOut) {
+          canvasLayer.style.zIndex = "0";
+          canvasLayer.style.pointerEvents = "";
+          footer.style.visibility = "hidden";
+        }
       }
       // On the way back, keep Work alive underneath the descending blue wipe
       // until the handoff jumps to Services; otherwise the canvas flashes blank.
@@ -359,7 +368,8 @@ export default function IntroExperience() {
       video.style.opacity = "";
       canvas.style.transform = "";
       canvas.style.borderRadius = "";
-      nav.style.transform = "";
+      canvas.style.transition = "";
+      canvas.removeEventListener("transitionend", onCornersSettled);
       canvasLayer.style.zIndex = "";
       canvasLayer.style.pointerEvents = "";
       footer.style.visibility = "";

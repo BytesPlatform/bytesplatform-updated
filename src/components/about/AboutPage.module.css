@@ -4,8 +4,13 @@
   z-index: 1;
   overflow: clip;
   padding-bottom: clamp(5rem, 10vw, 9rem);
-  border-radius: 0 0 clamp(28px, 3.5vw, 64px) clamp(28px, 3.5vw, 64px);
+  border-radius: 0;
+  transition: border-radius 1.0s var(--ease-out-expo);
   background: var(--bp-bg);
+}
+
+.page[data-lifted] {
+  border-radius: 0 0 clamp(28px, 3.5vw, 64px) clamp(28px, 3.5vw, 64px);
 }
 
 /* ---------------------------------------------------------------- words */
