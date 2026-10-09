@@ -1,0 +1,350 @@
+/* Same paper panel as the other pages: it lifts above the fixed footer and rounds its corners. */
+.page {
+  position: relative;
+  z-index: 1;
+  overflow: clip;
+  padding-bottom: clamp(5rem, 10vw, 9rem);
+  border-radius: 0;
+  transition: border-radius 1s var(--ease-out-expo);
+  background: var(--bp-bg);
+}
+
+.page[data-lifted] {
+  border-radius: 0 0 clamp(28px, 3.5vw, 64px) clamp(28px, 3.5vw, 64px);
+}
+
+/* Set while the dark chapter sits under the fixed nav. */
+:global([data-hero-nav][data-tone="dark"]) :global(.hero-mark) { color: var(--color-paper); }
+
+/* ---------------------------------------------------------------- words */
+.wordSlot {
+  display: inline-block;
+  overflow: clip;
+  overflow-clip-margin: 0.04em;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+  vertical-align: top;
+}
+
+.word {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* A word that rises into place each time it changes. */
+@keyframes word-in {
+  from { opacity: 0; transform: translateY(40%); filter: blur(8px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* ----------------------------------------------------------------- hero */
+.hero {
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: clamp(2.5rem, 6vh, 4.5rem);
+  padding: calc(var(--bp-gut) + 5.5rem) var(--bp-gut) var(--bp-gut);
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(3.2rem, 11vw, 13rem);
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.06em;
+}
+
+.heroFoot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.heroIntro {
+  max-width: 36rem;
+  font-size: clamp(1rem, 1.35vw, 1.3rem);
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+}
+
+/* -------------------------------------------------------------- chapter */
+/* Full bleed; the clip-path tween starts it as an inset card and opens it to the edges. */
+.chapter {
+  margin-top: clamp(4rem, 8vw, 7rem);
+  background: #1a1a1a;
+  color: var(--color-paper);
+}
+
+.chapterHead,
+.chapterInner {
+  max-width: 1800px;
+  margin-inline: auto;
+  padding-inline: var(--bp-gut);
+}
+
+.chapterHead {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  gap: clamp(2rem, 6vw, 7rem);
+  padding-top: clamp(7rem, 14vw, 11rem);
+  padding-bottom: clamp(2rem, 5vw, 4rem);
+  border-bottom: 1px solid rgb(240 241 250 / 0.14);
+}
+
+.chapterTitle {
+  margin: 0;
+  font-size: clamp(2.75rem, 7vw, 7.5rem);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.065em;
+}
+
+.chapterIntro {
+  max-width: 30rem;
+  color: rgb(240 241 250 / 0.66);
+  font-size: clamp(1rem, 1.25vw, 1.2rem);
+  line-height: 1.5;
+}
+
+.chapterInner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2rem, 6vw, 7rem);
+}
+
+.aside { position: relative; }
+
+/* Ring and sector pills share one centre line, held in the middle of the screen. */
+.asideSticky {
+  position: sticky;
+  top: 0;
+  display: flex;
+  height: 100svh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2rem, 5vh, 3rem);
+}
+
+.ring {
+  position: relative;
+  display: grid;
+  width: min(100%, 24rem);
+  aspect-ratio: 1;
+  place-items: center;
+}
+
+.ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ringTrackDark {
+  fill: none;
+  stroke: rgb(240 241 250 / 0.12);
+  stroke-width: 1;
+}
+
+.ringArc {
+  fill: none;
+  stroke: var(--bp-accent);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+}
+
+.ringCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+.ringIndex {
+  color: rgb(240 241 250 / 0.5);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+
+.ringWord {
+  font-size: clamp(1.75rem, 3vw, 3rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  animation: word-in 600ms var(--ease-out-expo) both;
+}
+
+.index {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  max-width: 26rem;
+}
+
+.index button {
+  padding: 0.45rem 0.85rem;
+  border: 1px solid rgb(240 241 250 / 0.14);
+  border-radius: 999px;
+  background: none;
+  color: rgb(240 241 250 / 0.5);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 300ms ease, border-color 300ms ease, background-color 300ms ease;
+}
+
+.index button:hover { color: var(--color-paper); border-color: rgb(240 241 250 / 0.4); }
+
+.index button[data-active="true"] {
+  border-color: var(--bp-accent);
+  background: var(--bp-accent);
+  color: var(--color-paper);
+}
+
+/* -------------------------------------------------------------- sectors */
+.sector {
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 4rem 0;
+  opacity: 0.25;
+  transition: opacity 600ms ease;
+}
+
+.sector[data-active="true"] { opacity: 1; }
+
+.sectorName {
+  font-size: clamp(2rem, 3.6vw, 3.75rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.sectorIntro {
+  max-width: 32rem;
+  font-size: clamp(1.05rem, 1.4vw, 1.35rem);
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.points { margin-top: 0.5rem; }
+
+.points li {
+  padding: 0.85rem 0;
+  border-top: 1px solid rgb(240 241 250 / 0.1);
+  color: rgb(240 241 250 / 0.66);
+  line-height: 1.5;
+}
+
+.points li:last-child { border-bottom: 1px solid rgb(240 241 250 / 0.1); }
+
+.fit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.fitLabel {
+  margin-right: 0.5rem;
+  color: rgb(240 241 250 / 0.5);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.fitLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid rgb(240 241 250 / 0.22);
+  border-radius: 999px;
+  color: var(--color-paper);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 350ms ease, border-color 350ms ease;
+}
+
+.fitLink:hover,
+.fitLink:focus-visible {
+  border-color: var(--bp-accent);
+  background: var(--bp-accent);
+}
+
+.fitLink span { transition: transform 450ms var(--ease-out-expo); }
+.fitLink:hover span { transform: translate(0.15rem, -0.15rem); }
+
+/* ------------------------------------------------------------------ cta */
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  padding: clamp(7rem, 14vw, 13rem) var(--bp-gut) 0;
+  text-align: center;
+}
+
+.ctaTitle {
+  max-width: 14ch;
+  margin: 0;
+  font-size: clamp(2.8rem, 8vw, 9rem);
+  font-weight: 500;
+  line-height: 0.92;
+  letter-spacing: -0.07em;
+}
+
+.body {
+  max-width: 34rem;
+  color: var(--color-ink-mute);
+  font-size: clamp(0.98rem, 1.15vw, 1.12rem);
+  line-height: 1.6;
+}
+
+/* ---------------------------------------------------------- responsive */
+@media (max-width: 899px) {
+  .heroFoot { flex-direction: column; align-items: flex-start; }
+
+  .chapterHead { grid-template-columns: 1fr; gap: 1.25rem; }
+  .chapterInner { grid-template-columns: 1fr; gap: 0; }
+  /* The ring shrinks to a sticky strip at the top of the panel. */
+  .asideSticky {
+    z-index: 2;
+    top: 0;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    justify-content: flex-start;
+    margin-inline: calc(-1 * var(--bp-gut));
+    padding: 6.5rem var(--bp-gut) 2.5rem;
+    background: linear-gradient(#1a1a1a calc(100% - 2rem), rgb(26 26 26 / 0));
+  }
+  .aside { position: sticky; top: 0; z-index: 2; height: 0; }
+  .ring { width: 4.5rem; }
+  .ringIndex { display: none; }
+  .ringWord { font-size: 0.8rem; letter-spacing: -0.02em; }
+  .index { display: none; }
+  .sectors { padding-top: 9rem; }
+  .sector { min-height: 0; padding: 3rem 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ringWord { animation: none; }
+  .sector { opacity: 1; }
+}

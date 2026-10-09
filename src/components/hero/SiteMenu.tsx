@@ -12,6 +12,9 @@ const links = (onHome: boolean) => [
   { label: "About", href: "/about" },
 ];
 
+/** Plain rows listed after the accordion groups. */
+const trailingLinks = [{ label: "Industries", href: "/industries" }];
+
 /** Rows that open an accordion of sub-pages instead of navigating. */
 const groups = [
   { key: "services", label: "Services", base: "/services/", items: serviceLinks },
@@ -181,6 +184,22 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
                 </Fragment>
               );
             })}
+            {trailingLinks.map((link, index) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className={styles.link}
+                aria-current={pathname === link.href ? "page" : undefined}
+                tabIndex={open ? 0 : -1}
+                style={{ "--item-index": links(onHome).length + groups.length + index } as React.CSSProperties}
+                onClick={onClose}
+              >
+                <RollText text={link.label} />
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M2.343 8h11.314m0 0-4.984 4.984M13.657 8 8.673 3.016" />
+                </svg>
+              </a>
+            ))}
           </nav>
 
           <div className={styles.bottom}>
