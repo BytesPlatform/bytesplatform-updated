@@ -21,8 +21,8 @@ export const site = {
   links: {
     careers: "/careers",
     blog: "/blogs",
-    privacy: "https://bytesplatform.com/privacy-policy",
-    terms: "https://bytesplatform.com/terms-conditions",
-    refund: "https://bytesplatform.com/refund-policy",
+    privacy: "/privacy-policy",
+    terms: "/terms-conditions",
+    refund: "/refund-policy",
   },
 } as const;

@@ -32,7 +32,7 @@ export default function SiteFooter() {
 
       <div className={styles.legal}>
         <p>© 2026 {site.legalName}</p>
-        <nav className={styles.policyLinks} aria-label="Policies"><a href={site.links.privacy}>Privacy</a><a href={site.links.terms}>Terms</a><a href={site.links.refund}>Refund policy</a></nav>
+        <nav className={styles.policyLinks} aria-label="Policies"><a href={site.links.privacy}>Privacy Policy</a><a href={site.links.terms}>Terms &amp; Conditions</a><a href={site.links.refund}>Refund Policy</a></nav>
         <a href="#top" aria-label="Back to top">↑</a>
       </div>
     </footer>
