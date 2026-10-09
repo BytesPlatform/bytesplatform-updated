@@ -290,14 +290,6 @@ export default function ServicePage({ content, related, indexed = false }: { con
           <div data-reveal>
             <ActionPill href="#contact" label={action} />
           </div>
-          <nav data-reveal aria-label={related.label} className={styles.others}>
-            {related.links.map((link) => (
-              <a key={link.href} href={link.href} className="hero-pill">
-                <span className="hero-dot" aria-hidden />
-                {link.label}
-              </a>
-            ))}
-          </nav>
         </section>
       </div>
 
