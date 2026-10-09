@@ -186,6 +186,18 @@
 
 .policyLinks { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
 .policyLinks a { color: inherit; text-decoration: none; }
+/* The policy being viewed: brighter, dotted, and plain text (see CurrentLink). */
+.policyLinks [aria-current="page"] { color: #f0f1fa; }
+.policyLinks [aria-current="page"]::before {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-right: 0.45rem;
+  border-radius: 50%;
+  background: #2457ff;
+  content: "";
+  vertical-align: middle;
+}
 
 .legal > a {
   display: grid;

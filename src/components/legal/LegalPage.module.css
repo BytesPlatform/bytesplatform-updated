@@ -123,7 +123,8 @@
 
 .siblings .label { margin-bottom: 0.5rem; }
 
-.siblings a {
+.siblings > a,
+.siblings > span {
   color: var(--color-ink-mute);
   font-size: 0.95rem;
   text-decoration: none;
@@ -131,9 +132,9 @@
 }
 
 .siblings a:hover,
-.siblings a[aria-current="page"] { color: var(--bp-text); }
+.siblings [aria-current="page"] { color: var(--bp-text); }
 
-.siblings a[aria-current="page"]::after {
+.siblings [aria-current="page"]::after {
   display: inline-block;
   width: 5px;
   height: 5px;

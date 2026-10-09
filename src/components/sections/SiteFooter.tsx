@@ -1,4 +1,5 @@
 import { site } from "@/data/site";
+import CurrentLink from "@/components/ui/CurrentLink";
 import styles from "./SiteFooter.module.css";
 
 export default function SiteFooter() {
@@ -32,7 +33,7 @@ export default function SiteFooter() {
 
       <div className={styles.legal}>
         <p>© 2026 {site.legalName}</p>
-        <nav className={styles.policyLinks} aria-label="Policies"><a href={site.links.privacy}>Privacy Policy</a><a href={site.links.terms}>Terms &amp; Conditions</a><a href={site.links.refund}>Refund Policy</a></nav>
+        <nav className={styles.policyLinks} aria-label="Policies"><CurrentLink href={site.links.privacy}>Privacy Policy</CurrentLink><CurrentLink href={site.links.terms}>Terms &amp; Conditions</CurrentLink><CurrentLink href={site.links.refund}>Refund Policy</CurrentLink></nav>
         <a href="#top" aria-label="Back to top">↑</a>
       </div>
     </footer>

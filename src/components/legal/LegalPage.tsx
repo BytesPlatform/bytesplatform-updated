@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroNav from "@/components/hero/HeroNav";
 import SiteFooter from "@/components/sections/SiteFooter";
+import CurrentLink from "@/components/ui/CurrentLink";
 import { fontsReady, isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
 import { jumpTo, mountScroll } from "@/lib/animation/scroll";
 import { mountFooterLift } from "@/lib/animation/footerLift";
@@ -34,10 +35,9 @@ function Words({ text }: { text: string }) {
 }
 
 /** Shared frame for the legal pages; the policy text itself is passed in untouched. */
-export default function LegalPage({ title, subtitle, current, children }: {
+export default function LegalPage({ title, subtitle, children }: {
   title: string;
   subtitle: string;
-  current: (typeof legalPages)[number]["href"];
   children: ReactNode;
 }) {
   const root = useRef<HTMLDivElement>(null);
@@ -126,7 +126,7 @@ export default function LegalPage({ title, subtitle, current, children }: {
               <nav aria-label="Legal pages" className={styles.siblings}>
                 <p className={styles.label}>Policies</p>
                 {legalPages.map((page) => (
-                  <a key={page.href} href={page.href} aria-current={page.href === current ? "page" : undefined}>{page.label}</a>
+                  <CurrentLink key={page.href} href={page.href}>{page.label}</CurrentLink>
                 ))}
               </nav>
             </div>

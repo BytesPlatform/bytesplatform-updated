@@ -1,24 +1,27 @@
 "use client";
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import styles from "./SiteMenu.module.css";
 import { site } from "@/data/site";
 import { serviceLinks } from "@/data/services";
 import { productLinks } from "@/data/products";
+import CurrentLink from "@/components/ui/CurrentLink";
 
 // Plain anchors on purpose: the home page's scroll scenes are built for a fresh load.
-const links = (onHome: boolean) => [
-  { label: "Home", href: onHome ? "#top" : "/" },
+// Each row renders through CurrentLink, so the page being viewed shows as active text.
+const links = [
+  { label: "Home", href: "/" },
   { label: "About", href: "/about" },
 ];
 
-/** Plain rows listed after the accordion groups. */
+/** Plain rows listed after the groups. */
 const trailingLinks = [
   { label: "Industries", href: "/industries" },
+  { label: "E-Invoicing", href: "/e-invoicing" },
   { label: "Contact Us", href: "/contact" }
 ];
 
-/** Rows that open an accordion of sub-pages instead of navigating. */
+/** Rows that slide in a sub-list of pages instead of navigating. */
 const groups = [
   { key: "services", label: "Services", base: "/services/", items: serviceLinks },
   { key: "products", label: "Products", base: "/products/", items: productLinks },
@@ -63,16 +66,29 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
   const panelRef = useRef<HTMLDivElement>(null);
   const hasOpened = useRef(false);
   const pathname = usePathname();
-  const onHome = pathname === "/";
-  // The group holding the current page starts open, so that page is in view.
+  // The group holding the current page; its row carries the section dot.
   const currentGroup = groups.find((group) => pathname.startsWith(group.base))?.key ?? null;
-  // One group open at a time.
-  const [openGroup, setOpenGroup] = useState<GroupKey | null>(currentGroup);
-  // Collapse again once the menu closes; an expanded toggle left in the nav
+  // The sub-list on screen, if any. The menu always opens on the main list.
+  const [openGroup, setOpenGroup] = useState<GroupKey | null>(null);
+  // Back to the main list once the menu closes; an expanded toggle left in the nav
   // would read as an open menu to the case-study viewer's Escape handling.
   useEffect(() => {
-    if (!open) setOpenGroup(currentGroup);
-  }, [open, currentGroup]);
+    if (!open) setOpenGroup(null);
+  }, [open]);
+
+  // Keyboard focus follows the slide: into the sub-list's back button, and back
+  // to the group row it came from.
+  const groupButtons = useRef<Partial<Record<GroupKey, HTMLButtonElement | null>>>({});
+  const backButtons = useRef<Partial<Record<GroupKey, HTMLButtonElement | null>>>({});
+  const openSub = (key: GroupKey) => {
+    setOpenGroup(key);
+    requestAnimationFrame(() => backButtons.current[key]?.focus({ preventScroll: true }));
+  };
+  const closeSub = () => {
+    const from = openGroup;
+    setOpenGroup(null);
+    if (from) requestAnimationFrame(() => groupButtons.current[from]?.focus({ preventScroll: true }));
+  };
 
   useLayoutEffect(() => {
     const panel = panelRef.current;
@@ -130,85 +146,113 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
         aria-hidden={!open}
       >
         <aside id="site-menu" className={styles.panel} aria-label="Site menu">
-          <div className={styles.heading}>Navigation</div>
-          <nav aria-label="Site navigation" className={styles.links}>
-            {links(onHome).map((link, index) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className={styles.link}
-                tabIndex={open ? 0 : -1}
-                style={{ "--item-index": index } as React.CSSProperties}
-                onClick={onClose}
-              >
-                <RollText text={link.label} />
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M2.343 8h11.314m0 0-4.984 4.984M13.657 8 8.673 3.016" />
-                </svg>
-              </a>
-            ))}
-            {groups.map((group, groupIndex) => {
-              const expanded = openGroup === group.key;
-              return (
-                <Fragment key={group.key}>
-                  <button
-                    type="button"
+          {/* Two layers in one frame: the main list, and a sub-list per group parked
+              off to the right. Opening a group slides the main list halfway out to the
+              left while the sub-list slides in over a longer duration, for a parallax feel. */}
+          <div className={styles.views} data-group={openGroup ?? undefined}>
+            <div className={styles.mainView} inert={openGroup !== null}>
+              <div className={styles.heading}>Navigation</div>
+              <nav aria-label="Site navigation" className={styles.links}>
+                {links.map((link, index) => (
+                  <CurrentLink
+                    key={link.href}
+                    href={link.href}
                     className={styles.link}
-                    aria-expanded={expanded}
+                    tabIndex={open ? 0 : -1}
+                    style={{ "--item-index": index } as React.CSSProperties}
+                    onClick={onClose}
+                  >
+                    <RollText text={link.label} />
+                    <svg viewBox="0 0 16 16" aria-hidden="true">
+                      <path d="M3.2 12.8 12.8 3.2m0 0H5.4m7.4 0v7.4" />
+                    </svg>
+                  </CurrentLink>
+                ))}
+                {groups.map((group, groupIndex) => (
+                  <button
+                    key={group.key}
+                    ref={(node) => { groupButtons.current[group.key] = node; }}
+                    type="button"
+                    className={`${styles.link} ${styles.groupLink}`}
+                    data-section-current={currentGroup === group.key || undefined}
+                    aria-expanded={openGroup === group.key}
                     aria-controls={`site-menu-${group.key}`}
                     tabIndex={open ? 0 : -1}
-                    style={{ "--item-index": links(onHome).length + groupIndex } as React.CSSProperties}
-                    onClick={() => setOpenGroup(expanded ? null : group.key)}
+                    style={{ "--item-index": links.length + groupIndex } as React.CSSProperties}
+                    onClick={() => openSub(group.key)}
                   >
                     <RollText text={group.label} />
                     <svg viewBox="0 0 16 16" aria-hidden="true">
                       <path d="M2.343 8h11.314m0 0-4.984 4.984M13.657 8 8.673 3.016" />
                     </svg>
                   </button>
-                  <div id={`site-menu-${group.key}`} className={styles.sub} data-expanded={expanded}>
-                    <div className={styles.subInner}>
-                      {group.items.map((item, index) => {
-                        const href = `${group.base}${item.slug}`;
-                        return (
-                          <a
-                            key={item.slug}
-                            href={href}
-                            aria-current={pathname === href ? "page" : undefined}
-                            tabIndex={open && expanded ? 0 : -1}
-                            style={{ "--sub-index": index } as React.CSSProperties}
-                            onClick={onClose}
-                          >
-                            {item.label}
-                          </a>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </Fragment>
+                ))}
+                {trailingLinks.map((link, index) => (
+                  <CurrentLink
+                    key={link.label}
+                    href={link.href}
+                    className={styles.link}
+                    tabIndex={open ? 0 : -1}
+                    style={{ "--item-index": links.length + groups.length + index } as React.CSSProperties}
+                    onClick={onClose}
+                  >
+                    <RollText text={link.label} />
+                    <svg viewBox="0 0 16 16" aria-hidden="true">
+                      <path d="M3.2 12.8 12.8 3.2m0 0H5.4m7.4 0v7.4" />
+                    </svg>
+                  </CurrentLink>
+                ))}
+              </nav>
+            </div>
+
+            {groups.map((group) => {
+              const active = openGroup === group.key;
+              return (
+                <div
+                  key={group.key}
+                  id={`site-menu-${group.key}`}
+                  className={styles.subView}
+                  data-active={active}
+                  inert={!active}
+                >
+                  <button
+                    ref={(node) => { backButtons.current[group.key] = node; }}
+                    type="button"
+                    className={`${styles.heading} ${styles.back}`}
+                    tabIndex={open && active ? 0 : -1}
+                    onClick={closeSub}
+                  >
+                    <svg viewBox="0 0 16 16" aria-hidden="true">
+                      <path d="M13.657 8H2.343m0 0 4.984 4.984M2.343 8l4.984-4.984" />
+                    </svg>
+                    {group.label}
+                  </button>
+                  <nav aria-label={group.label} className={styles.links}>
+                    {group.items.map((item, index) => (
+                      <CurrentLink
+                        key={item.slug}
+                        href={`${group.base}${item.slug}`}
+                        className={`${styles.link} ${styles.subLink}`}
+                        tabIndex={open && active ? 0 : -1}
+                        style={{ "--sub-index": index } as React.CSSProperties}
+                        onClick={onClose}
+                      >
+                        <RollText text={item.label} />
+                        <svg viewBox="0 0 16 16" aria-hidden="true">
+                          <path d="M3.2 12.8 12.8 3.2m0 0H5.4m7.4 0v7.4" />
+                        </svg>
+                      </CurrentLink>
+                    ))}
+                  </nav>
+                </div>
               );
             })}
-            {trailingLinks.map((link, index) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className={styles.link}
-                aria-current={pathname === link.href ? "page" : undefined}
-                tabIndex={open ? 0 : -1}
-                style={{ "--item-index": links(onHome).length + groups.length + index } as React.CSSProperties}
-                onClick={onClose}
-              >
-                <RollText text={link.label} />
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M2.343 8h11.314m0 0-4.984 4.984M13.657 8 8.673 3.016" />
-                </svg>
-              </a>
-            ))}
-          </nav>
+          </div>
 
           <div className={styles.bottom}>
             <div className={styles.utilityLinks}>
-              <a href={site.links.careers} tabIndex={open ? 0 : -1}><RollText text="Careers" /></a>
-              <a href={site.links.blog} tabIndex={open ? 0 : -1}><RollText text="Blogs" /></a>
+              <CurrentLink href={site.links.careers} tabIndex={open ? 0 : -1}><RollText text="Careers" /></CurrentLink>
+              <CurrentLink href={site.links.blog} tabIndex={open ? 0 : -1}><RollText text="Blogs" /></CurrentLink>
               {/* <a href={site.links.careers} tabIndex={open ? 0 : -1}><RollText text="Contact Us" /></a> */}
             </div>
             <div className={styles.socials}>

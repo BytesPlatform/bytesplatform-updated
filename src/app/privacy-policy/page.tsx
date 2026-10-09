@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <LegalPage title="Privacy Policy" subtitle={subtitle} current="/privacy-policy">
+    <LegalPage title="Privacy Policy" subtitle={subtitle}>
       <PrivacyContent />
     </LegalPage>
   );

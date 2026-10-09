@@ -46,7 +46,8 @@
   min-height: 100%;
   box-sizing: border-box;
   flex-direction: column;
-  padding: clamp(4.75rem, 7vw, 5.5rem) clamp(1.5rem, 3vw, 2.25rem) clamp(1.5rem, 3vw, 2.25rem);
+  --pad-x: clamp(1.5rem, 3vw, 2.25rem);
+  padding: clamp(4.75rem, 7vw, 5.5rem) var(--pad-x) clamp(1.5rem, 3vw, 2.25rem);
   color: #111111;
 }
 
@@ -121,7 +122,7 @@
 }
 
 .link:focus-visible,
-.utilityLinks a:focus-visible,
+.utilityLinks > *:focus-visible,
 .socials a:focus-visible {
   outline: none;
 }
@@ -157,8 +158,8 @@
 
 .link:hover .rollLetters > span > span,
 .link:focus-visible .rollLetters > span > span,
-.utilityLinks a:hover .rollLetters > span > span,
-.utilityLinks a:focus-visible .rollLetters > span > span {
+.utilityLinks > *:hover .rollLetters > span > span,
+.utilityLinks > *:focus-visible .rollLetters > span > span {
   transform: translateY(-100%);
 }
 
@@ -171,7 +172,8 @@
   stroke-linejoin: round;
   stroke-width: 1.5;
   opacity: 0;
-  transform: translateX(-0.5rem);
+  /* Page links point up-right, so their arrow eases in along that diagonal. */
+  transform: translate(-0.4rem, 0.4rem);
   transition: opacity 260ms ease, transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -201,7 +203,7 @@
 }
 
 /* Utility pills: a fill rises from below while the label rolls over to white. */
-.utilityLinks a {
+.utilityLinks > * {
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -216,7 +218,7 @@
   transition: color 300ms ease 60ms, border-color 300ms ease;
 }
 
-.utilityLinks a::before {
+.utilityLinks > *::before {
   position: absolute;
   z-index: -1;
   inset: 0;
@@ -227,14 +229,14 @@
   transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.utilityLinks a:hover,
-.utilityLinks a:focus-visible {
+.utilityLinks > *:hover,
+.utilityLinks > *:focus-visible {
   border-color: #152fff;
   color: #ffffff;
 }
 
-.utilityLinks a:hover::before,
-.utilityLinks a:focus-visible::before {
+.utilityLinks > *:hover::before,
+.utilityLinks > *:focus-visible::before {
   transform: none;
 }
 
@@ -315,7 +317,7 @@
     gap: 0.3rem;
   }
 
-  .utilityLinks a {
+  .utilityLinks > * {
     padding-inline: 0.5rem;
   }
 
@@ -334,86 +336,141 @@
   .link,
   .link svg,
   .rollLetters > span > span,
-  .utilityLinks a::before,
+  .utilityLinks > *::before,
   .socials a::before { transition: none; }
 
   .socials a:hover svg,
   .socials a:focus-visible svg { animation: none; }
 }
 
-/* ---- Services sub-menu: an accordion under its row ---- */
-.link[aria-expanded] svg {
-  opacity: 1;
-  transform: rotate(90deg);
-  transition: transform 520ms cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-.link[aria-expanded="true"] svg { transform: rotate(-90deg); }
-.link[aria-expanded="true"] { color: var(--bp-accent); }
-
-.sub {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 560ms cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-.sub[data-expanded="true"] { grid-template-rows: 1fr; }
-
-.subInner {
-  display: flex;
+/* ---- Groups: a sub-list slides over the main list ----
+   Two speeds give the push a parallax feel: the main list leaves fast and only
+   halfway, the sub-list arrives slower from fully outside the card. */
+.views {
+  position: relative;
+  flex: 1 1 auto;
   min-height: 0;
-  flex-direction: column;
-  overflow: hidden;
-  padding-left: 0.85rem;
+  --push-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.subInner a {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  width: fit-content;
-  padding: 0.38rem 0;
-  color: rgb(17 17 17 / 0.56);
-  font-size: clamp(1.05rem, 1.35vw, 1.25rem);
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  text-decoration: none;
+.mainView {
+  transition:
+    transform 480ms var(--push-ease),
+    opacity 480ms ease;
+}
+
+/* Fades out fully: the card is slightly see-through, so anything left at
+   partial opacity would ghost through the sub-list. */
+.views[data-group] .mainView {
   opacity: 0;
-  transform: translateY(-0.4rem);
-  transition: color 280ms ease, opacity 300ms ease, transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(-50%);
 }
 
-.subInner a:first-child { padding-top: 0.6rem; }
-.subInner a:last-child { padding-bottom: 0.9rem; }
+.subView {
+  position: absolute;
+  /* Edge to edge of the card (contents stay on the padding line), so no
+     sliver of the main list shows beside it once it has arrived. */
+  inset: 0 calc(-1 * var(--pad-x));
+  padding-inline: var(--pad-x);
+  /* The card's own fill, so it covers the main list as it slides over it
+     without a visible seam. */
+  background: rgb(248 248 250 / 0.97);
+  box-shadow: -1.5rem 0 2.5rem -1.5rem rgb(19 20 26 / 0.12);
+  transform: translateX(calc(100% + 3rem));
+  transition: transform 860ms var(--push-ease);
+}
 
-.sub[data-expanded="true"] .subInner a {
-  opacity: 1;
+.subView[data-active="true"] { transform: none; }
+
+/* The back control sits where "Navigation" does, in the same small caps. */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 280ms ease, opacity 240ms ease;
+}
+
+.back svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+  transition: transform 420ms var(--push-ease);
+}
+
+.back:hover,
+.back:focus-visible { color: #111111; outline: none; }
+.back:hover svg,
+.back:focus-visible svg { transform: translateX(-0.25rem); }
+
+/* Group rows always show a right arrow: they lead somewhere, not to a page. */
+.groupLink svg { opacity: 1; transform: none; }
+.groupLink:hover svg,
+.groupLink:focus-visible svg { transform: translateX(0.25rem); }
+
+/* Sub rows: the big row style, a size down for longer labels, trailing the
+   panel's slide one after another. */
+.subLink { font-size: clamp(1.6rem, 2.4vw, 2.3rem); }
+
+.panelShell[data-open="true"] .subView .subLink {
+  transform: translateX(2.5rem);
+  transition-delay: 0s;
+}
+
+.panelShell[data-open="true"] .subView[data-active="true"] .subLink {
   transform: none;
-  transition-delay: calc(140ms + var(--sub-index) * 40ms);
+  transition-duration: 280ms, 280ms, 420ms, 900ms;
+  transition-delay: calc(80ms + var(--sub-index) * 50ms);
 }
 
-.subInner a::before {
-  width: 5px;
-  height: 5px;
+.panelShell[data-open="true"] .subView[data-active="true"] .subLink:hover {
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mainView,
+  .subView,
+  .subLink,
+  .back svg { transition: none !important; }
+}
+
+/* ---- Current page: shown, never re-openable (CurrentLink renders it as text) ---- */
+.link[aria-current="page"],
+.utilityLinks > [aria-current="page"] { cursor: default; }
+
+.link[aria-current="page"] { color: var(--bp-accent); }
+.link[aria-current="page"]:hover { background: none; }
+.link[aria-current="page"] svg { display: none; }
+.link[aria-current="page"] .rollLetters > span > span { transform: none; }
+
+/* A dot after the label marks the current page, or the group that holds it. */
+.link[aria-current="page"] .roll::after,
+.link[data-section-current] .roll::after {
+  display: inline-block;
+  width: 0.16em;
+  height: 0.16em;
+  margin-left: 0.22em;
   border-radius: 50%;
   background: var(--bp-accent);
   content: "";
-  transform: scale(0);
-  transition: transform 360ms cubic-bezier(0.16, 1, 0.3, 1);
+  vertical-align: 0.12em;
 }
 
-.subInner a:hover,
-.subInner a:focus-visible,
-.subInner a[aria-current="page"] { color: #111111; transition-delay: 0s; }
-
-.subInner a:hover::before,
-.subInner a:focus-visible::before,
-.subInner a[aria-current="page"]::before { transform: none; }
-
-.subInner a:focus-visible { outline: none; }
-
-@media (prefers-reduced-motion: reduce) {
-  .sub,
-  .subInner a,
-  .link[aria-expanded] svg { transition: none; }
+.utilityLinks > [aria-current="page"] {
+  border-color: #152fff;
+  background: #152fff;
+  color: #ffffff;
 }
+
+.utilityLinks > [aria-current="page"] .rollLetters > span > span { transform: none; }
+
+/* In the section but not on its index (a blog post under Blogs): marked, still a link. */
+.utilityLinks > [aria-current="true"] { border-color: #152fff; color: #152fff; }

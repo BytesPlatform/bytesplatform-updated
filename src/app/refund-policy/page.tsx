@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <LegalPage title="Refund Policy" subtitle={subtitle} current="/refund-policy">
+    <LegalPage title="Refund Policy" subtitle={subtitle}>
       <RefundContent />
     </LegalPage>
   );

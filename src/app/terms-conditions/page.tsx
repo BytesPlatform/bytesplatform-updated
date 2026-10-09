@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <LegalPage title="Terms & Conditions" subtitle={subtitle} current="/terms-conditions">
+    <LegalPage title="Terms & Conditions" subtitle={subtitle}>
       <TermsContent />
     </LegalPage>
   );
