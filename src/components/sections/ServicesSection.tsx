@@ -11,7 +11,12 @@ import "./ServicesSection.css";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const SERVICES = ["Web development", "SEO", "App development", "Marketing"] as const;
+const SERVICES = [
+  { label: "Web development", href: "/services/web" },
+  { label: "SEO", href: "/services/seo" },
+  { label: "App development", href: "/services/app" },
+  { label: "Marketing", href: "/services/marketing" },
+] as const;
 
 export default function ServicesSection() {
   const root = useRef<HTMLElement>(null);
@@ -116,10 +121,10 @@ export default function ServicesSection() {
             </div>
 
             {SERVICES.map((service, index) => (
-              <div data-service-card key={service} className={`service-orbit-card service-orbit-card--${index + 1} absolute z-10`}>
+              <div data-service-card key={service.href} className={`service-orbit-card service-orbit-card--${index + 1} absolute z-10`}>
                 <div data-service-float data-service-card-visual className="service-orbit-card__float">
                   <div data-service-surface className="service-orbit-card__surface">
-                    <button type="button" aria-label={service} className="service-orbit-card__body h-full w-full rounded-[1.6rem] bg-transparent focus-visible:outline-2 focus-visible:outline-blue" />
+                    <a href={service.href} aria-label={service.label} className="service-orbit-card__body block h-full w-full rounded-[1.6rem] bg-transparent focus-visible:outline-2 focus-visible:outline-blue" />
                   </div>
                 </div>
               </div>

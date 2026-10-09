@@ -1,8 +1,9 @@
 "use client";
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import styles from "./SiteMenu.module.css";
 import { site } from "@/data/site";
+import { serviceLinks } from "@/data/services";
 
 // Plain anchors on purpose: the home page's scroll scenes are built for a fresh load.
 const links = (onHome: boolean) => [
@@ -46,7 +47,16 @@ type SiteMenuProps = {
 export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenuProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const hasOpened = useRef(false);
-  const onHome = usePathname() === "/";
+  const pathname = usePathname();
+  const onHome = pathname === "/";
+  const onServicePage = pathname.startsWith("/services/");
+  // Open by default on a service page, so the current one is in view.
+  const [servicesOpen, setServicesOpen] = useState(onServicePage);
+  // Collapse again once the menu closes; an expanded toggle left in the nav
+  // would read as an open menu to the case-study viewer's Escape handling.
+  useEffect(() => {
+    if (!open) setServicesOpen(onServicePage);
+  }, [open, onServicePage]);
 
   useLayoutEffect(() => {
     const panel = panelRef.current;
@@ -110,6 +120,7 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
               <a
                 key={link.href}
                 href={link.href}
+                className={styles.link}
                 tabIndex={open ? 0 : -1}
                 style={{ "--item-index": index } as React.CSSProperties}
                 onClick={onClose}
@@ -120,6 +131,39 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
                 </svg>
               </a>
             ))}
+            <button
+              type="button"
+              className={styles.link}
+              aria-expanded={servicesOpen}
+              aria-controls="site-menu-services"
+              tabIndex={open ? 0 : -1}
+              style={{ "--item-index": links(onHome).length } as React.CSSProperties}
+              onClick={() => setServicesOpen((value) => !value)}
+            >
+              <RollText text="Services" />
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M2.343 8h11.314m0 0-4.984 4.984M13.657 8 8.673 3.016" />
+              </svg>
+            </button>
+            <div id="site-menu-services" className={styles.sub} data-expanded={servicesOpen}>
+              <div className={styles.subInner}>
+                {serviceLinks.map((service, index) => {
+                  const href = `/services/${service.slug}`;
+                  return (
+                    <a
+                      key={service.slug}
+                      href={href}
+                      aria-current={pathname === href ? "page" : undefined}
+                      tabIndex={open && servicesOpen ? 0 : -1}
+                      style={{ "--sub-index": index } as React.CSSProperties}
+                      onClick={onClose}
+                    >
+                      {service.label}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
           </nav>
 
           <div className={styles.bottom}>
