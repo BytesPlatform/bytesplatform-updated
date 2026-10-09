@@ -6,7 +6,7 @@ import type { ServiceSlug } from "./services";
  * stats from the old pages left out.
  */
 export type ServiceContent = {
-  slug: ServiceSlug;
+  slug: string;
   meta: { title: string; description: string };
   hero: { title: string[]; intro: string };
   statement: string;
@@ -17,6 +17,10 @@ export type ServiceContent = {
   faqs: { q: string; a: string }[];
   /** The heading is completed with a blue question mark. */
   cta: { heading: string; body: string };
+  /** Label for the hero and closing buttons; defaults to "Start your project". */
+  action?: string;
+  /** Section labels for the indexed layout (dot, label, number above a hairline). */
+  labels?: { statement: string; offer: string; highlights?: string; process?: string; faq: string };
 };
 
 export const serviceContent: Record<ServiceSlug, ServiceContent> = {

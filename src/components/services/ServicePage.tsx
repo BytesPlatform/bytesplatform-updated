@@ -6,7 +6,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroNav from "@/components/hero/HeroNav";
 import ActionPill from "@/components/ui/ActionPill";
 import SiteFooter from "@/components/sections/SiteFooter";
-import { serviceLinks } from "@/data/services";
 import type { ServiceContent } from "@/data/serviceContent";
 import { fontsReady, isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
 import { mountScroll } from "@/lib/animation/scroll";
@@ -33,9 +32,26 @@ function Words({ text, tail }: { text: string; tail?: ReactNode }) {
 
 const period = <span className="hero-period">.</span>;
 
-export default function ServicePage({ content }: { content: ServiceContent }) {
+const pad = (n: number) => String(n).padStart(2, "0");
+
+function SectionLabel({ index, children }: { index: number; children: string }) {
+  return (
+    <div className={styles.sectionLabel}>
+      <span className="hero-dot" aria-hidden />
+      <span className="hero-meta">{children}</span>
+      <span className={`hero-meta ${styles.sectionIndex}`}>{pad(index)}</span>
+    </div>
+  );
+}
+
+type Related = { label: string; links: { href: string; label: string }[] };
+
+/**
+ * Shared by the service and product pages; `related` links to the page's siblings.
+ * `indexed` adds the About page's numbered section labels and rows.
+ */
+export default function ServicePage({ content, related, indexed = false }: { content: ServiceContent; related: Related; indexed?: boolean }) {
   const root = useRef<HTMLDivElement>(null);
-  const others = serviceLinks.filter((service) => service.slug !== content.slug);
 
   useEffect(() => mountScroll({ smooth: !prefersReducedMotion() && !isCoarsePointer() }), []);
 
@@ -121,7 +137,11 @@ export default function ServicePage({ content }: { content: ServiceContent }) {
     };
   }, []);
 
-  const { hero, statement, offer, highlights, process, stack, faqs, cta } = content;
+  const { hero, statement, offer, highlights, process, stack, faqs, cta, labels, action = "Start your project" } = content;
+  // Sections are numbered in the order they render, skipping any a page leaves out.
+  let sectionCount = 0;
+  const label = (text?: string) => (indexed && text ? <SectionLabel index={++sectionCount}>{text}</SectionLabel> : null);
+  const number = (index: number) => (indexed ? <span className={styles.index}>{pad(index + 1)}</span> : null);
 
   return (
     <>
@@ -141,13 +161,14 @@ export default function ServicePage({ content }: { content: ServiceContent }) {
           <div className={styles.heroFoot}>
             <p data-hero-fade className={styles.heroIntro}>{hero.intro}</p>
             <div data-hero-fade>
-              <ActionPill href="#contact" label="Start your project" />
+              <ActionPill href="#contact" label={action} />
             </div>
           </div>
         </section>
 
         {/* ------------------------------------------------------- statement */}
         <section className={styles.section}>
+          {label(labels?.statement)}
           <p data-statement className={styles.statement}>
             {statement.split(" ").map((word, index) => (
               <span key={index}><span data-word>{word}</span>{" "}</span>
@@ -157,13 +178,15 @@ export default function ServicePage({ content }: { content: ServiceContent }) {
 
         {/* ----------------------------------------------------------- offer */}
         <section className={styles.section}>
+          {label(labels?.offer)}
           <div className={styles.sectionHead}>
             <h2 data-lines className={styles.h2}><Words text={offer.heading} /></h2>
             {offer.body && <p data-reveal className={styles.body}>{offer.body}</p>}
           </div>
           <ul className={styles.rows}>
-            {offer.items.map((item) => (
-              <li data-reveal key={item.title} className={styles.row}>
+            {offer.items.map((item, index) => (
+              <li data-reveal key={item.title} className={`${styles.row} ${indexed ? styles.rowIndexed : ""}`}>
+                {number(index)}
                 <h3 className={styles.rowTitle}>{item.title}</h3>
                 <div className={styles.rowText}>
                   <p>{item.body}</p>
@@ -181,6 +204,7 @@ export default function ServicePage({ content }: { content: ServiceContent }) {
         {/* ------------------------------------------------------ highlights */}
         {highlights && (
           <section className={styles.section}>
+            {label(labels?.highlights)}
             <div className={styles.sectionHead}>
               <h2 data-lines className={styles.h2}><Words text={highlights.heading} /></h2>
               {highlights.body && <p data-reveal className={styles.body}>{highlights.body}</p>}
@@ -188,6 +212,7 @@ export default function ServicePage({ content }: { content: ServiceContent }) {
             <div className={styles.cards}>
               {highlights.items.map((item, index) => (
                 <article data-reveal key={item.title} className={`${styles.card} ${index === 0 ? styles.cardAccent : ""}`}>
+                  {indexed && <span className={`${styles.index} ${styles.cardIndex}`}>{pad(index + 1)}</span>}
                   <h3 className={styles.cardTitle}>{item.title}</h3>
                   <p className={styles.cardBody}>{item.body}</p>
                   {item.points && (
@@ -205,13 +230,15 @@ export default function ServicePage({ content }: { content: ServiceContent }) {
         {process && (
           <section className={`${styles.section} ${styles.split}`}>
             <div className={styles.splitAside}>
+              {label(labels?.process)}
               <h2 data-lines className={styles.h2}><Words text={process.heading} /></h2>
               {process.body && <p data-reveal className={styles.body}>{process.body}</p>}
             </div>
             <ol data-steps className={styles.steps}>
               <span data-rail aria-hidden className={styles.rail} />
-              {process.steps.map((step) => (
+              {process.steps.map((step, index) => (
                 <li data-reveal key={step.title} className={styles.step}>
+                  {number(index)}
                   <h3>{step.title}</h3>
                   <p>{step.body}</p>
                 </li>
@@ -238,6 +265,7 @@ export default function ServicePage({ content }: { content: ServiceContent }) {
         {/* ------------------------------------------------------------- faq */}
         <section className={`${styles.section} ${styles.split}`}>
           <div className={styles.splitAside}>
+            {label(labels?.faq)}
             <h2 data-lines className={styles.h2}><Words text="You ask. We answer." /></h2>
           </div>
           <div className={styles.faqs}>
@@ -260,13 +288,13 @@ export default function ServicePage({ content }: { content: ServiceContent }) {
           </h2>
           <p data-reveal className={styles.body}>{cta.body}</p>
           <div data-reveal>
-            <ActionPill href="#contact" label="Start your project" />
+            <ActionPill href="#contact" label={action} />
           </div>
-          <nav data-reveal aria-label="Other services" className={styles.others}>
-            {others.map((service) => (
-              <a key={service.slug} href={`/services/${service.slug}`} className="hero-pill">
+          <nav data-reveal aria-label={related.label} className={styles.others}>
+            {related.links.map((link) => (
+              <a key={link.href} href={link.href} className="hero-pill">
                 <span className="hero-dot" aria-hidden />
-                {service.label}
+                {link.label}
               </a>
             ))}
           </nav>
