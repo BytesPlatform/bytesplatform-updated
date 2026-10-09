@@ -15,7 +15,7 @@ const links = (onHome: boolean) => [
 /** Plain rows listed after the accordion groups. */
 const trailingLinks = [
   { label: "Industries", href: "/industries" },
-  { label: "Contact Us", href: "/industries" }
+  { label: "Contact Us", href: "/contact" }
 ];
 
 /** Rows that open an accordion of sub-pages instead of navigating. */

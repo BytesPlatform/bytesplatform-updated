@@ -1,0 +1,340 @@
+/* Same paper panel as the other pages: it lifts above the fixed footer and rounds its corners. */
+.page {
+  position: relative;
+  z-index: 1;
+  overflow: clip;
+  padding-bottom: clamp(5rem, 10vw, 9rem);
+  border-radius: 0;
+  transition: border-radius 1s var(--ease-out-expo);
+  background: var(--bp-bg);
+}
+
+.page[data-lifted] {
+  border-radius: 0 0 clamp(28px, 3.5vw, 64px) clamp(28px, 3.5vw, 64px);
+}
+
+.wordSlot {
+  display: inline-block;
+  overflow: clip;
+  overflow-clip-margin: 0.04em;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+  vertical-align: top;
+}
+
+.word {
+  display: inline-block;
+  will-change: transform;
+}
+
+.label,
+.fieldLabel {
+  display: block;
+  color: var(--color-ink-mute);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.body {
+  max-width: 30rem;
+  color: var(--color-ink-mute);
+  font-size: clamp(0.98rem, 1.15vw, 1.12rem);
+  line-height: 1.6;
+}
+
+/* ----------------------------------------------------------------- hero */
+.hero {
+  display: flex;
+  min-height: 62svh;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: clamp(1.5rem, 4vh, 2.5rem);
+  padding: calc(var(--bp-gut) + 5.5rem) var(--bp-gut) 0;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(3.4rem, 13vw, 15rem);
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.06em;
+}
+
+.heroIntro {
+  max-width: 36rem;
+  font-size: clamp(1rem, 1.35vw, 1.3rem);
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+}
+
+/* --------------------------------------------------------- form + info */
+.main {
+  display: grid;
+  max-width: 1800px;
+  grid-template-columns: 1fr 1.35fr;
+  align-items: start;
+  gap: clamp(2.5rem, 7vw, 8rem);
+  /* Gutter as margin, not padding, so the rule stops at the content edge like the other pages'. */
+  margin: clamp(3.5rem, 8vw, 7rem) max(var(--bp-gut), (100% - 1800px) / 2) 0;
+  padding-top: clamp(2rem, 4vw, 3rem);
+  border-top: 1px solid var(--bp-hairline);
+}
+
+.info {
+  position: sticky;
+  top: 7.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.75rem, 3.5vw, 2.75rem);
+}
+
+.info .label { margin-bottom: 0.6rem; }
+
+.bigLink {
+  position: relative;
+  display: inline-block;
+  color: inherit;
+  font-size: clamp(1.5rem, 2.6vw, 2.6rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+/* The footer's underline that draws in from the left. */
+.bigLink::after {
+  position: absolute;
+  right: 0;
+  bottom: -0.1em;
+  left: 0;
+  height: 1px;
+  background: currentColor;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 450ms var(--ease-out-expo);
+}
+
+.bigLink:hover::after { transform: scaleX(1); transform-origin: left; }
+
+.address {
+  color: inherit;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  text-decoration: none;
+  transition: color 300ms ease;
+}
+
+.address:hover { color: var(--bp-accent); }
+
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.socials a {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--bp-hairline);
+  border-radius: 999px;
+  color: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease;
+}
+
+.socials a:hover {
+  border-color: var(--bp-accent);
+  background: var(--bp-accent);
+  color: var(--color-paper);
+}
+
+/* ----------------------------------------------------------------- form */
+.formWrap {
+  padding: clamp(1.75rem, 3.5vw, 3rem);
+  border: 1px solid rgb(17 17 17 / 0.06);
+  border-radius: 1.75rem;
+  background: #fff;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.topics {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+}
+
+.chips button {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--bp-hairline);
+  border-radius: 999px;
+  background: none;
+  color: var(--bp-text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease;
+}
+
+.chips button:hover { border-color: rgb(17 17 17 / 0.4); }
+
+.chips button[aria-pressed="true"] {
+  border-color: var(--bp-accent);
+  background: var(--bp-accent);
+  color: var(--color-paper);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* Underlined fields; the line turns blue on focus, red when invalid. */
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 0.55rem 0 0.7rem;
+  border: 0;
+  border-bottom: 1px solid var(--bp-hairline);
+  border-radius: 0;
+  outline: none;
+  background: none;
+  color: var(--bp-text);
+  font: inherit;
+  font-size: clamp(1.1rem, 1.5vw, 1.35rem);
+  letter-spacing: -0.02em;
+  resize: vertical;
+  transition: border-color 300ms ease;
+}
+
+.field textarea { min-height: 7.5rem; line-height: 1.5; }
+
+.field input:focus,
+.field textarea:focus { border-bottom-color: var(--bp-accent); }
+
+.field:focus-within .fieldLabel { color: var(--bp-accent); }
+
+.field[data-invalid="true"] input,
+.field[data-invalid="true"] textarea { border-bottom-color: #d4351c; }
+
+.error {
+  color: #c4281a;
+  font-size: 0.82rem;
+}
+
+.error a { color: inherit; }
+
+.submitRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  padding-top: 0.5rem;
+}
+
+.submitRow :global(.action-pill) { border: 0; font-family: inherit; cursor: pointer; }
+.submitRow :global(.action-pill:disabled) { cursor: progress; opacity: 0.7; }
+
+/* ----------------------------------------------------------------- sent */
+.sent {
+  display: flex;
+  min-height: 26rem;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.sentMark {
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bp-accent);
+  animation: sent-pop 700ms var(--ease-out-expo) both;
+}
+
+.sentMark svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: var(--color-paper);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: sent-draw 500ms 250ms ease forwards;
+}
+
+@keyframes sent-pop {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes sent-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.sentTitle {
+  font-size: clamp(2.2rem, 4.4vw, 4rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.textButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--bp-accent);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.textButton:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+
+/* ---------------------------------------------------------- responsive */
+@media (max-width: 899px) {
+  .main { grid-template-columns: 1fr; }
+  .info { position: static; order: 2; }
+}
+
+@media (max-width: 560px) {
+  .row { grid-template-columns: 1fr; }
+  .formWrap { margin-inline: calc(-0.5 * var(--bp-gut)); padding: 1.5rem 1.25rem; border-radius: 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sentMark,
+  .sentMark svg { animation: none; stroke-dashoffset: 0; }
+}
