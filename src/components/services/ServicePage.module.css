@@ -403,13 +403,6 @@
   letter-spacing: -0.07em;
 }
 
-.others {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: clamp(2rem, 4vw, 3rem);
-}
 
 /* ---------------------------------------------------------- responsive */
 @media (max-width: 767px) {

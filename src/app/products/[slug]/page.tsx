@@ -29,11 +29,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const content = find((await params).slug);
   if (!content) notFound();
-  const related = {
-    label: "Other products",
-    links: productLinks
-      .filter((product) => product.slug !== content.slug)
-      .map((product) => ({ href: `/products/${product.slug}`, label: product.label })),
-  };
-  return <ServicePage content={content} related={related} indexed />;
+  return <ServicePage content={content} indexed />;
 }

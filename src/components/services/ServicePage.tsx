@@ -44,13 +44,11 @@ function SectionLabel({ index, children }: { index: number; children: string }) 
   );
 }
 
-type Related = { label: string; links: { href: string; label: string }[] };
-
 /**
- * Shared by the service and product pages; `related` links to the page's siblings.
+ * Shared by the service and product pages.
  * `indexed` adds the About page's numbered section labels and rows.
  */
-export default function ServicePage({ content, related, indexed = false }: { content: ServiceContent; related: Related; indexed?: boolean }) {
+export default function ServicePage({ content, indexed = false }: { content: ServiceContent; indexed?: boolean }) {
   const root = useRef<HTMLDivElement>(null);
 
   useEffect(() => mountScroll({ smooth: !prefersReducedMotion() && !isCoarsePointer() }), []);

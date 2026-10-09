@@ -37,6 +37,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
         "Professional web development tailored to the unique needs of each client — combining creativity with modern technology to build custom solutions that drive business growth.",
     },
     statement: "Fast, responsive websites and web applications, engineered from the first wireframe to the last deploy.",
+    labels: { statement: "Our approach", offer: "Services", highlights: "Platforms", process: "Process", faq: "FAQ" },
     offer: {
       heading: "What we build",
       body: "A full spectrum of web development, from interfaces your customers touch to the systems behind them.",
@@ -130,6 +131,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
         "If you're not ranking, you're bleeding revenue. We don't just improve your rankings — we drive targeted organic traffic that converts into real business growth.",
     },
     statement: "Every day, customers search for what you offer. If you're not on page one, those clicks go to your competitors.",
+    labels: { statement: "Why SEO", offer: "Services", highlights: "Reporting & management", faq: "FAQ" },
     offer: {
       heading: "Rank for what matters",
       body: "Search strategies built to lift your rankings and keep them growing.",
@@ -185,6 +187,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
         "We turn your ideas into powerful mobile experiences — intuitive, user-friendly applications tailored to your business needs.",
     },
     statement: "Your app isn't just a tool. It's a direct line to your customers and an extension of your brand.",
+    labels: { statement: "Why mobile", offer: "Services", highlights: "Why us", process: "Features", faq: "FAQ" },
     offer: {
       heading: "Development services",
       items: [
@@ -243,6 +246,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
         "Social media and paid campaigns designed to help businesses grow — creative that connects, backed by strategy that drives results.",
     },
     statement: "Great marketing is more than attractive posts. It's a connection with your audience and a brand they remember.",
+    labels: { statement: "Our approach", offer: "Social media", highlights: "Paid advertising", faq: "FAQ" },
     offer: {
       heading: "Social media marketing",
       body: "Highly engaging content that resonates with your audience, planned by people who know your industry.",
@@ -285,6 +289,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
       intro: "Transforming businesses through cutting-edge technology and data-driven innovation.",
     },
     statement: "Your data already holds the answers. We build the systems that find them, protect them and put them to work.",
+    labels: { statement: "Why it matters", offer: "Data & analytics", highlights: "Security & innovation", faq: "FAQ" },
     offer: {
       heading: "Data and analytics",
       body: "Advanced statistics, machine learning and visualization that turn raw data into strategic insight.",
