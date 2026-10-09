@@ -1,0 +1,521 @@
+/* The page is a paper panel lifted above the fixed footer, like the home page's Work panel. */
+.page {
+  position: relative;
+  z-index: 1;
+  overflow: clip;
+  padding-bottom: clamp(5rem, 10vw, 9rem);
+  border-radius: 0 0 clamp(28px, 3.5vw, 64px) clamp(28px, 3.5vw, 64px);
+  background: var(--bp-bg);
+}
+
+/* ---------------------------------------------------------------- words */
+.wordSlot {
+  display: inline-block;
+  overflow: clip;
+  overflow-clip-margin: 0.04em;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+  vertical-align: top;
+}
+
+.word {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* ----------------------------------------------------------------- hero */
+.hero {
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: calc(var(--bp-gut) + 5.5rem) var(--bp-gut) var(--bp-gut);
+}
+
+.heroBody { display: flex; flex-direction: column; gap: clamp(2.5rem, 6vh, 4.5rem); }
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(3.4rem, 11.5vw, 13.5rem);
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.06em;
+}
+
+.heroFoot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--bp-hairline);
+}
+
+.heroIntro {
+  max-width: 34rem;
+  font-size: clamp(1rem, 1.35vw, 1.3rem);
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+}
+
+.scrollCue { display: inline-flex; align-items: center; gap: 0.75rem; white-space: nowrap; }
+
+.scrollLine {
+  position: relative;
+  display: block;
+  width: 1px;
+  height: 2.5rem;
+  overflow: hidden;
+  background: var(--bp-hairline);
+}
+
+.scrollLine::after {
+  position: absolute;
+  inset: 0;
+  background: var(--bp-accent);
+  content: "";
+  animation: scroll-cue 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes scroll-cue {
+  0% { transform: translateY(-100%); }
+  60%, 100% { transform: translateY(100%); }
+}
+
+/* -------------------------------------------------------------- section */
+.section {
+  max-width: 1800px;
+  margin-inline: auto;
+  padding: clamp(5rem, 11vw, 10rem) var(--bp-gut) 0;
+}
+
+.sectionLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: clamp(2rem, 4vw, 3.5rem);
+  padding-top: 1rem;
+  border-top: 1px solid var(--bp-hairline);
+}
+
+.sectionIndex { margin-left: auto; }
+
+.h2 {
+  max-width: 18ch;
+  margin: 0;
+  font-size: clamp(2.5rem, 6vw, 6.25rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.065em;
+}
+
+.body {
+  max-width: 34rem;
+  color: var(--color-ink-mute);
+  font-size: clamp(0.98rem, 1.15vw, 1.12rem);
+  line-height: 1.6;
+}
+
+.lead {
+  max-width: 40rem;
+  font-size: clamp(1.25rem, 2vw, 1.85rem);
+  line-height: 1.32;
+  letter-spacing: -0.03em;
+}
+
+/* ------------------------------------------------------------ statement */
+.statement {
+  max-width: 22ch;
+  font-size: clamp(2.2rem, 5.6vw, 6rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+/* ---------------------------------------------------------------- story */
+.storyHead {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  align-items: end;
+  gap: 2rem;
+  margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.storyMedia {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background: #1a1a1a;
+}
+
+.storyVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform;
+}
+
+.storyOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.75rem, 2.6vw, 3rem);
+  background: linear-gradient(to top, rgb(17 17 17 / 0.35), rgb(17 17 17 / 0.05));
+  color: var(--color-paper);
+}
+
+.reelWord {
+  font-size: clamp(2.5rem, 7.5vw, 9rem);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+.reelButton {
+  --reel-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  width: clamp(5rem, 10vw, 11.5rem);
+  height: clamp(3.1rem, 6vw, 7rem);
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: transform 1s var(--reel-ease), color 1s var(--reel-ease);
+}
+
+.reelButton svg { width: auto; height: 32%; transform: translateX(6%); }
+
+.reelFill {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--color-blue);
+  transform: translateY(101%);
+  transition: transform 0.5s var(--reel-ease);
+}
+
+.reelButton:hover,
+.reelButton:focus-visible { color: var(--color-paper); transform: scale(1.08); }
+.reelButton:hover .reelFill,
+.reelButton:focus-visible .reelFill { transform: none; }
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+/* --------------------------------------------------------- capabilities */
+.capabilities { margin-top: clamp(3rem, 6vw, 5rem); }
+
+.capability {
+  display: grid;
+  grid-template-columns: 4rem 1.2fr 1fr;
+  align-items: baseline;
+  gap: 1.5rem;
+  padding: clamp(1.5rem, 3vw, 2.5rem) 0;
+  border-top: 1px solid var(--bp-hairline);
+}
+
+.capability:last-child { border-bottom: 1px solid var(--bp-hairline); }
+
+.capabilityIndex {
+  color: var(--color-ink-mute);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  transition: color 400ms ease;
+}
+
+.capabilityTitle {
+  font-size: clamp(1.9rem, 4vw, 4rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  transition: transform 600ms var(--ease-out-expo), color 400ms ease;
+}
+
+.capabilityItems {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--color-ink-mute);
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+}
+
+.capability:hover .capabilityIndex,
+.capability:hover .capabilityTitle { color: var(--bp-accent); }
+.capability:hover .capabilityTitle { transform: translateX(0.6rem); }
+
+/* ----------------------------------------------------------- philosophy */
+.philosophy {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2rem, 6vw, 7rem);
+}
+
+.philosophyAside { align-self: start; position: sticky; top: 7rem; }
+
+.quote {
+  margin: 0;
+  font-size: clamp(2.4rem, 5vw, 5.25rem);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+}
+
+.philosophyText {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding-top: clamp(0rem, 4vw, 4.5rem);
+}
+
+/* ----------------------------------------------------------- advantages */
+.advantages {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-top: clamp(3rem, 6vw, 5rem);
+}
+
+.card {
+  position: relative;
+  display: flex;
+  min-height: clamp(17rem, 24vw, 22rem);
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: clamp(1.5rem, 2.4vw, 2.25rem);
+  border: 1px solid rgb(17 17 17 / 0.06);
+  border-radius: 1.75rem;
+  background: #fff;
+  transition: background-color 400ms ease, transform 600ms var(--ease-out-expo), box-shadow 600ms var(--ease-out-expo);
+}
+
+.card:hover {
+  background: #e3e5ff;
+  box-shadow: 0 1.5rem 4rem rgb(19 20 26 / 0.08);
+  transform: translateY(-0.35rem);
+}
+
+/* Bento: the first card takes two columns, the rest fill the row below. */
+.card:first-child { grid-column: span 2; }
+
+.cardAccent { background: var(--bp-accent); color: var(--color-paper); }
+.cardAccent:hover { background: #1d47e0; }
+.cardAccent .cardIndex,
+.cardAccent .cardBody { color: rgb(240 241 250 / 0.72); }
+
+.cardIndex {
+  color: var(--color-ink-mute);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.cardStat {
+  position: absolute;
+  top: clamp(1rem, 2vw, 1.75rem);
+  right: clamp(1.25rem, 2.4vw, 2.25rem);
+  font-size: clamp(4rem, 7vw, 7rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.07em;
+}
+
+.cardTitle {
+  margin-bottom: 0.75rem;
+  font-size: clamp(1.4rem, 2vw, 2rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+}
+
+.cardBody {
+  max-width: 32rem;
+  color: var(--color-ink-mute);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+/* --------------------------------------------------------- integrations */
+.integrations {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2rem, 6vw, 7rem);
+}
+
+.integrations .h2 { margin-bottom: 1.5rem; }
+
+.integrationList { padding-top: clamp(0rem, 6vw, 6rem); }
+
+.integration {
+  padding: 1.35rem 0;
+  border-top: 1px solid var(--bp-hairline);
+  transition: padding-left 500ms var(--ease-out-expo);
+}
+
+.integration:last-child { border-bottom: 1px solid var(--bp-hairline); }
+.integration:hover { padding-left: 0.75rem; }
+
+.integration h3 {
+  margin-bottom: 0.3rem;
+  font-size: clamp(1.25rem, 1.8vw, 1.65rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.integration p { color: var(--color-ink-mute); font-size: 0.95rem; }
+
+/* -------------------------------------------------------------- marquee */
+.marquee {
+  margin-top: clamp(5rem, 11vw, 10rem);
+  overflow: hidden;
+  padding-block: clamp(1.25rem, 2.5vw, 2rem);
+  border-block: 1px solid var(--bp-hairline);
+}
+
+.marqueeTrack {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+
+.marquee:hover .marqueeTrack { animation-play-state: paused; }
+
+.marqueeRun { display: flex; flex-shrink: 0; }
+
+.marqueeItem {
+  display: inline-flex;
+  align-items: center;
+  font-size: clamp(2.25rem, 5.5vw, 5.5rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  white-space: nowrap;
+}
+
+.marqueeDot {
+  width: 0.2em;
+  height: 0.2em;
+  margin-inline: 0.6em;
+  border-radius: 50%;
+  background: var(--bp-accent);
+}
+
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+
+/* ----------------------------------------------------------- subsidiary */
+.subsidiary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: clamp(2rem, 6vw, 7rem);
+}
+
+.org { display: flex; flex-direction: column; align-items: flex-start; }
+
+.orgNode {
+  position: relative;
+  display: flex;
+  width: min(100%, 26rem);
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.5rem 1.75rem;
+  border: 1px solid rgb(17 17 17 / 0.06);
+  border-radius: 1.5rem;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+}
+
+.orgNode strong {
+  font-size: clamp(1.5rem, 2.4vw, 2.25rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.orgLink { transition: background-color 400ms ease, color 400ms ease; }
+.orgLink:hover { background: var(--bp-accent); color: var(--color-paper); }
+.orgLink:hover :global(.hero-meta) { color: rgb(240 241 250 / 0.72); }
+
+.orgArrow {
+  position: absolute;
+  top: 1.4rem;
+  right: 1.6rem;
+  font-size: 1.1rem;
+  transition: transform 500ms var(--ease-out-expo);
+}
+
+.orgLink:hover .orgArrow { transform: translate(0.2rem, -0.2rem); }
+
+.connector {
+  display: block;
+  width: 1px;
+  height: 3.5rem;
+  margin-left: 2.5rem;
+  background: var(--bp-accent);
+  transform-origin: top;
+}
+
+/* ------------------------------------------------------------------ cta */
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  padding: clamp(7rem, 14vw, 13rem) var(--bp-gut) 0;
+  text-align: center;
+}
+
+.ctaTitle {
+  max-width: 12ch;
+  margin: 0;
+  font-size: clamp(3rem, 9vw, 10rem);
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: -0.07em;
+}
+
+/* ---------------------------------------------------------- responsive */
+@media (max-width: 1023px) {
+  .advantages { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 767px) {
+  .heroFoot { flex-direction: column; align-items: flex-start; }
+  .storyHead,
+  .philosophy,
+  .integrations,
+  .subsidiary { grid-template-columns: 1fr; }
+  .philosophyAside { position: static; }
+  .capability { grid-template-columns: 2.5rem 1fr; }
+  .capabilityItems { grid-column: 2; }
+  .advantages { grid-template-columns: 1fr; }
+  .card:first-child { grid-column: auto; }
+  .card { min-height: 0; }
+  .cardStat { position: static; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrollLine::after,
+  .marqueeTrack { animation: none; }
+}

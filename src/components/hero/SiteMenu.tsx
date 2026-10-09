@@ -1,13 +1,13 @@
 "use client";
 import { useLayoutEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import styles from "./SiteMenu.module.css";
 import { site } from "@/data/site";
 
-const links = [
-  { label: "Home", href: "#top" },
-  { label: "Services", href: "#services" },
-  { label: "Featured work", href: "#work" },
-  { label: "Contact", href: "#contact" },
+// Plain anchors on purpose: the home page's scroll scenes are built for a fresh load.
+const links = (onHome: boolean) => [
+  { label: "Home", href: onHome ? "#top" : "/" },
+  { label: "About", href: "/about" },
 ];
 
 const CLOSED_CLIP = "ellipse(0% 0% at 100% 0%)";
@@ -46,6 +46,7 @@ type SiteMenuProps = {
 export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenuProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const hasOpened = useRef(false);
+  const onHome = usePathname() === "/";
 
   useLayoutEffect(() => {
     const panel = panelRef.current;
@@ -105,7 +106,7 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
         <aside id="site-menu" className={styles.panel} aria-label="Site menu">
           <div className={styles.heading}>Navigation</div>
           <nav aria-label="Site navigation" className={styles.links}>
-            {links.map((link, index) => (
+            {links(onHome).map((link, index) => (
               <a
                 key={link.href}
                 href={link.href}
@@ -123,7 +124,7 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
 
           <div className={styles.bottom}>
             <div className={styles.utilityLinks}>
-              <a href="#services" tabIndex={open ? 0 : -1}><RollText text="Process" /></a>
+              <a href={onHome ? "#services" : "/#services"} tabIndex={open ? 0 : -1}><RollText text="Process" /></a>
               <a href={site.links.careers} tabIndex={open ? 0 : -1}><RollText text="Careers" /></a>
               <a href={site.links.blog} tabIndex={open ? 0 : -1}><RollText text="Journal" /></a>
             </div>

@@ -1,0 +1,356 @@
+"use client";
+
+import { Fragment, useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import HeroNav from "@/components/hero/HeroNav";
+import ActionPill from "@/components/ui/ActionPill";
+import ShowreelPlayer from "@/components/sections/ShowreelPlayer";
+import SiteFooter from "@/components/sections/SiteFooter";
+import { about } from "@/data/about";
+import { site } from "@/data/site";
+import { fontsReady, isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
+import { mountScroll } from "@/lib/animation/scroll";
+import styles from "./AboutPage.module.css";
+
+gsap.registerPlugin(ScrollTrigger);
+
+/** Each word rides up out of its own clipped slot; `tail` rides with the last one. */
+function Words({ text, tail }: { text: string; tail?: ReactNode }) {
+  const words = text.split(" ");
+  return (
+    <>
+      {words.map((word, index) => (
+        <Fragment key={index}>
+          {index > 0 && " "}
+          <span className={styles.wordSlot}>
+            <span data-word className={styles.word}>{word}{index === words.length - 1 && tail}</span>
+          </span>
+        </Fragment>
+      ))}
+    </>
+  );
+}
+
+function SectionLabel({ index, children }: { index: string; children: string }) {
+  return (
+    <div className={styles.sectionLabel}>
+      <span className="hero-dot" aria-hidden />
+      <span className="hero-meta">{children}</span>
+      <span className={`hero-meta ${styles.sectionIndex}`}>{index}</span>
+    </div>
+  );
+}
+
+export default function AboutPage() {
+  const root = useRef<HTMLDivElement>(null);
+  const [playerOpen, setPlayerOpen] = useState(false);
+  const [playerPointer, setPlayerPointer] = useState({ x: 0, y: 0 });
+  const openPlayer = (event: MouseEvent<HTMLButtonElement>) => {
+    setPlayerPointer({ x: event.clientX, y: event.clientY });
+    setPlayerOpen(true);
+  };
+
+  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() && !isCoarsePointer() }), []);
+
+  // Pause the story loop whenever it is off screen.
+  useEffect(() => {
+    const video = root.current?.querySelector<HTMLVideoElement>("[data-story-video]");
+    if (!video || prefersReducedMotion()) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) video.play().catch(() => {});
+      else video.pause();
+    });
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+
+  useLayoutEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const reduced = prefersReducedMotion();
+    const nav = document.querySelector<HTMLElement>("[data-hero-nav]");
+    const footer = document.querySelector<HTMLElement>("[data-site-footer]");
+    const stage = footer?.parentElement;
+
+    const context = gsap.context(() => {
+      // The page lifts away like the home page's Work panel, uncovering the fixed footer.
+      if (footer && stage) {
+        ScrollTrigger.create({
+          trigger: stage,
+          start: "top bottom",
+          end: "bottom bottom",
+          onToggle: (self) => { footer.style.visibility = self.isActive || self.progress === 1 ? "visible" : "hidden"; },
+          onUpdate: (self) => { if (nav) nav.style.transform = `translate3d(0, ${-self.progress * stage.offsetHeight}px, 0)`; },
+        });
+      }
+      if (reduced) return;
+
+      const hero = gsap.timeline({ delay: 0.1 });
+      hero
+        .from("[data-hero-title] [data-word]", { yPercent: 115, duration: 1.3, stagger: 0.08, ease: "expo.out" })
+        .from("[data-hero-fade]", { y: 24, opacity: 0, duration: 1, stagger: 0.08, ease: "expo.out" }, 0.35);
+
+      gsap.utils.toArray<HTMLElement>("[data-lines]").forEach((heading) => {
+        gsap.from(heading.querySelectorAll("[data-word]"), {
+          yPercent: 115,
+          duration: 1.1,
+          stagger: 0.05,
+          ease: "expo.out",
+          scrollTrigger: { trigger: heading, start: "top 86%", once: true },
+        });
+      });
+
+      gsap.set("[data-reveal]", { opacity: 0 });
+      ScrollTrigger.batch("[data-reveal]", {
+        start: "top 90%",
+        once: true,
+        onEnter: (batch) => gsap.fromTo(batch, { y: 36, opacity: 0 }, { y: 0, opacity: 1, duration: 1.1, stagger: 0.08, ease: "expo.out", overwrite: true }),
+      });
+
+      // The statement inks in word by word as it crosses the viewport.
+      gsap.fromTo("[data-statement] [data-word]", { opacity: 0.14 }, {
+        opacity: 1,
+        stagger: 0.1,
+        ease: "none",
+        scrollTrigger: { trigger: "[data-statement]", start: "top 78%", end: "bottom 45%", scrub: true },
+      });
+
+      // The reel opens from an inset window to the full frame.
+      gsap.fromTo("[data-story-media]",
+        { clipPath: "inset(9% 11% 9% 11% round 2rem)" },
+        {
+          clipPath: "inset(0% 0% 0% 0% round 1.25rem)",
+          ease: "none",
+          scrollTrigger: { trigger: "[data-story-media]", start: "top bottom", end: "center 55%", scrub: true },
+        });
+      gsap.fromTo("[data-story-video]", { scale: 1.18 }, {
+        scale: 1,
+        ease: "none",
+        scrollTrigger: { trigger: "[data-story-media]", start: "top bottom", end: "bottom top", scrub: true },
+      });
+
+      gsap.from("[data-connector]", {
+        scaleY: 0,
+        ease: "none",
+        scrollTrigger: { trigger: "[data-connector]", start: "top 85%", end: "bottom 60%", scrub: true },
+      });
+    }, el);
+
+    // Late webfonts change line breaks, and with them every trigger position.
+    let cancelled = false;
+    void fontsReady().then(() => { if (!cancelled) ScrollTrigger.refresh(); });
+
+    return () => {
+      cancelled = true;
+      context.revert();
+      if (nav) nav.style.transform = "";
+      if (footer) footer.style.visibility = "";
+    };
+  }, []);
+
+  return (
+    <>
+      <div ref={root} className={styles.page}>
+        <HeroNav />
+
+        {/* ------------------------------------------------------------ hero */}
+        <section id="top" className={styles.hero}>
+          <p data-hero-fade className="hero-meta">
+            About<span className="mx-2 opacity-40">/</span>{site.name}
+          </p>
+
+          <div className={styles.heroBody}>
+            <h1 data-hero-title className={styles.heroTitle}>
+              <Words text="Innovating the" />
+              <br />
+              <Words text="future" tail={<span className="hero-period">.</span>} />
+            </h1>
+
+            <div className={styles.heroFoot}>
+              <p data-hero-fade className={styles.heroIntro}>{about.intro}</p>
+              <p data-hero-fade className={`hero-meta ${styles.scrollCue}`}>
+                <span aria-hidden className={styles.scrollLine} />
+                Scroll to discover
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ------------------------------------------------------- statement */}
+        <section className={styles.section}>
+          <SectionLabel index="01">Who we are</SectionLabel>
+          <p data-statement className={styles.statement}>
+            {about.statement.split(" ").map((word, index) => (
+              <span key={index}><span data-word>{word}</span>{" "}</span>
+            ))}
+          </p>
+        </section>
+
+        {/* ----------------------------------------------------------- story */}
+        <section className={styles.section}>
+          <SectionLabel index="02">Discover our story</SectionLabel>
+          <div className={styles.storyHead}>
+            <h2 data-lines className={styles.h2}><Words text={about.story.title} /></h2>
+            <p data-reveal className={styles.body}>{about.story.body}</p>
+          </div>
+
+          <div data-story-media className={styles.storyMedia}>
+            <video
+              data-story-video
+              muted
+              loop
+              playsInline
+              autoPlay
+              preload="metadata"
+              poster="/showreel/card-poster.webp"
+              aria-hidden
+              className={styles.storyVideo}
+            >
+              <source src="/showreel/card-preview.webm" type='video/webm; codecs="av01"' />
+              <source src="/showreel/card-preview.mp4" type="video/mp4" />
+            </video>
+            <div className={styles.storyOverlay}>
+              <span aria-hidden className={styles.reelWord}>Play</span>
+              <button type="button" aria-label="Play showreel" onClick={openPlayer} className={styles.reelButton}>
+                <span aria-hidden className={styles.reelFill} />
+                <svg aria-hidden viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 3.5v17a1 1 0 0 0 1.52.85l13.6-8.5a1 1 0 0 0 0-1.7L7.52 2.65A1 1 0 0 0 6 3.5Z" />
+                </svg>
+              </button>
+              <span aria-hidden className={styles.reelWord}>Reel</span>
+            </div>
+          </div>
+
+          <ul className={styles.tags}>
+            {about.story.tags.map((tag) => (
+              <li data-reveal key={tag} className="hero-pill"><span className="hero-dot" aria-hidden />{tag}</li>
+            ))}
+          </ul>
+        </section>
+
+        {/* ---------------------------------------------------- capabilities */}
+        <section className={styles.section}>
+          <SectionLabel index="03">What we do</SectionLabel>
+          <h2 data-lines className={styles.h2}><Words text="Every layer of your digital business, under one roof." /></h2>
+
+          <ol className={styles.capabilities}>
+            {about.capabilities.map((group, index) => (
+              <li data-reveal key={group.title} className={styles.capability}>
+                <span className={styles.capabilityIndex}>{String(index + 1).padStart(2, "0")}</span>
+                <h3 className={styles.capabilityTitle}>{group.title}</h3>
+                <ul className={styles.capabilityItems}>
+                  {group.items.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* ------------------------------------------------------ philosophy */}
+        <section className={`${styles.section} ${styles.philosophy}`}>
+          <div className={styles.philosophyAside}>
+            <SectionLabel index="04">Our philosophy</SectionLabel>
+            <h2 data-lines className={styles.quote}>
+              <Words text={about.philosophyQuote.replace(/\.$/, "")} tail={<span className="hero-period">.</span>} />
+            </h2>
+          </div>
+          <div className={styles.philosophyText}>
+            {about.philosophy.map((paragraph, index) => (
+              <p data-reveal key={index} className={index === 0 ? styles.lead : styles.body}>{paragraph}</p>
+            ))}
+          </div>
+        </section>
+
+        {/* ------------------------------------------------------ advantages */}
+        <section className={styles.section}>
+          <SectionLabel index="05">The Bytes advantage</SectionLabel>
+          <h2 data-lines className={styles.h2}><Words text="Built in the open. Shipped at speed." /></h2>
+
+          <div className={styles.advantages}>
+            {about.advantages.map((item, index) => (
+              <article
+                data-reveal
+                key={item.title}
+                className={`${styles.card} ${"stat" in item ? styles.cardAccent : ""}`}
+              >
+                <span className={styles.cardIndex}>{String(index + 1).padStart(2, "0")}</span>
+                {"stat" in item && <span aria-hidden className={styles.cardStat}>{item.stat}</span>}
+                <div>
+                  <h3 className={styles.cardTitle}>{item.title}</h3>
+                  <p className={styles.cardBody}>{item.body}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* ---------------------------------------------------- integrations */}
+        <section className={`${styles.section} ${styles.integrations}`}>
+          <div>
+            <SectionLabel index="06">Integration ecosystem</SectionLabel>
+            <h2 data-lines className={styles.h2}><Words text="A modern stack that plugs into yours." /></h2>
+            <p data-reveal className={styles.body}>{about.stack}</p>
+          </div>
+          <ul className={styles.integrationList}>
+            {about.integrations.map((group) => (
+              <li data-reveal key={group.title} className={styles.integration}>
+                <h3>{group.title}</h3>
+                <p>{group.items.join(" · ")}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* --------------------------------------------------------- support */}
+        <div className={styles.marquee} aria-label={`Ongoing care: ${about.support.join(", ")}`}>
+          <div className={styles.marqueeTrack} aria-hidden>
+            {[0, 1].map((copy) => (
+              <span key={copy} className={styles.marqueeRun}>
+                {about.support.map((item) => (
+                  <span key={item} className={styles.marqueeItem}>{item}<span className={styles.marqueeDot} /></span>
+                ))}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* ------------------------------------------------------ subsidiary */}
+        <section className={styles.section}>
+          <SectionLabel index="07">Our subsidiary</SectionLabel>
+          <div className={styles.subsidiary}>
+            <div className={styles.org}>
+              <div data-reveal className={styles.orgNode}>
+                <span className="hero-meta">Parent company</span>
+                <strong>{site.legalName}</strong>
+              </div>
+              <span data-connector aria-hidden className={styles.connector} />
+              <a data-reveal href={about.subsidiary.url} target="_blank" rel="noreferrer" className={`${styles.orgNode} ${styles.orgLink}`}>
+                <span className="hero-meta">Subsidiary</span>
+                <strong>{about.subsidiary.name}</strong>
+                <span aria-hidden className={styles.orgArrow}>↗</span>
+              </a>
+            </div>
+            <p data-reveal className={styles.lead}>{about.subsidiary.body}</p>
+          </div>
+        </section>
+
+        {/* ------------------------------------------------------------- cta */}
+        <section className={styles.cta}>
+          <p data-reveal className="hero-meta">Let&apos;s talk</p>
+          <h2 data-lines className={styles.ctaTitle}>
+            <Words text="Ready to build the future" tail={<span className="hero-period">?</span>} />
+          </h2>
+          <p data-reveal className={styles.body}>Transform your vision into reality. Scale your impact. Lead your market.</p>
+          <div data-reveal>
+            <ActionPill href="#contact" label="Start your project" />
+          </div>
+        </section>
+      </div>
+
+      <SiteFooter />
+
+      <ShowreelPlayer open={playerOpen} initialPointer={playerPointer} onClose={() => setPlayerOpen(false)} />
+    </>
+  );
+}

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import NavButton from "../ui/NavButton";
 import SiteMenu from "./SiteMenu";
 
@@ -16,6 +17,7 @@ import SiteMenu from "./SiteMenu";
 export default function HeroNav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [buttonActive, setButtonActive] = useState(false);
+  const onHome = usePathname() === "/";
   const [caseHost, setCaseHost] = useState<HTMLElement | null>(null);
   useEffect(() => {
     const moveHeader = (event: Event) => setCaseHost((event as CustomEvent<HTMLElement | null>).detail);
@@ -63,7 +65,7 @@ export default function HeroNav() {
   const header = (
     <header data-hero-nav className="pointer-events-none fixed inset-x-0 top-0 z-50 flex items-start justify-between gap-6 px-[var(--bp-gut)] pt-[var(--bp-gut)] [&>*]:pointer-events-auto">
       <a
-        href="#top"
+        href={onHome ? "#top" : "/"}
         aria-label="BytesPlatform — home"
         className="hero-mark text-ink transition-opacity duration-500 hover:opacity-60"
       >
