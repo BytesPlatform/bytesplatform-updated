@@ -159,7 +159,7 @@ export default function ServicePage({ content, indexed = false }: { content: Ser
           <div className={styles.heroFoot}>
             <p data-hero-fade className={styles.heroIntro}>{hero.intro}</p>
             <div data-hero-fade>
-              <ActionPill href="#contact" label={action} />
+              <ActionPill href="/contact" label={action} />
             </div>
           </div>
         </section>
@@ -286,7 +286,7 @@ export default function ServicePage({ content, indexed = false }: { content: Ser
           </h2>
           <p data-reveal className={styles.body}>{cta.body}</p>
           <div data-reveal>
-            <ActionPill href="#contact" label={action} />
+            <ActionPill href="/contact" label={action} />
           </div>
         </section>
       </div>

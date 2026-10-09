@@ -186,6 +186,9 @@ export default function ContactPage() {
           </aside>
 
           <div data-hero-fade className={styles.formWrap}>
+            {/* Scroll target for the nav's "Start a project" on this page; sits above
+                the card so the form lands below the fixed nav, not under it. */}
+            <span id="message" aria-hidden className={styles.anchor} />
             {status === "sent" ? (
               <div className={styles.sent} role="status">
                 <span className={styles.sentMark} aria-hidden>

@@ -114,7 +114,7 @@
 @media(max-width: 700px) {
   .work-case-study [data-hero-nav] { gap: 8px; }
   .work-case-study [data-hero-nav] .hero-mark { font-size: 22px; }
-  .work-case-study [data-hero-nav] a[href="#contact"] { font-size: 9px; padding-left: 14px; padding-right: 26px; }
+  .work-case-study [data-hero-nav] a[href="/contact"] { font-size: 9px; padding-left: 14px; padding-right: 26px; }
   .work-case-study [data-hero-nav] button[aria-controls="site-menu"] { padding-inline: 12px; }
 }
 

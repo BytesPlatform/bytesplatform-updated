@@ -62,7 +62,7 @@ export default function PostView({ post, related }: { post: Post; related: PostS
             <p className={styles.label}>Written by</p>
             <p>The BytesPlatform team</p>
             <p className={styles.label}>Need help with this?</p>
-            <ActionPill href="#contact" label="Talk to us" />
+            <ActionPill href="/contact" label="Talk to us" />
           </div>
         </aside>
         <PostBody body={post.body} />

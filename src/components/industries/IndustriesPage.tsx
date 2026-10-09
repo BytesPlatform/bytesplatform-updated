@@ -251,7 +251,7 @@ export default function IndustriesPage() {
           </h2>
           <p data-reveal className={styles.body}>{industries.cta.body}</p>
           <div data-reveal>
-            <ActionPill href="#contact" label="Start your project" />
+            <ActionPill href="/contact" label="Start your project" />
           </div>
         </section>
       </div>

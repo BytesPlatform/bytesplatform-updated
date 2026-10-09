@@ -347,7 +347,7 @@ export default function AboutPage() {
           </h2>
           <p data-reveal className={styles.body}>Transform your vision into reality. Scale your impact. Lead your market.</p>
           <div data-reveal>
-            <ActionPill href="#contact" label="Start your project" />
+            <ActionPill href="/contact" label="Start your project" />
           </div>
         </section>
       </div>

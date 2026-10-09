@@ -154,7 +154,13 @@
 }
 
 /* ----------------------------------------------------------------- form */
+.anchor {
+  position: absolute;
+  top: -7.5rem;
+}
+
 .formWrap {
+  position: relative;
   padding: clamp(1.75rem, 3.5vw, 3rem);
   border: 1px solid rgb(17 17 17 / 0.06);
   border-radius: 1.75rem;

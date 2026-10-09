@@ -17,7 +17,8 @@ import SiteMenu from "./SiteMenu";
 export default function HeroNav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [buttonActive, setButtonActive] = useState(false);
-  const onHome = usePathname() === "/";
+  const pathname = usePathname();
+  const onHome = pathname === "/";
   const [caseHost, setCaseHost] = useState<HTMLElement | null>(null);
   useEffect(() => {
     const moveHeader = (event: Event) => setCaseHost((event as CustomEvent<HTMLElement | null>).detail);
@@ -73,7 +74,8 @@ export default function HeroNav() {
       </a>
 
       <div className="relative flex items-center gap-2 sm:gap-3">
-        <NavButton variant="action" href="#contact">Start a project</NavButton>
+        {/* Every CTA leads to the contact page; on that page it scrolls to the form instead of reopening it. */}
+        <NavButton variant="action" href={pathname === "/contact" ? "#message" : "/contact"}>Start a project</NavButton>
         <NavButton
           variant="menu"
           className="relative z-[2]"
