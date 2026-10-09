@@ -28,7 +28,7 @@
   display: flex;
   min-height: 100svh;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: calc(var(--bp-gut) + 5.5rem) var(--bp-gut) var(--bp-gut);
 }
 
@@ -42,44 +42,11 @@
   letter-spacing: -0.06em;
 }
 
-.heroFoot {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--bp-hairline);
-}
-
 .heroIntro {
   max-width: 34rem;
   font-size: clamp(1rem, 1.35vw, 1.3rem);
   line-height: 1.45;
   letter-spacing: -0.015em;
-}
-
-.scrollCue { display: inline-flex; align-items: center; gap: 0.75rem; white-space: nowrap; }
-
-.scrollLine {
-  position: relative;
-  display: block;
-  width: 1px;
-  height: 2.5rem;
-  overflow: hidden;
-  background: var(--bp-hairline);
-}
-
-.scrollLine::after {
-  position: absolute;
-  inset: 0;
-  background: var(--bp-accent);
-  content: "";
-  animation: scroll-cue 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-}
-
-@keyframes scroll-cue {
-  0% { transform: translateY(-100%); }
-  60%, 100% { transform: translateY(100%); }
 }
 
 /* -------------------------------------------------------------- section */
@@ -501,7 +468,6 @@
 }
 
 @media (max-width: 767px) {
-  .heroFoot { flex-direction: column; align-items: flex-start; }
   .storyHead,
   .philosophy,
   .integrations,
@@ -516,6 +482,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scrollLine::after,
   .marqueeTrack { animation: none; }
 }

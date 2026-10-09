@@ -156,10 +156,6 @@ export default function AboutPage() {
 
         {/* ------------------------------------------------------------ hero */}
         <section id="top" className={styles.hero}>
-          <p data-hero-fade className="hero-meta">
-            About<span className="mx-2 opacity-40">/</span>{site.name}
-          </p>
-
           <div className={styles.heroBody}>
             <h1 data-hero-title className={styles.heroTitle}>
               <Words text="Innovating the" />
@@ -167,13 +163,7 @@ export default function AboutPage() {
               <Words text="future" tail={<span className="hero-period">.</span>} />
             </h1>
 
-            <div className={styles.heroFoot}>
-              <p data-hero-fade className={styles.heroIntro}>{about.intro}</p>
-              <p data-hero-fade className={`hero-meta ${styles.scrollCue}`}>
-                <span aria-hidden className={styles.scrollLine} />
-                Scroll to discover
-              </p>
-            </div>
+            <p data-hero-fade className={styles.heroIntro}>{about.intro}</p>
           </div>
         </section>
 
