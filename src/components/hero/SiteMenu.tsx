@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import styles from "./SiteMenu.module.css";
 import { site } from "@/data/site";
@@ -70,11 +70,7 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
   const currentGroup = groups.find((group) => pathname.startsWith(group.base))?.key ?? null;
   // The sub-list on screen, if any. The menu always opens on the main list.
   const [openGroup, setOpenGroup] = useState<GroupKey | null>(null);
-  // Back to the main list once the menu closes; an expanded toggle left in the nav
-  // would read as an open menu to the case-study viewer's Escape handling.
-  useEffect(() => {
-    if (!open) setOpenGroup(null);
-  }, [open]);
+  // Reset the group after the closing fade, so its contents do not jump mid-exit.
 
   // Keyboard focus follows the slide: into the sub-list's back button, and back
   // to the group row it came from.
@@ -99,19 +95,31 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
     const from = open ? CLOSED_CLIP : OPEN_CLIP;
     const to = open ? OPEN_CLIP : CLOSED_CLIP;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const phone = window.matchMedia("(max-width: 639px)").matches;
+    const hidden = { opacity: 0, transform: "translateY(-8px)" };
+    const visible = { opacity: 1, transform: "translateY(0)" };
     let cancelled = false;
 
     panel.style.visibility = "visible";
     panel.style.pointerEvents = open ? "auto" : "none";
-    // The card peels open from its top-right corner as a growing ellipse.
+    // Phones fade and slide one layer; desktops retain the ellipse reveal.
+    panel.style.clipPath = phone ? "none" : from;
+    panel.style.opacity = "1";
+    panel.style.transform = "none";
     const animation = panel.animate(
-      [{ clipPath: from }, { clipPath: to }],
-      { duration: reducedMotion ? 0 : 600, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards" },
+      phone ? (open ? [hidden, visible] : [visible, hidden]) : [{ clipPath: from }, { clipPath: to }],
+      {
+        duration: reducedMotion ? 0 : phone ? (open ? 360 : 280) : 600,
+        easing: phone ? "cubic-bezier(0.4, 0, 0.2, 1)" : "cubic-bezier(0.65, 0, 0.35, 1)",
+        fill: "forwards",
+      },
     );
 
     animation.finished.then(async () => {
       // Commit the end shape before dropping the animation so no frame falls back to CSS.
-      panel.style.clipPath = to;
+      panel.style.clipPath = phone ? "none" : to;
+      panel.style.opacity = phone && !open ? "0" : "1";
+      panel.style.transform = phone && !open ? hidden.transform : "none";
       animation.cancel();
       if (open) {
         // Opening isn't done until the staggered links have settled too.
@@ -119,6 +127,7 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
         if (!cancelled) onOpened();
       } else {
         panel.style.visibility = "hidden";
+        setOpenGroup(null);
         onClosed();
       }
     }, () => undefined);

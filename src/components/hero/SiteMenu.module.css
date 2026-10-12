@@ -456,6 +456,57 @@
   transition-delay: 0s;
 }
 
+@media (max-width: 639px) {
+  .panelShell {
+    clip-path: none;
+    box-shadow: 0 0.75rem 2rem rgb(19 20 26 / 0.08);
+  }
+
+  .backdrop { transition-duration: 280ms; }
+
+  /* Keep the contents intact during exit; the whole panel fades together. */
+  .panelShell:not([data-open="true"]) .link,
+  .panelShell:not([data-open="true"]) .heading,
+  .panelShell:not([data-open="true"]) .bottom {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* The panel carries the entrance; rows do not need separate staggered layers. */
+  .panelShell .link,
+  .panelShell .heading,
+  .panelShell .bottom {
+    transition: color 180ms ease, background-color 180ms ease;
+  }
+
+  .panelShell[data-open="true"] .link,
+  .panelShell[data-open="true"] .heading,
+  .panelShell[data-open="true"] .bottom,
+  .panelShell[data-open="true"] .subView .subLink,
+  .panelShell[data-open="true"] .subView[data-active="true"] .subLink {
+    transform: none;
+    transition-delay: 0s;
+    transition-duration: 180ms;
+  }
+
+  .mainView { transition: opacity 180ms ease; }
+  .views[data-group] .mainView { transform: none; }
+
+  .subView {
+    background: #f6f6f8;
+    box-shadow: none;
+    opacity: 0;
+    transform: translateX(12px);
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .subView[data-active="true"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mainView,
   .subView,
