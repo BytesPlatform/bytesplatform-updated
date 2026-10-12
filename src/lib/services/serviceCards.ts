@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-const ROTATIONS = [-8, 9, 7, -6].map(THREE.MathUtils.degToRad);
+const ROTATIONS = [-8, 9, 7, -6, 5, -6].map(THREE.MathUtils.degToRad);
 
 const vertexShader = /* glsl */ `
   varying vec2 vUv;
@@ -18,6 +18,8 @@ const fragmentShader = /* glsl */ `
   uniform float uTime;
   uniform float uSeed;
   uniform float uHover;
+      uniform float uExit;
+      uniform float uCardOpacity;
   uniform sampler2D uLabel;
 
   float hash(vec2 p){
@@ -63,6 +65,9 @@ const fragmentShader = /* glsl */ `
     float clouds=fbm(p*3.2+domain*4.5+circulation*.65+magnetic*.18);
     float caustic=pow(1.-abs(2.*fbm(p*4.+domain*5.-drift)-1.),12.);
     float veins=1.-smoothstep(.018,.095,abs(clouds-.48));
+    float exitFlow=uExit*smoothstep(.2,.82,clouds);
+    uv+=(domain-.5)*uExit*.045;
+    uv+=vec2(sin(p.y*8.+t),cos(p.x*7.-t))*exitFlow*.018;
 
     float breathing=.5+.5*sin(t*1.7+uSeed);
     vec3 stone=vec3(.81,.82,.86);
@@ -71,14 +76,23 @@ const fragmentShader = /* glsl */ `
     vec3 color=mix(stone,cloud,smoothstep(.24,.73,clouds));
     color=mix(color,shade,veins*(.11+breathing*.035));
     color+=vec3(.07,.075,.09)*caustic*(.45+breathing*.2);
+    color+=vec3(.055,.24,.9)*caustic*uExit*1.8;
+    color+=vec3(.035,.13,.42)*veins*uExit*.38;
     color=mix(color,color*vec3(.95,.97,1.035),uHover*.16);
     vec4 label=texture2D(uLabel,vec2(clamp(uv.x,0.,1.),1.-clamp(uv.y,0.,1.)));
     color=mix(color,label.rgb,label.a*edge);
-    gl_FragColor=vec4(color,edge);
+    gl_FragColor=vec4(color,edge*uCardOpacity);
   }
 `;
 
-const TITLES = ["WEB\nDEVELOPMENT", "SEO", "APP\nDEVELOPMENT", "MARKETING"];
+const TITLES = [
+  "AI AUTOMATION\n& AI AGENTS",
+  "CUSTOM SAAS\n& PRODUCT DEVELOPMENT",
+  "WEB & MOBILE\nAPP DEVELOPMENT",
+  "CRM & ERP\nSYSTEMS",
+  "GOVERNMENT OPPORTUNITY\n& PROPOSAL TECHNOLOGY",
+  "E-INVOICING & BUSINESS\nSYSTEM INTEGRATION",
+];
 
 function createLabel(title: string, index: number) {
   const canvas = document.createElement("canvas");
@@ -137,7 +151,13 @@ function createLabel(title: string, index: number) {
   const lines = title.split("\n");
   context.globalAlpha = 1;
   context.fillStyle = "#111111";
-  context.font = "600 86px Inter, Arial, sans-serif";
+  let titleFontSize = 86;
+  context.font = `600 ${titleFontSize}px Inter, Arial, sans-serif`;
+  const longestLine = Math.max(...lines.map((line) => context.measureText(line).width));
+  if (longestLine > 850) {
+    titleFontSize *= 850 / longestLine;
+    context.font = `600 ${titleFontSize}px Inter, Arial, sans-serif`;
+  }
   context.textBaseline = "bottom";
   lines.forEach((line, lineIndex) => context.fillText(line, 76, 642 - (lines.length - 1 - lineIndex) * 78));
   const texture = new THREE.CanvasTexture(canvas);
@@ -152,7 +172,7 @@ export function createServiceCards() {
     uViewport: { value: new THREE.Vector2(1, 1) }, uCenter: { value: new THREE.Vector2() },
     uSize: { value: new THREE.Vector2(1, 1) }, uPointer: { value: new THREE.Vector2(-1000, -1000) },
     uRotation: { value: 0 }, uTime: { value: 0 }, uSeed: { value: 0 }, uHover: { value: 0 },
-    uLabel: { value: null as THREE.Texture | null },
+    uLabel: { value: null as THREE.Texture | null }, uExit: { value: 0 }, uCardOpacity: { value: 1 },
   };
   const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms, transparent: true, depthTest: false, depthWrite: false });
   const geometry = new THREE.PlaneGeometry(2, 2);
@@ -161,7 +181,7 @@ export function createServiceCards() {
   const scene = new THREE.Scene();
   const camera = new THREE.Camera();
   scene.add(mesh);
-  const hover = [0, 0, 0, 0];
+  const hover = TITLES.map(() => 0);
   const labels = TITLES.map(createLabel);
 
   return {
@@ -169,16 +189,28 @@ export function createServiceCards() {
       uniforms.uViewport.value.set(stage.width, stage.height);
       uniforms.uPointer.value.set(pointer.x - stage.left, pointer.y - stage.top);
       uniforms.uTime.value = time;
-      cards.forEach((card, index) => {
+      const visibleCards = cards.filter((card) => {
+        const rect = card.getBoundingClientRect();
+        const opacity = Number.parseFloat(card.parentElement?.style.opacity || "1");
+        return opacity > 0.002 && card.style.visibility !== "hidden" && rect.bottom >= stage.top && rect.top <= stage.bottom;
+      });
+      const topCardIndex = visibleCards.reduce((top, card) => Math.min(top, Number(card.dataset.serviceIndex ?? top)), Number.POSITIVE_INFINITY);
+      [...cards].reverse().forEach((card, drawOrder) => {
+        const index = Number(card.dataset.serviceIndex ?? cards.length - 1 - drawOrder);
         const rect = card.getBoundingClientRect();
         if (rect.bottom < stage.top || rect.top > stage.bottom) return;
-        const inside = pointer.has && pointer.x >= rect.left && pointer.x <= rect.right && pointer.y >= rect.top && pointer.y <= rect.bottom;
+        const opacity = Number.parseFloat(card.parentElement?.style.opacity || "1");
+        if (opacity <= 0.002) return;
+        const inside = index === topCardIndex && pointer.has && pointer.x >= rect.left && pointer.x <= rect.right && pointer.y >= rect.top && pointer.y <= rect.bottom;
         hover[index] += ((inside ? 1 : 0) - hover[index]) * Math.min(1, dt * 8);
         uniforms.uCenter.value.set(rect.left - stage.left + rect.width / 2, rect.top - stage.top + rect.height / 2);
         uniforms.uSize.value.set(rect.width, rect.height);
-        uniforms.uRotation.value = ROTATIONS[index] ?? 0;
+        const angle = Number.parseFloat(card.style.getPropertyValue("--service-angle"));
+        uniforms.uRotation.value = THREE.MathUtils.degToRad(Number.isFinite(angle) ? angle : THREE.MathUtils.radToDeg(ROTATIONS[index] ?? 0));
         uniforms.uSeed.value = index + 1;
         uniforms.uHover.value = hover[index];
+        uniforms.uExit.value = Number.parseFloat(card.style.getPropertyValue("--service-exit")) || 0;
+        uniforms.uCardOpacity.value = opacity;
         uniforms.uLabel.value = labels[index];
         renderer.render(scene, camera);
       });

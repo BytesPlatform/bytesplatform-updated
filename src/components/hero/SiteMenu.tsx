@@ -227,7 +227,7 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
                     </svg>
                     {group.label}
                   </button>
-                  <nav aria-label={group.label} className={styles.links}>
+                  <nav aria-label={group.label} className={`${styles.links} ${styles.subLinks}`}>
                     {group.items.map((item, index) => (
                       <CurrentLink
                         key={item.slug}

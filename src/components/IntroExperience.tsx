@@ -42,6 +42,7 @@ export default function IntroExperience() {
     const hero = container.querySelector<HTMLElement>("[data-hero]")!;
     const studio = container.querySelector<HTMLElement>("[data-fluid-transition]")!;
     const services = container.querySelector<HTMLElement>("[data-services]")!;
+    const servicesHandoff = services.querySelector<HTMLElement>("[data-services-handoff]")!;
     const work = container.querySelector<HTMLElement>("[data-featured-work]")!;
     const footer = container.querySelector<HTMLElement>("[data-site-footer]")!;
     const start = container.querySelector<HTMLElement>("[data-media-start]")!;
@@ -155,11 +156,12 @@ export default function IntroExperience() {
     timeline.to(state, { progress: 1, duration: tune.duration, ease: "sine.inOut" }, 0);
     const sceneScroll = reduced ? null : createAutoScrollScene(studio, timeline);
 
-    type Layout = { bounds: DOMRect; stage: DOMRect; heroRect: DOMRect; studioRect: DOMRect; servicesRect: DOMRect; workRect: DOMRect; startRect: DOMRect; endRect: DOMRect };
+    type Layout = { bounds: DOMRect; stage: DOMRect; heroRect: DOMRect; studioRect: DOMRect; servicesRect: DOMRect; servicesHandoffRect: DOMRect; workRect: DOMRect; startRect: DOMRect; endRect: DOMRect };
     const measureLayout = (): Layout => ({
       bounds: container.getBoundingClientRect(), stage: canvas.getBoundingClientRect(),
       heroRect: hero.getBoundingClientRect(), studioRect: studio.getBoundingClientRect(),
       servicesRect: services.getBoundingClientRect(),
+      servicesHandoffRect: servicesHandoff.getBoundingClientRect(),
       workRect: work.getBoundingClientRect(),
       startRect: start.getBoundingClientRect(), endRect: end.getBoundingClientRect(),
     });
@@ -209,7 +211,7 @@ export default function IntroExperience() {
 
     const tick = (time: number, elapsed: number) => {
       if (disposed || document.hidden) return;
-      const { bounds, stage, heroRect, studioRect, servicesRect, workRect, startRect, endRect } = frozenLayout ?? measureLayout();
+      const { bounds, stage, heroRect, studioRect, servicesRect, servicesHandoffRect, workRect, startRect, endRect } = frozenLayout ?? measureLayout();
       // A shared full-screen canvas cannot use intersection preloading here:
       // drawing Work even one frame early replaces the still-visible Services
       // scene. Activate it only once its pinned section reaches the viewport.
@@ -269,7 +271,11 @@ export default function IntroExperience() {
         cards?.resize(heroRect.width, heroHeight);
         ink?.resize(width, height, dpr);
         sceneTarget.setSize(Math.round(width * dpr), Math.round(height * dpr));
-        lines.resize(width, height, heroHeight, studioHeight, servicesHeight);
+        // Shape and pace the line against the services heading plus one
+        // pinned screen (its original height), not the long card-stack scroll,
+        // so the curve keeps its sweep instead of stretching into a straight run.
+        const servicesLeadIn = Math.max(0, servicesHandoffRect.top - servicesRect.top);
+        lines.resize(width, height, heroHeight, studioHeight, servicesLeadIn + height * 1.06);
         workScene?.resize(width, height);
         inkUniforms.uViewport.value.set(width, height);
         if (fluid) fluid.strength = responsive(width).strength;
@@ -303,9 +309,11 @@ export default function IntroExperience() {
       renderer.autoClear = false;
       const scroll = Math.max(0, -bounds.top);
       // Nothing at the top; the one continuous path draws itself from its start
-      // as the page scrolls through sections 1 → 2, tip always in view.
+      // as the page scrolls through sections 1 → 2. The camera holds once the
+      // services stage pins so the line stays put behind the card stack.
+      const handoffScroll = servicesHandoffRect.top - bounds.top;
       const lineProgress = lines.progressAtScroll(scroll);
-      lines.render(renderer, stage.top - bounds.top, reduced ? 1 : lineProgress);
+      lines.render(renderer, Math.min(scroll, handoffScroll), reduced ? 1 : lineProgress);
       const inServices = servicesRect.top < window.innerHeight && servicesRect.bottom > 0;
       if (inServices) serviceCards.render(renderer, serviceCardElements, stage, pointer, reduced ? 0 : time, dt);
       if (fluid && inStudio && video.readyState >= 2 && !reduced) {

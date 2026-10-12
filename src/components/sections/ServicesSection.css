@@ -17,24 +17,34 @@
   cursor: pointer;
 }
 
-.service-orbit-card--1 { left: 12%; top: 18%; width: clamp(14rem, 22vw, 22rem); height: clamp(10.5rem, 16vw, 16rem); }
+.services-pill-wrap { pointer-events: none; }
+.service-orbit-card {
+  left: 50%;
+  top: 50%;
+  width: clamp(19rem, 35vw, 44rem);
+  aspect-ratio: 1.42;
+  margin: 0;
+  translate: -50% -50%;
+}
 .service-orbit-card--1 .service-orbit-card__surface { transform: rotate(-8deg); }
-.service-orbit-card--2 { right: 13%; top: 16%; width: clamp(12.5rem, 19vw, 19rem); height: clamp(9.5rem, 14vw, 14rem); }
 .service-orbit-card--2 .service-orbit-card__surface { transform: rotate(9deg); }
-.service-orbit-card--3 { left: 15%; bottom: 13%; width: clamp(13rem, 20vw, 20rem); height: clamp(10rem, 15vw, 15rem); }
 .service-orbit-card--3 .service-orbit-card__surface { transform: rotate(7deg); }
-.service-orbit-card--4 { right: 13%; bottom: 11%; width: clamp(14rem, 22vw, 22rem); height: clamp(10.5rem, 16vw, 16rem); }
 .service-orbit-card--4 .service-orbit-card__surface { transform: rotate(-6deg); }
+.service-orbit-card--5 .service-orbit-card__surface { transform: rotate(5deg); }
+.service-orbit-card--6 .service-orbit-card__surface { transform: rotate(-6deg); }
 
 @media (max-width: 767px) {
   .services-heading [data-heading-lower] { margin-top: 0.08em; }
-  .service-orbit-card--1 { left: 0; top: 14%; width: 52vw; height: 39vw; }
-  .service-orbit-card--2 { right: 0; top: 21%; width: 46vw; height: 35vw; }
-  .service-orbit-card--3 { left: 3%; bottom: 18%; width: 48vw; height: 37vw; }
-  .service-orbit-card--4 { right: 0; bottom: 12%; width: 53vw; height: 40vw; }
+  .service-orbit-card { width: 84vw; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .services-handoff { height: auto; }
-  .services-stage { position: relative; min-height: 100svh; }
+  .services-handoff { height: auto !important; }
+  .services-stage { position: relative; height: auto; min-height: 100svh; overflow: visible; }
+  .services-stage > div { height: auto; padding-block: 8svh; }
+  .services-pill-wrap { position: relative; inset: auto; margin-bottom: 4svh; pointer-events: auto; }
+  .service-orbit-card,
+  .service-orbit-card[style] { position: relative; inset: auto; left: auto; top: auto; width: 100%; aspect-ratio: 1.42; margin: 0; opacity: 1 !important; transform: none !important; translate: none !important; filter: none !important; }
+  .services-stack { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-content: center; }
+  .services-pill-wrap { grid-column: 1 / -1; grid-row: 1; }
 }
