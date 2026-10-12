@@ -100,6 +100,7 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
     const visible = { opacity: 1, transform: "translateY(0)" };
     let cancelled = false;
 
+    panel.dataset.closing = String(!open);
     panel.style.visibility = "visible";
     panel.style.pointerEvents = open ? "auto" : "none";
     // Phones fade and slide one layer; desktops retain the ellipse reveal.
@@ -127,6 +128,7 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
         if (!cancelled) onOpened();
       } else {
         panel.style.visibility = "hidden";
+        delete panel.dataset.closing;
         setOpenGroup(null);
         onClosed();
       }

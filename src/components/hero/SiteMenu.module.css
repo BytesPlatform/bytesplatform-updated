@@ -465,44 +465,58 @@
   .backdrop { transition-duration: 280ms; }
 
   /* Keep the contents intact during exit; the whole panel fades together. */
-  .panelShell:not([data-open="true"]) .link,
-  .panelShell:not([data-open="true"]) .heading,
-  .panelShell:not([data-open="true"]) .bottom {
+  .panelShell[data-closing="true"] .link,
+  .panelShell[data-closing="true"] .heading,
+  .panelShell[data-closing="true"] .bottom {
     opacity: 1;
     transform: none;
+    transition: none;
   }
 
-  /* The panel carries the entrance; rows do not need separate staggered layers. */
-  .panelShell .link,
-  .panelShell .heading,
-  .panelShell .bottom {
-    transition: color 180ms ease, background-color 180ms ease;
+  .panelShell .link {
+    transition:
+      color 180ms ease,
+      background-color 180ms ease,
+      opacity 280ms ease,
+      transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .panelShell[data-open="true"] .link,
+  .panelShell[data-open="true"] .mainView .link {
+    transition-delay: calc(80ms + var(--item-index) * 35ms);
+  }
+
   .panelShell[data-open="true"] .heading,
-  .panelShell[data-open="true"] .bottom,
-  .panelShell[data-open="true"] .subView .subLink,
+  .panelShell[data-open="true"] .bottom {
+    transition-delay: 80ms;
+  }
+
+  .panelShell[data-open="true"] .subView .subLink {
+    transform: translateX(1rem);
+  }
+
   .panelShell[data-open="true"] .subView[data-active="true"] .subLink {
     transform: none;
-    transition-delay: 0s;
-    transition-duration: 180ms;
+    transition-duration: 180ms, 180ms, 280ms, 420ms;
+    transition-delay: calc(60ms + var(--sub-index) * 35ms);
   }
 
-  .mainView { transition: opacity 180ms ease; }
-  .views[data-group] .mainView { transform: none; }
+  .panelShell[data-open="true"] .link:hover,
+  .panelShell[data-open="true"] .link:focus-visible {
+    transition-delay: 0s;
+  }
+
+  .mainView {
+    transition: transform 320ms var(--push-ease), opacity 240ms ease;
+  }
 
   .subView {
     background: #f6f6f8;
     box-shadow: none;
-    opacity: 0;
-    transform: translateX(12px);
     pointer-events: none;
-    transition: opacity 180ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 420ms var(--push-ease);
   }
 
   .subView[data-active="true"] {
-    opacity: 1;
     pointer-events: auto;
   }
 }
