@@ -25,8 +25,26 @@ export default function ScrollIndicator() {
     let idle = 0;
     let lastY = window.scrollY;
 
+    // Pick dark or light by reading the background behind the track. (Not
+    // mix-blend-mode: mobile Safari doesn't blend fixed layers with the page,
+    // so a blended pill rendered as paper on paper — invisible on phones.)
+    const tone = () => {
+      const rect = el.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      for (const node of document.elementsFromPoint(x, y)) {
+        const match = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/.exec(getComputedStyle(node).backgroundColor);
+        if (!match || (match[4] !== undefined && Number(match[4]) < 0.5)) continue;
+        const [r, g, b] = [match[1], match[2], match[3]].map(Number);
+        el.dataset.tone = 0.2126 * r + 0.7152 * g + 0.0722 * b < 128 ? "dark" : "light";
+        return;
+      }
+      el.dataset.tone = "light";
+    };
+
     const paint = () => {
       frame = 0;
+      tone();
       const max = document.documentElement.scrollHeight - window.innerHeight;
       const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
       // The pill travels the free length of the track, never past its ends.
@@ -55,7 +73,7 @@ export default function ScrollIndicator() {
   }, []);
 
   return (
-    <div ref={root} className={styles.indicator} data-visible="false" aria-hidden>
+    <div ref={root} className={styles.indicator} data-visible="false" data-tone="light" aria-hidden>
       <span ref={thumb} className={styles.thumb} />
     </div>
   );

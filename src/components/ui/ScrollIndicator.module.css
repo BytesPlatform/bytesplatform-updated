@@ -10,12 +10,8 @@
   width: 5px;
   height: var(--track);
   border-radius: 999px;
-  /* Drawn in the paper colour and difference-blended against the page as one
-     group: it reads dark over paper and light over the dark footer and panels.
-     (Blending only the pill wouldn't work: the opacity transition isolates the
-     group, so the pill would blend with the track, not with the page.) */
-  background: rgb(240 241 250 / 0.16);
-  mix-blend-mode: difference;
+  /* Colours follow data-tone, set from the background behind the track. */
+  background: rgb(17 17 17 / 0.1);
   opacity: 0;
   pointer-events: none;
   transform: translateY(-50%);
@@ -34,9 +30,14 @@
   width: 100%;
   height: var(--thumb);
   border-radius: inherit;
-  background: #f0f1fa;
+  background: #111111;
+  transition: background-color 300ms ease;
   will-change: transform;
 }
+
+/* Over the dark footer and panels. */
+.indicator[data-tone="dark"] { background: rgb(240 241 250 / 0.2); }
+.indicator[data-tone="dark"] .thumb { background: #f0f1fa; }
 
 @media (max-width: 639px) {
   .indicator { --track: 8rem; --thumb: 1.6rem; width: 4px; right: 0.35rem; }
