@@ -5,6 +5,7 @@ import gsap from "gsap";
 
 import HeroNav from "./HeroNav";
 import HeroTypography from "./HeroTypography";
+import MobileHeroProject from "./MobileHeroProject";
 
 import { prefersReducedMotion, fontsReady, introsReady } from "@/lib/animation/prefs";
 import { mountScroll } from "@/lib/animation/scroll";
@@ -175,6 +176,7 @@ export default function Hero() {
         className="relative flex h-[100svh] flex-col justify-between overflow-clip"
       >
         <HeroNav />
+        <MobileHeroProject />
 
         <div className="relative z-10 flex flex-1 items-end px-[var(--bp-gut)] pb-5 sm:pb-[8svh]">
           <HeroTypography />
