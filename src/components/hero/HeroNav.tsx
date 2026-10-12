@@ -91,7 +91,7 @@ export default function HeroNav() {
   }, [closeMenu, menuOpen]);
 
   const header = (
-    <header data-hero-nav className="pointer-events-none fixed inset-x-0 top-0 z-50 flex items-start justify-between gap-6 px-[var(--bp-gut)] pt-[var(--bp-gut)] [&>*]:pointer-events-auto">
+    <header data-hero-nav className="pointer-events-none fixed inset-x-0 top-0 z-50 flex items-center justify-between gap-6 px-[var(--bp-gut)] pt-[var(--bp-gut)] [&>*]:pointer-events-auto">
       <a
         href={onHome ? "#top" : "/"}
         aria-label="BytesPlatform — home"

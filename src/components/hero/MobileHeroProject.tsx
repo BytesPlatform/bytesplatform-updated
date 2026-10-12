@@ -5,7 +5,7 @@ export default function MobileHeroProject() {
     <div className={styles.stage} aria-hidden="true">
       <div className={styles.blob}>
         <img
-          src="/projects/nonnis/shot-01.jpg"
+          src="/hero/mobile-blob-image.png"
           alt=""
           className={styles.image}
           draggable={false}
