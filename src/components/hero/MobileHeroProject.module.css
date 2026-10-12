@@ -1,0 +1,63 @@
+.stage {
+  position: absolute;
+  z-index: 5;
+  top: clamp(8.5rem, 18svh, 11rem);
+  left: 50%;
+  width: min(82vw, 23rem);
+  aspect-ratio: 494 / 545;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.blob {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  -webkit-mask-image: url("/hero/mobile-hero-blob.svg");
+  mask-image: url("/hero/mobile-hero-blob.svg");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  animation: mobile-hero-float 10s ease-in-out infinite alternate;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: 50% 50%;
+  transform: scale(1.08);
+  animation: mobile-hero-image-drift 12s ease-in-out infinite alternate;
+}
+
+@keyframes mobile-hero-float {
+  from { transform: translate3d(0, 0, 0) rotate(-0.35deg) scale(0.995); }
+  to { transform: translate3d(0, -0.45rem, 0) rotate(0.35deg) scale(1.008); }
+}
+
+@keyframes mobile-hero-image-drift {
+  from { transform: scale(1.08) translate3d(-0.8%, 0.6%, 0); }
+  to { transform: scale(1.12) translate3d(0.8%, -0.6%, 0); }
+}
+
+@media (min-width: 640px) {
+  .stage { display: none; }
+}
+
+@media (max-height: 720px) {
+  .stage {
+    top: 7.6rem;
+    width: min(70vw, 19rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob,
+  .image {
+    animation: none;
+  }
+}
