@@ -8,7 +8,7 @@ import ActionPill from "@/components/ui/ActionPill";
 import SiteFooter from "@/components/sections/SiteFooter";
 import { careers } from "@/data/careers";
 import { site } from "@/data/site";
-import { fontsReady, isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
+import { fontsReady, prefersReducedMotion } from "@/lib/animation/prefs";
 import { mountScroll } from "@/lib/animation/scroll";
 import { mountFooterLift } from "@/lib/animation/footerLift";
 import styles from "./CareersPage.module.css";
@@ -44,7 +44,7 @@ export default function CareersPage() {
   const [openRole, setOpenRole] = useState<string | null>(null);
   const roles = careers.roles.filter((role) => team === "All" || role.team === team);
 
-  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() && !isCoarsePointer() }), []);
+  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() }), []);
 
   useLayoutEffect(() => {
     const el = root.current;

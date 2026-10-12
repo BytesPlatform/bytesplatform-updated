@@ -9,7 +9,7 @@ import { site } from "@/data/site";
 import { serviceLinks } from "@/data/services";
 import { productLinks } from "@/data/products";
 import { emailPattern, phonePattern, sendContactMessage } from "@/lib/contact";
-import { fontsReady, isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
+import { fontsReady, prefersReducedMotion } from "@/lib/animation/prefs";
 import { mountScroll } from "@/lib/animation/scroll";
 import { mountFooterLift } from "@/lib/animation/footerLift";
 // The submit button wears the site pill; its styles live with ActionPill.
@@ -58,7 +58,7 @@ export default function ContactPage() {
   const [touched, setTouched] = useState(false);
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
-  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() && !isCoarsePointer() }), []);
+  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() }), []);
 
   useLayoutEffect(() => {
     const el = root.current;

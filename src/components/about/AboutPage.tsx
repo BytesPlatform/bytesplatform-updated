@@ -9,7 +9,7 @@ import ShowreelPlayer from "@/components/sections/ShowreelPlayer";
 import SiteFooter from "@/components/sections/SiteFooter";
 import { about } from "@/data/about";
 import { site } from "@/data/site";
-import { fontsReady, isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
+import { fontsReady, prefersReducedMotion } from "@/lib/animation/prefs";
 import { mountScroll } from "@/lib/animation/scroll";
 import styles from "./AboutPage.module.css";
 
@@ -51,7 +51,7 @@ export default function AboutPage() {
     setPlayerOpen(true);
   };
 
-  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() && !isCoarsePointer() }), []);
+  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() }), []);
 
   // Pause the story loop whenever it is off screen.
   useEffect(() => {

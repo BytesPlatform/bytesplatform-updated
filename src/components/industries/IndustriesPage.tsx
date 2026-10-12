@@ -8,7 +8,7 @@ import ActionPill from "@/components/ui/ActionPill";
 import SiteFooter from "@/components/sections/SiteFooter";
 import { industries } from "@/data/industries";
 import { serviceLinks } from "@/data/services";
-import { fontsReady, isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
+import { fontsReady, prefersReducedMotion } from "@/lib/animation/prefs";
 import { mountScroll, jumpTo } from "@/lib/animation/scroll";
 import styles from "./IndustriesPage.module.css";
 
@@ -40,7 +40,7 @@ export default function IndustriesPage() {
   const arcRef = useRef<SVGCircleElement>(null);
   const [active, setActive] = useState(0);
 
-  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() && !isCoarsePointer() }), []);
+  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() }), []);
 
   useLayoutEffect(() => {
     const el = root.current;

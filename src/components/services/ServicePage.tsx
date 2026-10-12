@@ -7,7 +7,7 @@ import HeroNav from "@/components/hero/HeroNav";
 import ActionPill from "@/components/ui/ActionPill";
 import SiteFooter from "@/components/sections/SiteFooter";
 import type { ServiceContent } from "@/data/serviceContent";
-import { fontsReady, isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
+import { fontsReady, prefersReducedMotion } from "@/lib/animation/prefs";
 import { mountScroll } from "@/lib/animation/scroll";
 import styles from "./ServicePage.module.css";
 
@@ -51,7 +51,7 @@ function SectionLabel({ index, children }: { index: number; children: string }) 
 export default function ServicePage({ content, indexed = false }: { content: ServiceContent; indexed?: boolean }) {
   const root = useRef<HTMLDivElement>(null);
 
-  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() && !isCoarsePointer() }), []);
+  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() }), []);
 
   useLayoutEffect(() => {
     const el = root.current;

@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroNav from "@/components/hero/HeroNav";
 import SiteFooter from "@/components/sections/SiteFooter";
-import { fontsReady, isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
+import { fontsReady, prefersReducedMotion } from "@/lib/animation/prefs";
 import { mountScroll } from "@/lib/animation/scroll";
 import { mountFooterLift } from "@/lib/animation/footerLift";
 import styles from "./Blog.module.css";
@@ -19,7 +19,7 @@ gsap.registerPlugin(ScrollTrigger);
 export default function BlogShell({ children }: { children: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
 
-  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() && !isCoarsePointer() }), []);
+  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() }), []);
 
   useLayoutEffect(() => {
     const el = root.current;

@@ -17,8 +17,11 @@ let activeLenis: LenisLike | null = null;
 
 /**
  * Starts smooth scrolling and same-page anchor routing. Lenis loads lazily
- * for fine pointers with motion enabled; touch keeps native inertia, which is both
- * faster and what the platform expects.
+ * whenever motion is enabled. On touch screens it also drives the swipe itself
+ * (syncTouch): the document never scrolls natively under a finger, so mobile
+ * browsers keep their address and tool bars in place instead of collapsing
+ * them. That keeps the viewport height fixed, so scroll-driven scenes (the
+ * intro line) aren't re-measured mid-scroll.
  */
 export function mountScroll(opts: { smooth: boolean }): Teardown {
   mounted += 1;
@@ -32,12 +35,17 @@ export function mountScroll(opts: { smooth: boolean }): Teardown {
   if (opts.smooth) {
     import("lenis").then(({ default: Lenis }) => {
       if (cancelled) return;
+      const touch = window.matchMedia("(pointer: coarse)").matches;
       const instance = new Lenis({
         // Reduce travel per wheel/trackpad gesture and ease into the target.
         // Lenis ignores duration/easing when lerp is set.
         lerp: 0.055,
         wheelMultiplier: 0.55,
-        touchMultiplier: 1.6,
+        // Touch: the page follows the finger 1:1, then glides on Lenis's own
+        // inertia after release. Nested scrollers opt out with data-lenis-prevent.
+        ...(touch
+          ? { syncTouch: true, syncTouchLerp: 0.075, touchInertiaExponent: 1.7, touchMultiplier: 1 }
+          : { touchMultiplier: 1.6 }),
       });
       lenis = instance as unknown as LenisLike;
       activeLenis = lenis;

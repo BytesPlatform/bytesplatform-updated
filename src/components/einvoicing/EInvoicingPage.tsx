@@ -8,7 +8,7 @@ import ActionPill from "@/components/ui/ActionPill";
 import SiteFooter from "@/components/sections/SiteFooter";
 import { capabilities, erps, faqs, milestones, penalties, phases, problem, roles, sources, steps } from "@/data/einvoicing";
 import { emailPattern, sendContactMessage } from "@/lib/contact";
-import { fontsReady, isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
+import { fontsReady, prefersReducedMotion } from "@/lib/animation/prefs";
 import { mountScroll } from "@/lib/animation/scroll";
 import { mountFooterLift } from "@/lib/animation/footerLift";
 // The submit button wears the site pill; its styles live with ActionPill.
@@ -243,7 +243,7 @@ function Timeline() {
 export default function EInvoicingPage() {
   const root = useRef<HTMLDivElement>(null);
 
-  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() && !isCoarsePointer() }), []);
+  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() }), []);
 
   useLayoutEffect(() => {
     const el = root.current;

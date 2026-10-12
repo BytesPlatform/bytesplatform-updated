@@ -6,7 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroNav from "@/components/hero/HeroNav";
 import SiteFooter from "@/components/sections/SiteFooter";
 import CurrentLink from "@/components/ui/CurrentLink";
-import { fontsReady, isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
+import { fontsReady, prefersReducedMotion } from "@/lib/animation/prefs";
 import { jumpTo, mountScroll } from "@/lib/animation/scroll";
 import { mountFooterLift } from "@/lib/animation/footerLift";
 import styles from "./LegalPage.module.css";
@@ -45,7 +45,7 @@ export default function LegalPage({ title, subtitle, children }: {
   const [sections, setSections] = useState<{ id: string; text: string }[]>([]);
   const [active, setActive] = useState("");
 
-  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() && !isCoarsePointer() }), []);
+  useEffect(() => mountScroll({ smooth: !prefersReducedMotion() }), []);
 
   // The contents list is read from the policy's own headings, so it can never drift from the text.
   useLayoutEffect(() => {

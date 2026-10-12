@@ -6,7 +6,7 @@ import gsap from "gsap";
 import HeroNav from "./HeroNav";
 import HeroTypography from "./HeroTypography";
 
-import { prefersReducedMotion, isCoarsePointer, fontsReady } from "@/lib/animation/prefs";
+import { prefersReducedMotion, fontsReady } from "@/lib/animation/prefs";
 import { mountScroll } from "@/lib/animation/scroll";
 
 export default function Hero() {
@@ -24,7 +24,6 @@ export default function Hero() {
     if (!hero || !word) return;
 
     const reduced = prefersReducedMotion();
-    const coarse = isCoarsePointer();
     let releaseScroll: (() => void) | null = null;
 
     // ----------------------------------------------------------- the period
@@ -114,7 +113,7 @@ export default function Hero() {
       return cleanup;
     }
 
-    releaseScroll = mountScroll({ smooth: !coarse });
+    releaseScroll = mountScroll({ smooth: true });
     // wait for the webfont so the letters condense into their final shapes
     fontsReady(900).then(() => {
       if (!cancelled) runMorph();
