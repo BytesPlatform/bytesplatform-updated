@@ -143,19 +143,31 @@ export default function Hero() {
       >
         <HeroNav />
 
-        <div className="relative z-10 flex flex-1 items-end px-[var(--bp-gut)] pb-[8svh]">
+        <div className="relative z-10 flex flex-1 items-end px-[var(--bp-gut)] pb-5 sm:pb-[8svh]">
           <HeroTypography />
         </div>
 
         <div
           data-hero-foot
-          className="relative z-10 flex items-end justify-between gap-6 px-[var(--bp-gut)] pb-[var(--bp-gut)]"
+          className="relative z-10 flex flex-col gap-6 px-[var(--bp-gut)] pb-[var(--bp-gut)] sm:flex-row sm:items-end sm:justify-between"
         >
           <p className="hero-meta whitespace-nowrap">
             Technology studio
             <span className="mx-2 opacity-40">/</span>
             Texas
           </p>
+
+          {/* Phones only: the nav drops its "Start a project" below 640px, so the
+              hero carries it as a full-width button. */}
+          <a
+            href="/contact"
+            className="flex h-14 items-center justify-center gap-3 rounded-full bg-[#1f2028] text-[0.95rem] font-medium text-paper transition-colors duration-300 active:bg-blue sm:hidden"
+          >
+            Start a project
+            <svg viewBox="0 0 16 16" aria-hidden className="h-4 w-4 fill-none stroke-current" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3.2 12.8 12.8 3.2m0 0H5.4m7.4 0v7.4" />
+            </svg>
+          </a>
 
         </div>
       </div>

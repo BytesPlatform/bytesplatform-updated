@@ -305,6 +305,9 @@
 }
 
 @media (max-width: 639px) {
+  /* Opaque on phones: the hero's blob and wordmark would ghost through. */
+  .panelShell { background: #f6f6f8; }
+
   .panel {
     padding-top: 4.75rem;
   }

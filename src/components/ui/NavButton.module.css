@@ -188,6 +188,21 @@
   .dot { right: 1.5rem; }
 }
 
+/* Phones: logo and a dark Menu pill only (same two-dot icon as desktop).
+   The hero carries "Start a project". */
+@media (max-width: 639px) {
+  .action { display: none; }
+  .button { height: 3rem; font-size: 0.75rem; letter-spacing: 0.04em; }
+  .menu:focus-visible { background: #1f2028; color: #f0f1fa; }
+}
+
+/* Touch screens keep :hover after a tap, which would leave the dots stuck in
+   their hover pose once the menu closes. Only real hover gets that effect. */
+@media (hover: none) {
+  .menu:not([data-active="true"]):hover .menuDots { transform: none; }
+  .menu:not([data-active="true"]):hover .menuDots span { transform: translateY(-50%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .button,
   .label,

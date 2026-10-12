@@ -52,6 +52,10 @@ export default function IntroExperience() {
     let reelShown = -1;
     const reduced = prefersReducedMotion();
     const coarse = isCoarsePointer();
+    // Touch-only screens have no pointer to follow, so the pointer-driven effects
+    // (the site-wide pearl trail and the hero's ink reveal) are never set up there:
+    // no listeners, no simulation, no extra passes.
+    const touchOnly = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
     const loading = new AbortController();
     // The lift only toggles the radius; the transition animates it in and out.
     canvas.style.transition = "border-radius 1.0s cubic-bezier(0.16, 1, 0.3, 1)";
@@ -94,8 +98,10 @@ export default function IntroExperience() {
     const pointer = { x: 0, y: 0, has: false };
     const onPointer = (event: PointerEvent) => { pointer.x = event.clientX; pointer.y = event.clientY; pointer.has = true; };
     const onLeave = () => { pointer.has = false; ink?.setMouse(-1, -1); };
-    window.addEventListener("pointermove", onPointer, { passive: true });
-    document.documentElement.addEventListener("pointerleave", onLeave);
+    if (!touchOnly) {
+      window.addEventListener("pointermove", onPointer, { passive: true });
+      document.documentElement.addEventListener("pointerleave", onLeave);
+    }
     const onLoaderState = (event: Event) => {
       const detail = (event as CustomEvent<{
         progress: number;
@@ -111,7 +117,7 @@ export default function IntroExperience() {
 
     // Composite the hero trail behind the shared scene and its blue line.
     const sceneTarget = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false, stencilBuffer: false });
-    const pearlTrail = createPearlTrail(renderer, sceneTarget.texture);
+    const pearlTrail = touchOnly ? null : createPearlTrail(renderer, sceneTarget.texture);
     const inkScene = new THREE.Scene();
     const camera = new THREE.Camera();
     const inkGeometry = new THREE.PlaneGeometry(2, 2);
@@ -192,7 +198,7 @@ export default function IntroExperience() {
       ScrollTrigger.refresh();
     });
 
-    if (!reduced) void createFloatingCards(loading.signal).then(loaded => {
+    if (!reduced && !touchOnly) void createFloatingCards(loading.signal).then(loaded => {
       if (!loaded) return;
       if (disposed) { loaded.destroy(); return; }
       cards = loaded;
@@ -275,12 +281,12 @@ export default function IntroExperience() {
         else video.pause();
       }
       if (bounds.bottom <= 0 || bounds.top >= window.innerHeight) {
-        pearlTrail.update(0, 0, 0, false, width, height);
+        pearlTrail?.update(0, 0, 0, false, width, height);
         return;
       }
       const dt = Math.min(elapsed / 1000, 0.05);
       const trailPointer = !reduced && !coarse && pointer.has && pointer.y >= heroRect.top && pointer.y < workRect.bottom;
-      pearlTrail.update(dt, pointer.x - stage.left, pointer.y - stage.top, trailPointer, width, height);
+      pearlTrail?.update(dt, pointer.x - stage.left, pointer.y - stage.top, trailPointer, width, height);
       const inHero = heroRect.bottom > 0 && heroRect.top < window.innerHeight;
       renderer.autoClear = true;
       if (ink && cards && inHero) {
@@ -338,7 +344,7 @@ export default function IntroExperience() {
 
       // Liquid sits above the line; the hero masking trail stays below it.
       renderer.setScissorTest(false);
-      pearlTrail.render();
+      pearlTrail?.render();
       const readout = studio.querySelector<HTMLElement>("[data-fluid-readout]");
       if (readout) readout.textContent = `Progress ${state.progress.toFixed(2)} · shared canvas ${canvas.width}×${canvas.height} · lines ${(lineProgress * 100).toFixed(0)}%`;
     };
@@ -373,7 +379,7 @@ export default function IntroExperience() {
       canvasLayer.style.zIndex = "";
       canvasLayer.style.pointerEvents = "";
       footer.style.visibility = "";
-      pearlTrail.dispose();
+      pearlTrail?.dispose();
       ink?.destroy();
       cards?.destroy();
       fluid?.dispose();
