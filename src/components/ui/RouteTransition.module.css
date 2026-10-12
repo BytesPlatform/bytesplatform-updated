@@ -71,6 +71,9 @@
   font-weight: 400;
   letter-spacing: -0.04em;
   line-height: 0.8;
+  /* Hidden unless the page is actually taking a while to load. */
+  opacity: 0;
+  transition: opacity 200ms ease;
 }
 
 @keyframes loader-failsafe {

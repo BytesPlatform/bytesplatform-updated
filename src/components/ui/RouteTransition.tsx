@@ -7,18 +7,33 @@ import styles from "./RouteTransition.module.css";
 /**
  * Site loader and page transition, after Lusion's: "Bytes." sits on black
  * while the page loads, then the word becomes a window onto the page and the
- * camera flies into its full stop until the page fills the screen. Leaving a
+ * camera flies into its t until the page fills the screen. Leaving a
  * page plays the same flight in reverse, back out to the word, and the next
  * page (a full load) picks up from that exact frame.
  */
 
-const REVEAL_MS = 1350;
-const EXIT_MS = 1050;
-/** Never flash the loader by: the counter always takes at least this long. */
-const MIN_LOAD_MS = 900;
+/** Lusion's pace: about half a second each way, with a short beat between. */
+const REVEAL_MS = 900;
+const EXIT_MS = 800;
+/**
+ * Lusion-style pacing. Opening lingers on the word and then rushes through
+ * the t; closing is its exact time-reversal, rushing out and settling slowly
+ * onto the word. (Zoom is already log-scaled in draw(), so this curve sets
+ * how the dive itself feels over time.)
+ */
+const OPEN_EASE = (t: number) => t ** 2.2;
+const CLOSE_EASE = (t: number) => 1 - (1 - t) ** 2.2;
+/** The word always holds on screen for at least this beat. */
+const HOLD_MS = 350;
+/** The counter only appears when loading is actually taking this long. */
+const COUNTER_AFTER_MS = 500;
+/** Set while leaving a page, so the next one skips the full count. */
+const TRANSITION_KEY = "bp:page-transition";
+/** Once shown, the counter's run from 000 toward 100. */
+const COUNT_MS = 900;
 /** Give up waiting on slow assets; the page is usable well before this. */
 const MAX_LOAD_MS = 6000;
-const TILT = -9 * (Math.PI / 180);
+const TILT = 9 * (Math.PI / 180);
 const SCROLL_KEYS = new Set([" ", "PageUp", "PageDown", "Home", "End", "ArrowUp", "ArrowDown"]);
 
 const reducedMotion = () =>
@@ -52,9 +67,11 @@ type Geometry = {
   spacing: string;
   x: number;
   baseline: number;
-  /** The full stop, a true circle: the point the camera flies into. */
+  /** The full stop, drawn as a true circle. */
   dot: { x: number; y: number; r: number };
-  /** Zoom at which the dot alone covers the whole viewport. */
+  /** The middle of the t's stem: the point the camera flies into. */
+  target: { x: number; y: number };
+  /** Zoom at which the t's strokes alone cover the whole viewport. */
   maxZoom: number;
 };
 
@@ -94,10 +111,12 @@ export default function RouteTransition() {
     let height = 1;
     let dpr = 1;
     let geometry: Geometry | null = null;
-    /** 0 = the word on black, 1 = fully inside the dot (page visible). */
+    /** 0 = the word on black, 1 = fully inside the t (page visible). */
     let depth = 0;
     let navigating = false;
     let unlockInput: (() => void) | null = null;
+    /** Whether the counter came in during this load (it usually doesn't). */
+    let counterShown = false;
 
     const setState = (state: "cover" | "flight" | "open") => { overlay.dataset.state = state; };
     const setCounter = (value: number) => { counter.textContent = String(Math.round(value * 100)).padStart(3, "0"); };
@@ -111,16 +130,59 @@ export default function RouteTransition() {
       const baseline = probe!.getBoundingClientRect().bottom;
       const box = dot!.getBoundingClientRect();
       const radius = Math.max(1, box.width / 2);
+      const t = findT(font, spacing, parseFloat(style.fontSize));
       return {
         font,
         spacing,
         x,
         baseline,
         dot: { x: box.left + radius, y: box.top + box.height / 2, r: radius },
-        // The camera ends centred on the dot, so its disc has to reach the corners.
-        maxZoom: (Math.hypot(width, height) / 2 / radius) * 1.08,
+        target: { x: x + t.x, y: baseline - t.rise },
+        // The camera ends centred in the t's stem, so its width has to reach the corners.
+        maxZoom: (Math.hypot(width, height) / t.thickness) * 1.15,
       };
     }
+
+    /**
+     * Locates the middle of the t's stem, between its foot and crossbar, by
+     * rendering the word offscreen. x is from the word's left edge, rise is
+     * above the baseline; thickness is the stem's width there.
+     */
+    function findT(font: string, spacing: string, size: number) {
+      const scratch = document.createElement("canvas");
+      const pad = Math.ceil(size * 0.1);
+      scratch.width = Math.ceil(size * 4);
+      scratch.height = Math.ceil(size * 1.3);
+      const sctx = scratch.getContext("2d", { willReadFrequently: true })!;
+      sctx.font = font;
+      if (hasLetterSpacing) (sctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = spacing;
+      const base = Math.round(size * 1.05);
+      sctx.fillText("Bytes", pad, base);
+      const from = Math.floor(pad + sctx.measureText("By").width);
+      const to = Math.ceil(pad + sctx.measureText("Byt").width);
+      const left = Math.max(0, from - Math.round(size * 0.06));
+      const span = to - left;
+      const pixels = sctx.getImageData(left, 0, span, base).data;
+      // First ink run in each row of the t's column band.
+      const runAt = (row: number) => {
+        let a = -1;
+        for (let i = 0; i < span; i++) {
+          const ink = pixels[(row * span + i) * 4 + 3] > 128;
+          if (ink && a < 0) a = i;
+          if (!ink && a >= 0) return { a, b: i };
+        }
+        return a >= 0 ? { a, b: span } : null;
+      };
+      const xHeight = sctx.measureText("x").actualBoundingBoxAscent || size * 0.55;
+      // The heart of the t: the bare stem, halfway up its body, below the
+      // crossbar (camera aimed here feels like going into the letter, not
+      // skimming its top).
+      const rise = xHeight * 0.58;
+      const stem = runAt(Math.round(base - rise));
+      if (!stem) return { x: (from + to) / 2 - pad, rise, thickness: size * 0.12 };
+      return { x: left + (stem.a + stem.b) / 2 - pad, rise, thickness: Math.max(1, stem.b - stem.a) };
+    }
+
 
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -135,16 +197,19 @@ export default function RouteTransition() {
     /** One frame of the flight: black, with the word cut out as a window. */
     function draw(amount: number) {
       if (!geometry) return;
-      const { font, spacing, x, baseline, dot: d, maxZoom } = geometry;
-      // Log-space zoom: a slow push at first, then a rush into the dot.
+      const { font, spacing, x, baseline, dot: d, target, maxZoom } = geometry;
+      // Log-space zoom: a slow push at first, then a rush into the t.
       const zoom = maxZoom ** (amount ** 2.3);
       const tilt = TILT * smooth(amount);
-      // The dot drifts to the middle of the screen as the camera closes in.
+      // The t drifts to the middle of the screen as the camera closes in.
       const drift = smooth(clamp01(amount / 0.8));
-      const sx = d.x + (width / 2 - d.x) * drift;
-      const sy = d.y + (height / 2 - d.y) * drift;
+      const sx = target.x + (width / 2 - target.x) * drift;
+      const sy = target.y + (height / 2 - target.y) * drift;
       // White letters first, then the page shows through them.
-      const wash = 1 - smooth(clamp01((amount - 0.06) / 0.4));
+      // The cutout itself fills with white, not the page: none while the
+      // window still covers the screen, then gradually solid as it shrinks
+      // back into the word (and, opening, clearing as it grows).
+      const wash = 1 - smooth(clamp01((amount - 0.2) / 0.6));
 
       const word = () => {
         ctx!.fillText("Bytes", x, baseline);
@@ -163,7 +228,7 @@ export default function RouteTransition() {
       ctx!.translate(sx, sy);
       ctx!.rotate(tilt);
       ctx!.scale(zoom, zoom);
-      ctx!.translate(-d.x, -d.y);
+      ctx!.translate(-target.x, -target.y);
       ctx!.font = font;
       if (hasLetterSpacing) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = spacing;
       ctx!.textBaseline = "alphabetic";
@@ -177,13 +242,13 @@ export default function RouteTransition() {
       }
     }
 
-    function fly(from: number, to: number, duration: number, onFrame: (t: number) => void, done: () => void) {
+    function fly(from: number, to: number, duration: number, ease: (t: number) => number, onFrame: (t: number) => void, done: () => void) {
       cancelAnimationFrame(frame);
       const start = performance.now();
       const tick = (now: number) => {
         if (disposed) return;
         const t = clamp01((now - start) / duration);
-        depth = from + (to - from) * t;
+        depth = from + (to - from) * ease(t);
         draw(depth);
         onFrame(t);
         if (t < 1) frame = requestAnimationFrame(tick);
@@ -214,11 +279,12 @@ export default function RouteTransition() {
       geometry = measure();
       setState("flight");
       draw(0);
-      fly(0, 1, REVEAL_MS, (t) => {
-        counter!.style.opacity = String(1 - clamp01(t / 0.2));
+      fly(0, 1, REVEAL_MS, OPEN_EASE, (t) => {
+        if (counterShown) counter!.style.opacity = String(1 - clamp01(t / 0.2));
       }, () => {
         setState("open");
-        counter!.style.opacity = "";
+        counterShown = false;
+        counter!.style.opacity = "0";
         unlockInput?.();
         unlockInput = null;
         // Only now, with the page fully on screen, do its intros play.
@@ -226,8 +292,13 @@ export default function RouteTransition() {
       });
     }
 
-    /** Counts up while the page loads, then reveals it. */
-    function load() {
+    /**
+     * A fresh visit or refresh counts 000 → 100 over at least COUNT_MS (and
+     * for as long as the page is really loading). Arriving through a page
+     * transition just holds the word for a beat, and only brings the counter
+     * in if the page is genuinely still loading after COUNTER_AFTER_MS.
+     */
+    function load(full: boolean) {
       setState("cover");
       unlockInput = lockInput();
       const started = performance.now();
@@ -239,17 +310,29 @@ export default function RouteTransition() {
       const timeout = new Promise<void>((resolve) => setTimeout(resolve, MAX_LOAD_MS));
       void Promise.race([Promise.all([fonts, windowLoaded]), timeout]).then(() => { loaded = true; });
 
+      let counting = false;
       let shown = 0;
       const tick = (now: number) => {
         if (disposed) return;
-        const timed = easeOut(clamp01((now - started) / MIN_LOAD_MS));
-        // Creep toward 90 until everything has loaded, then finish.
-        const goal = loaded ? timed : Math.min(timed, 0.9);
-        shown += (goal - shown) * 0.18;
-        if (goal - shown < 0.004) shown = goal;
-        setCounter(shown);
-        if (loaded && shown >= 1) {
-          frame = window.setTimeout(reveal, 140) as unknown as number;
+        const elapsed = now - started;
+        if (!counting && (full || (!loaded && elapsed >= COUNTER_AFTER_MS))) {
+          counting = true;
+          counterShown = true;
+          setCounter(0);
+          counter!.style.opacity = "1";
+        }
+        if (counting) {
+          const timed = easeOut(clamp01((elapsed - (full ? 0 : COUNTER_AFTER_MS)) / COUNT_MS));
+          // Creep toward 90 until everything has loaded, then finish. A full
+          // load always runs the whole count; a transition's can finish early.
+          const goal = loaded ? (full ? timed : 1) : Math.min(timed, 0.9);
+          shown += (goal - shown) * (loaded ? 0.25 : 0.18);
+          if (Math.abs(goal - shown) < 0.004) shown = goal;
+          setCounter(shown);
+        }
+        // 0.995 already reads as 100; don't sit on it while the curve's tail settles.
+        if (loaded && elapsed >= HOLD_MS && (!counting || shown >= 0.995)) {
+          frame = window.setTimeout(reveal, counting ? 140 : 0) as unknown as number;
           return;
         }
         frame = requestAnimationFrame(tick);
@@ -260,20 +343,19 @@ export default function RouteTransition() {
     /** Flies back out to the word, then loads the next page under it. */
     function leave(href: string) {
       navigating = true;
+      // Tells the next page it was reached by a transition, not a refresh.
+      try { sessionStorage.setItem(TRANSITION_KEY, "1"); } catch {}
       unlockInput?.();
       unlockInput = lockInput();
       // Measure with the overlay laid out: while "open" it is display: none.
       setState("cover");
       geometry = measure();
-      setCounter(0);
+      counterShown = false;
       counter!.style.opacity = "0";
       setState("flight");
       const from = depth > 0 ? depth : 1;
-      fly(from, 0, EXIT_MS * from, (t) => {
-        counter!.style.opacity = String(clamp01((t - 0.7) / 0.3));
-      }, () => {
+      fly(from, 0, EXIT_MS * from, CLOSE_EASE, () => {}, () => {
         setState("cover");
-        counter!.style.opacity = "";
         window.location.assign(href);
       });
     }
@@ -309,7 +391,12 @@ export default function RouteTransition() {
     width = window.innerWidth;
     height = window.innerHeight;
     resize();
-    load();
+    let arrived = false;
+    try {
+      arrived = sessionStorage.getItem(TRANSITION_KEY) === "1";
+      sessionStorage.removeItem(TRANSITION_KEY);
+    } catch {}
+    load(!arrived);
     window.addEventListener("resize", resize);
     window.addEventListener("pageshow", onPageShow);
     document.addEventListener("click", onClick, true);
@@ -333,7 +420,7 @@ export default function RouteTransition() {
         {/* One line box, so the probe shares the word's baseline. */}
         <span>
           <span ref={wordRef}>Bytes</span>
-          {/* The full stop is drawn as a true circle, the camera's way in. */}
+          {/* The full stop is drawn as a true circle. */}
           <i ref={dotRef} className={styles.dot} />
           <i ref={baselineRef} className={styles.baseline} />
         </span>
