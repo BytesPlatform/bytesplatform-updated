@@ -789,6 +789,10 @@ function createGlassImageMaterial(
         float fresnel = pow(1.0 - clamp(abs(dot(normalize(vNormal), normalize(vViewDirection))), 0.0, 1.0), 3.0);
         float edge = exp(-max(-distanceToEdge, 0.0) / 0.065);
         color += vec3(0.45, 0.7, 1.0) * uEdgeStrength * (edge * 0.65 + fresnel * 0.35);
+        // Bring a restrained electric-blue rim up around the active card on hover.
+        // Using the rounded card edge keeps the glow attached to its silhouette.
+        float hoverRim = max(edge * 0.72, fresnel * 0.38) * uHover;
+        color += vec3(0.055, 0.22, 0.72) * hoverRim;
         // Face rim blends into the geometric bevel and tinted sidewalls.
         float rimLight = 0.5 + 0.5 * dot(normalize(p + vec2(0.0001)), normalize(vec2(-0.6, 0.8)));
         vec3 rimColor = color * 0.32 + vec3(0.09, 0.15, 0.19) * rimLight;
@@ -805,6 +809,12 @@ function createGlassImageMaterial(
         vec3 sideColor = behindGlass * 0.22 + vec3(0.018, 0.055, 0.07);
         sideColor += vec3(0.10, 0.19, 0.22) * sideLight + vec3(0.32, 0.46, 0.5) * glint;
         color = mix(color, sideColor, sideAmount);
+        // A soft, card-local glow follows the pointer over the active face.
+        // It stays inside the glass instead of reading as a separate hotspot.
+        float pointerDistance = length((vUv - uPointer) * uResolution);
+        float pointerGlow = exp(-pow(pointerDistance / 0.78, 2.0)) * uHover;
+        pointerGlow *= step(0.999, vCardFace);
+        color += vec3(0.045, 0.082, 0.105) * pointerGlow;
         // Card-anchored micrograin: visible frosting without frame-to-frame flicker.
         vec2 grainGrid = vUv * uResolution * 210.0;
         float grain = hashNoise(floor(grainGrid)) - 0.5;
@@ -1373,7 +1383,9 @@ function updateCards(
       index
     ) => {
 
-      const hover = item === hoveredCard && !caseStudy.open ? 1 : 0;
+      // Only the current front-facing card responds to hover. Neighbouring
+      // cards keep their orbit pose and their glass remains undisturbed.
+      const hover = item === activeCard && item === hoveredCard && !caseStudy.open ? 1 : 0;
       const hoverUniform = item.material.uniforms.uHover;
       if (hover && !item.wasHovered) {
         item.material.uniforms.uPointer.value.copy(hoverUv);
@@ -1382,7 +1394,7 @@ function updateCards(
       hoverUniform.value = THREE.MathUtils.damp(hoverUniform.value, hover, 7, delta);
       const hoverMotion = reducedMotion.matches ? 0 : hoverUniform.value;
       item.card.position.z = CARD_DISTANCE + CARD_HOVER_LIFT * hoverMotion;
-      if (item === hoveredCard) item.material.uniforms.uPointer.value.lerp(hoverUv, 1 - Math.exp(-12 * delta));
+      if (hover) item.material.uniforms.uPointer.value.lerp(hoverUv, 1 - Math.exp(-12 * delta));
       const localPointer = item.material.uniforms.uPointer.value;
       item.card.rotation.x = CARD_TILT_X + (localPointer.y - 0.5) * CARD_HOVER_TILT * hoverMotion;
       item.card.rotation.y = CARD_YAW - (localPointer.x - 0.5) * CARD_HOVER_TILT * hoverMotion;
@@ -1735,7 +1747,8 @@ function updateHover() {
   if (suspended || caseStudy.open) { hoveredCard = null; renderer.domElement.style.cursor = ''; cardCursor.hide(); return; }
   hoverRay.setFromCamera(hoverPointer, camera);
   const hit = hoverRay.intersectObjects(cardPivots.map(item => item.card), false)[0];
-  hoveredCard = hit ? cardPivots.find(item => item.card === hit.object) : null;
+  const hitCard = hit ? cardPivots.find(item => item.card === hit.object) : null;
+  hoveredCard = hitCard === activeCard ? hitCard : null;
   if (hit?.uv) hoverUv.copy(hit.uv);
   const activeHover = hoveredCard && hoveredCard === activeCard;
   const available = CASE_STUDIES_ENABLED || Boolean(activeHover && projects[hoveredCard.index]?.link?.href);

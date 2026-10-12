@@ -39,9 +39,13 @@ export function createCardCursor(reducedMotion) {
         float liquid = sin(angle * 3. + uTime * 2.2) * .022 + sin(angle * 5. - uTime * 1.7) * .009;
         float opening = sin(clamp(uOpen, 0., 1.) * 3.14159);
         float radius = .64 * uOpen + liquid * uOpen * (.3 + speed + opening * 1.5);
-        float alpha = 1. - smoothstep(radius - .012, radius, length(p));
+        float distanceToBlob = length(p);
+        float body = 1. - smoothstep(radius - .05, radius - .012, distanceToBlob);
+        float halo = exp(-pow(max(distanceToBlob - radius + .012, 0.) / .24, 2.)) * uOpen;
         if (uOpen < .003) discard;
-        gl_FragColor = vec4(vec3(.969, .969, .98), alpha);
+        vec3 color = mix(vec3(.68, .82, 1.), vec3(.93, .96, 1.), body);
+        float alpha = max(body * .62, halo * .18);
+        gl_FragColor = vec4(color, alpha);
       }`,
   });
   const geometry = new THREE.PlaneGeometry(2, 2);
