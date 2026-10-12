@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
+import { lockScroll } from "@/lib/animation/scroll";
 import styles from "./ShowreelPlayer.module.css";
 
 type ShowreelPlayerProps = {
@@ -35,8 +36,10 @@ export default function ShowreelPlayer({ open, initialPointer, onClose }: Showre
   useEffect(() => {
     if (!open) return;
     wasOpenRef.current = true;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // Freeze the page (Lenis, wheel, touch, keys) while the reel plays, and tell
+    // the scroll indicator to step aside.
+    const releaseScroll = lockScroll({ allowWithin: playerRef.current ?? undefined });
+    document.documentElement.dataset.scrollLocked = "showreel";
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
@@ -52,7 +55,8 @@ export default function ShowreelPlayer({ open, initialPointer, onClose }: Showre
     }
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      releaseScroll();
+      delete document.documentElement.dataset.scrollLocked;
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [onClose, open]);

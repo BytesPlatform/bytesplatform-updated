@@ -52,7 +52,8 @@
     overflow-x: clip;
     background-color: var(--bp-bg);
     color-scheme: light;
-    scrollbar-gutter: stable;
+    /* The native scrollbar is hidden; ScrollIndicator shows progress instead. */
+    scrollbar-width: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -75,13 +76,8 @@
     border-radius: 4px;
   }
 
-  ::-webkit-scrollbar { width: 10px; }
-  ::-webkit-scrollbar-track { background: var(--bp-bg); }
-  ::-webkit-scrollbar-thumb {
-    background: rgb(17 17 17 / 0.13);
-    border-radius: var(--bp-radius);
-    border: 3px solid var(--bp-bg);
-  }
+  /* Page scrollbar only; inner scroll areas (textareas, panels) keep theirs. */
+  html::-webkit-scrollbar { display: none; }
 }
 
 @layer components {

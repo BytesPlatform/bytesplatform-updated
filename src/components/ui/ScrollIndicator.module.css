@@ -1,0 +1,47 @@
+/* A short pill track at the right edge, vertically centred. Purely a read-out:
+   it never takes pointer events. */
+.indicator {
+  --track: 11rem;
+  --thumb: 2.1rem;
+  position: fixed;
+  z-index: 90;
+  top: 50%;
+  right: clamp(0.5rem, 1vw, 0.9rem);
+  width: 5px;
+  height: var(--track);
+  border-radius: 999px;
+  /* Drawn in the paper colour and difference-blended against the page as one
+     group: it reads dark over paper and light over the dark footer and panels.
+     (Blending only the pill wouldn't work: the opacity transition isolates the
+     group, so the pill would blend with the track, not with the page.) */
+  background: rgb(240 241 250 / 0.16);
+  mix-blend-mode: difference;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: opacity 450ms ease;
+}
+
+.indicator[data-visible="true"] { opacity: 1; transition-duration: 200ms; }
+
+/* Hidden while something has frozen the page, like the showreel player. */
+:global(html[data-scroll-locked]) .indicator { opacity: 0; transition-duration: 200ms; }
+
+.thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--thumb);
+  border-radius: inherit;
+  background: #f0f1fa;
+  will-change: transform;
+}
+
+@media (max-width: 639px) {
+  .indicator { --track: 8rem; --thumb: 1.6rem; width: 4px; right: 0.35rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indicator { transition: none; }
+}
