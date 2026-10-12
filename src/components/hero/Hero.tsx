@@ -51,6 +51,37 @@ export default function Hero() {
     let finishMorph: (() => void) | null = null;
     let cancelled = false;
 
+    function runSimpleReveal() {
+      const chars = Array.from(word!.querySelectorAll<HTMLElement>("[data-char]"));
+      const finish = () => {
+        word!.dataset.morph = "done";
+        gsap.set(chars, { clearProps: "opacity" });
+        finishMorph = null;
+      };
+      finishMorph = finish;
+      gsap.set(chars, { opacity: 0 });
+      word!.dataset.morph = "simple";
+      morphTl = gsap.timeline({ onComplete: finish }).to(chars, {
+        opacity: 1,
+        duration: 0.45,
+        stagger: 0.045,
+        ease: "power2.out",
+      });
+    }
+
+    function needsSimpleReveal() {
+      if (window.matchMedia("(max-width: 639px), (hover: none) and (pointer: coarse)").matches) return true;
+      // Three.js requires WebGL 2. Release this capability probe immediately.
+      try {
+        const probe = document.createElement("canvas").getContext("webgl2");
+        if (!probe) return true;
+        probe.getExtension("WEBGL_lose_context")?.loseContext();
+        return false;
+      } catch {
+        return true;
+      }
+    }
+
     function runMorph() {
       const chars = Array.from(word!.querySelectorAll<HTMLElement>("[data-char]"));
       const matrix = el!.querySelector("[data-morph-matrix]");
@@ -116,7 +147,9 @@ export default function Hero() {
     releaseScroll = mountScroll({ smooth: true });
     // wait for the webfont so the letters condense into their final shapes
     fontsReady(900).then(() => {
-      if (!cancelled) runMorph();
+      if (cancelled) return;
+      if (needsSimpleReveal()) runSimpleReveal();
+      else runMorph();
     });
 
     function cleanup() {
