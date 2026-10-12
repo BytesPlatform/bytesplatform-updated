@@ -296,12 +296,12 @@ export default function IntroExperience() {
       const inHero = heroRect.bottom > 0 && heroRect.top < window.innerHeight;
       renderer.autoClear = true;
       if (ink && cards && inHero) {
-        const heroPointer = pointer.has && pointer.y < heroRect.bottom;
+        const heroPointer = pointer.has && pointer.y >= heroRect.top && pointer.y < heroRect.bottom;
         const x = heroPointer ? (pointer.x - stage.left) / width : -1;
         const y = heroPointer ? 1 - (pointer.y - stage.top) / height : -1;
-        ink.setMouse(x, y);
-        if (inHero) cards.render(dt, pointer.has ? x : 0.5, pointer.has ? y : 0.5);
         ink.setHeroRegion(heroRect.top - stage.top, heroHeight, height);
+        ink.setMouse(x, heroPointer ? 1 - (pointer.y - heroRect.top) / heroHeight : -1);
+        if (inHero) cards.render(dt, pointer.has ? x : 0.5, pointer.has ? y : 0.5);
         ink.render(dt);
       }
       renderer.setRenderTarget(sceneTarget);

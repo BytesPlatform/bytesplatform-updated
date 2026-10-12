@@ -484,8 +484,10 @@ export function createInkTrail(renderer: THREE.WebGLRenderer, content: HTMLCanva
     uniform sampler2D uContent;
     uniform vec2 uHeroRegion;
     void main() {
-      float ink = smoothstep(0.085, 0.095, texture2D(uDye, vUv).r);
       vec2 heroUv = vec2(vUv.x, 1.0 - ((1.0 - vUv.y) - uHeroRegion.x) / uHeroRegion.y);
+      // Both the tear and its contents live on the hero, not the viewport.
+      if (heroUv.y < 0.0 || heroUv.y > 1.0) { gl_FragColor = vec4(0.0); return; }
+      float ink = smoothstep(0.085, 0.095, texture2D(uDye, heroUv).r);
       vec3 color = texture2D(uContent, clamp(heroUv, 0.0, 1.0)).rgb;
       gl_FragColor = vec4(color * ink, ink);
     }
@@ -676,7 +678,14 @@ function simulate(dt: number) {
   return {
     texture: output.texture,
     setHeroRegion(top, height, viewportHeight) {
-      displayMaterial.uniforms.uHeroRegion.value.set(top / viewportHeight, height / viewportHeight);
+      const region = displayMaterial.uniforms.uHeroRegion.value as THREE.Vector2;
+      // Rebase the previous cursor position so scrolling does not inject fluid.
+      if (pointer.initialized) {
+        const previousScreenY = region.x + (1 - pointer.y) * region.y;
+        pointer.y = 1 - (previousScreenY * viewportHeight - top) / height;
+      }
+      region.set(top / viewportHeight, height / viewportHeight);
+      splatMaterial.uniforms.uAspect.value = content.width / content.height;
     },
     setMouse(x, y) {
       if (x < 0 || x > 1 || y < 0 || y > 1) {
@@ -701,7 +710,6 @@ function simulate(dt: number) {
     resize(width, height, dpr) {
       if (disposed || width < 2 || height < 2) return;
       output.setSize(Math.round(width * Math.min(dpr, 2)), Math.round(height * Math.min(dpr, 2)));
-      splatMaterial.uniforms.uAspect.value = width / height;
       pointer.initialized = false;
     },
     render(dt) {
