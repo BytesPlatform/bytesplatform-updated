@@ -3,7 +3,7 @@
   z-index: 5;
   top: clamp(8.5rem, 18svh, 11rem);
   left: 50%;
-  width: min(82vw, 23rem);
+  width: min(92vw, 23rem);
   aspect-ratio: 494 / 545;
   transform: translateX(-50%);
   pointer-events: none;
