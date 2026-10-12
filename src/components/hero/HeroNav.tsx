@@ -27,6 +27,7 @@ export default function HeroNav() {
   }, []);
   // True while the menu is mid-animation; every toggle is ignored until it settles.
   const animating = useRef(false);
+  const pendingNavigation = useRef<(() => void) | null>(null);
 
   const closeMenu = useCallback(() => {
     if (animating.current || !menuOpen) return;
@@ -35,13 +36,39 @@ export default function HeroNav() {
   }, [menuOpen]);
 
   const handleMenuOpened = useCallback(() => {
+    if (pendingNavigation.current) {
+      animating.current = true;
+      setMenuOpen(false);
+      return;
+    }
     animating.current = false;
   }, []);
 
   const handleMenuClosed = useCallback(() => {
     animating.current = false;
     setButtonActive(false);
+    const complete = pendingNavigation.current;
+    pendingNavigation.current = null;
+    complete?.();
   }, []);
+
+  useEffect(() => {
+    const closeForNavigation = (event: Event) => {
+      const request = (event as CustomEvent<{ handled: boolean; complete: () => void }>).detail;
+      request.handled = true;
+      if (!menuOpen && !animating.current) {
+        request.complete();
+        return;
+      }
+      pendingNavigation.current = request.complete;
+      if (menuOpen && !animating.current) {
+        animating.current = true;
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener("site:close-menu-for-navigation", closeForNavigation);
+    return () => window.removeEventListener("site:close-menu-for-navigation", closeForNavigation);
+  }, [menuOpen]);
 
   const toggleMenu = () => {
     if (animating.current) return;

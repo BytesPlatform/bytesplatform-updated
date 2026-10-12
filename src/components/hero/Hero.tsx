@@ -6,7 +6,7 @@ import gsap from "gsap";
 import HeroNav from "./HeroNav";
 import HeroTypography from "./HeroTypography";
 
-import { prefersReducedMotion, fontsReady } from "@/lib/animation/prefs";
+import { prefersReducedMotion, fontsReady, introsReady } from "@/lib/animation/prefs";
 import { mountScroll } from "@/lib/animation/scroll";
 
 export default function Hero() {
@@ -145,8 +145,9 @@ export default function Hero() {
     }
 
     releaseScroll = mountScroll({ smooth: true });
-    // wait for the webfont so the letters condense into their final shapes
-    fontsReady(900).then(() => {
+    // wait for the webfont so the letters condense into their final shapes,
+    // and for the site loader to finish so the morph plays in view
+    Promise.all([fontsReady(900), introsReady()]).then(() => {
       if (cancelled) return;
       if (needsSimpleReveal()) runSimpleReveal();
       else runMorph();

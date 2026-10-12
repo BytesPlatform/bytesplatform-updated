@@ -215,3 +215,11 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* While the site loader is up (set by RouteTransition), CSS intros wait with
+   the GSAP ones, so every entrance plays after the reveal, not under it. */
+html[data-site-loading] *,
+html[data-site-loading] *::before,
+html[data-site-loading] *::after {
+  animation-play-state: paused !important;
+}

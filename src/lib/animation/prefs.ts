@@ -23,3 +23,22 @@ export function fontsReady(timeout = 1200): Promise<void> {
     new Promise<void>((r) => setTimeout(r, timeout)),
   ]);
 }
+
+/**
+ * Resolves once the site loader has finished revealing the page (it sets
+ * html[data-site-loading] while it is up), or at once when there is none.
+ * For intros that start themselves outside GSAP's (held) timeline.
+ */
+export function introsReady(): Promise<void> {
+  if (typeof document === "undefined") return Promise.resolve();
+  const root = document.documentElement;
+  if (!root.hasAttribute("data-site-loading")) return Promise.resolve();
+  return new Promise((resolve) => {
+    const observer = new MutationObserver(() => {
+      if (root.hasAttribute("data-site-loading")) return;
+      observer.disconnect();
+      resolve();
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ["data-site-loading"] });
+  });
+}

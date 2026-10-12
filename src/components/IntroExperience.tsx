@@ -69,6 +69,7 @@ export default function IntroExperience() {
     canvas.addEventListener("transitionend", onCornersSettled);
     let renderer: THREE.WebGLRenderer;
     try {
+      if (!canvas.getContext("webgl2")) return;
       renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
     } catch { return; }
     renderer.setClearColor(0, 0);
@@ -85,7 +86,6 @@ export default function IntroExperience() {
     let height = 1;
     let heroHeight = 1;
     let studioHeight = 1;
-    let servicesHeight = 1;
     let dpr = 1;
     let needsResize = true;
     let videoVisible = false;
@@ -264,7 +264,6 @@ export default function IntroExperience() {
         height = Math.max(1, stage.height);
         heroHeight = heroRect.height;
         studioHeight = studioRect.height;
-        servicesHeight = servicesRect.height;
         dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2);
         renderer.setPixelRatio(dpr);
         renderer.setSize(width, height, false);

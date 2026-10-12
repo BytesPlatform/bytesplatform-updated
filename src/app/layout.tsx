@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { site } from "@/data/site";
 import ScrollIndicator from "@/components/ui/ScrollIndicator";
+import RouteTransition from "@/components/ui/RouteTransition";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -125,6 +126,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <main id="main">{children}</main>
+        <RouteTransition />
         <ScrollIndicator />
       </body>
     </html>
