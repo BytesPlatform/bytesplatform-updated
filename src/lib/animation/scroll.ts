@@ -33,10 +33,10 @@ export function mountScroll(opts: { smooth: boolean }): Teardown {
     import("lenis").then(({ default: Lenis }) => {
       if (cancelled) return;
       const instance = new Lenis({
-        duration: 1.1,
-        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        lerp: 0.095,
-        wheelMultiplier: 1,
+        // Reduce travel per wheel/trackpad gesture and ease into the target.
+        // Lenis ignores duration/easing when lerp is set.
+        lerp: 0.055,
+        wheelMultiplier: 0.55,
         touchMultiplier: 1.6,
       });
       lenis = instance as unknown as LenisLike;
