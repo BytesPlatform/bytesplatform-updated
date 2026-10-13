@@ -150,39 +150,46 @@ export default function RouteTransition() {
      */
     function findT(font: string, spacing: string, size: number) {
       const scratch = document.createElement("canvas");
-      const pad = Math.ceil(size * 0.1);
-      scratch.width = Math.ceil(size * 4);
+      const pad = Math.ceil(size * 0.25);
+      scratch.width = Math.ceil(size * 3);
       scratch.height = Math.ceil(size * 1.3);
       const sctx = scratch.getContext("2d", { willReadFrequently: true })!;
       sctx.font = font;
       if (hasLetterSpacing) (sctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = spacing;
       const base = Math.round(size * 1.05);
-      sctx.fillText("Bytes", pad, base);
-      const from = Math.floor(pad + sctx.measureText("By").width);
-      const to = Math.ceil(pad + sctx.measureText("Byt").width);
-      const left = Math.max(0, from - Math.round(size * 0.06));
-      const span = to - left;
-      const pixels = sctx.getImageData(left, 0, span, base).data;
-      // First ink run in each row of the t's column band.
-      const runAt = (row: number) => {
-        let a = -1;
-        for (let i = 0; i < span; i++) {
-          const ink = pixels[(row * span + i) * 4 + 3] > 128;
-          if (ink && a < 0) a = i;
-          if (!ink && a >= 0) return { a, b: i };
-        }
-        return a >= 0 ? { a, b: span } : null;
-      };
       const xHeight = sctx.measureText("x").actualBoundingBoxAscent || size * 0.55;
       // The heart of the t: the bare stem, halfway up its body, below the
-      // crossbar (camera aimed here feels like going into the letter, not
-      // skimming its top).
+      // crossbar (aiming here feels like going into the letter, not skimming
+      // its top).
       const rise = xHeight * 0.58;
-      const stem = runAt(Math.round(base - rise));
-      if (!stem) return { x: (from + to) / 2 - pad, rise, thickness: size * 0.12 };
-      return { x: left + (stem.a + stem.b) / 2 - pad, rise, thickness: Math.max(1, stem.b - stem.a) };
+      const row = Math.round(base - rise);
+      // Render with and without the t (kerning and tracking included) and keep
+      // only the pixels the t adds. Scanning a column band instead picks up
+      // the y's arm at some sizes, since tight tracking tucks it under the t.
+      const inkRow = (text: string) => {
+        sctx.clearRect(0, 0, scratch.width, scratch.height);
+        sctx.fillText(text, pad, base);
+        return sctx.getImageData(0, row, scratch.width, 1).data;
+      };
+      const withT = inkRow("Byt");
+      const withoutT = inkRow("By");
+      let best = { a: -1, b: -1 };
+      let a = -1;
+      for (let i = 0; i <= scratch.width; i++) {
+        const ink = i < scratch.width && withT[i * 4 + 3] > 128 && withoutT[i * 4 + 3] <= 128;
+        if (ink && a < 0) a = i;
+        if (!ink && a >= 0) {
+          if (i - a > best.b - best.a) best = { a, b: i };
+          a = -1;
+        }
+      }
+      if (best.a < 0) {
+        const from = sctx.measureText("By").width;
+        const to = sctx.measureText("Byt").width;
+        return { x: (from + to) / 2, rise, thickness: size * 0.12 };
+      }
+      return { x: (best.a + best.b) / 2 - pad, rise, thickness: Math.max(1, best.b - best.a) };
     }
-
 
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
