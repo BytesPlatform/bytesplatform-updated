@@ -7,17 +7,17 @@ import styles from "./RouteTransition.module.css";
 /**
  * Site loader and page transition, after Lusion's: "Bytes." sits on black
  * while the page loads, then the word becomes a window onto the page and the
- * camera flies into its t until the page fills the screen. Leaving a
+ * camera flies into its full stop until the page fills the screen. Leaving a
  * page plays the same flight in reverse, back out to the word, and the next
  * page (a full load) picks up from that exact frame.
  */
 
 /** Lusion's pace: about half a second each way, with a short beat between. */
-const REVEAL_MS = 900;
-const EXIT_MS = 800;
+const REVEAL_MS = 1100;
+const EXIT_MS = 900;
 /**
  * Lusion-style pacing. Opening lingers on the word and then rushes through
- * the t; closing is its exact time-reversal, rushing out and settling slowly
+ * the dot; closing is its exact time-reversal, rushing out and settling slowly
  * onto the word. (Zoom is already log-scaled in draw(), so this curve sets
  * how the dive itself feels over time.)
  */
@@ -82,11 +82,11 @@ type Geometry = {
   spacing: string;
   x: number;
   baseline: number;
-  /** The full stop, drawn as a true circle. */
+  /** The full stop, drawn as a true circle (the camera's way in). */
   dot: { x: number; y: number; r: number };
-  /** The middle of the t's stem: the point the camera flies into. */
+  /** The dot's centre: the point the camera flies into. */
   target: { x: number; y: number };
-  /** Zoom at which the t's strokes alone cover the whole viewport. */
+  /** Zoom at which the dot alone covers the whole viewport. */
   maxZoom: number;
 };
 
@@ -127,7 +127,7 @@ export default function RouteTransition() {
     let height = 1;
     let dpr = 1;
     let geometry: Geometry | null = null;
-    /** 0 = the word on black, 1 = fully inside the t (page visible). */
+    /** 0 = the word on black, 1 = fully inside the dot (page visible). */
     let depth = 0;
     let navigating = false;
     let unlockInput: (() => void) | null = null;
@@ -149,65 +149,16 @@ export default function RouteTransition() {
       const baseline = probe!.getBoundingClientRect().bottom;
       const box = dot!.getBoundingClientRect();
       const radius = Math.max(1, box.width / 2);
-      const t = findT(font, spacing, parseFloat(style.fontSize));
       return {
         font,
         spacing,
         x,
         baseline,
         dot: { x: box.left + radius, y: box.top + box.height / 2, r: radius },
-        target: { x: x + t.x, y: baseline - t.rise },
-        // The camera ends centred in the t's stem, so its width has to reach the corners.
-        maxZoom: (Math.hypot(width, height) / t.thickness) * 1.15,
+        target: { x: box.left + radius, y: box.top + box.height / 2 },
+        // The camera ends centred on the dot, so its disc has to reach the corners.
+        maxZoom: (Math.hypot(width, height) / 2 / radius) * 1.08,
       };
-    }
-
-    /**
-     * Locates the middle of the t's stem, between its foot and crossbar, by
-     * rendering the word offscreen. x is from the word's left edge, rise is
-     * above the baseline; thickness is the stem's width there.
-     */
-    function findT(font: string, spacing: string, size: number) {
-      const scratch = document.createElement("canvas");
-      const pad = Math.ceil(size * 0.25);
-      scratch.width = Math.ceil(size * 3);
-      scratch.height = Math.ceil(size * 1.3);
-      const sctx = scratch.getContext("2d", { willReadFrequently: true })!;
-      sctx.font = font;
-      if (hasLetterSpacing) (sctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = spacing;
-      const base = Math.round(size * 1.05);
-      const xHeight = sctx.measureText("x").actualBoundingBoxAscent || size * 0.55;
-      // The heart of the t: the bare stem, halfway up its body, below the
-      // crossbar (aiming here feels like going into the letter, not skimming
-      // its top).
-      const rise = xHeight * 0.58;
-      const row = Math.round(base - rise);
-      // Render with and without the t (kerning and tracking included) and keep
-      // only the pixels the t adds. Scanning a column band instead picks up
-      // the y's arm at some sizes, since tight tracking tucks it under the t.
-      const inkRow = (text: string) => {
-        sctx.clearRect(0, 0, scratch.width, scratch.height);
-        sctx.fillText(text, pad, base);
-        return sctx.getImageData(0, row, scratch.width, 1).data;
-      };
-      const withT = inkRow("Byt");
-      const withoutT = inkRow("By");
-      let best = { a: -1, b: -1 };
-      let a = -1;
-      for (let i = 0; i <= scratch.width; i++) {
-        const ink = i < scratch.width && withT[i * 4 + 3] > 128 && withoutT[i * 4 + 3] <= 128;
-        if (ink && a < 0) a = i;
-        if (!ink && a >= 0) {
-          if (i - a > best.b - best.a) best = { a, b: i };
-          a = -1;
-        }
-      }
-      if (best.a < 0) {
-        const from = sctx.measureText("By").width;
-        const to = sctx.measureText("Byt").width;
-        return { x: (from + to) / 2, rise, thickness: size * 0.12 };
-      }
-      return { x: (best.a + best.b) / 2 - pad, rise, thickness: Math.max(1, best.b - best.a) };
     }
 
     function resize() {
@@ -224,10 +175,10 @@ export default function RouteTransition() {
     function draw(amount: number) {
       if (!geometry) return;
       const { font, spacing, x, baseline, dot: d, target, maxZoom } = geometry;
-      // Log-space zoom: a slow push at first, then a rush into the t.
+      // Log-space zoom: a slow push at first, then a rush into the dot.
       const zoom = maxZoom ** (amount ** 2.3);
       const tilt = TILT * smooth(amount);
-      // The t drifts to the middle of the screen as the camera closes in.
+      // The dot drifts to the middle of the screen as the camera closes in.
       const drift = smooth(clamp01(amount / 0.8));
       const sx = target.x + (width / 2 - target.x) * drift;
       const sy = target.y + (height / 2 - target.y) * drift;
