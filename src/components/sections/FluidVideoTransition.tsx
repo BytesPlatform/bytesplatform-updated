@@ -27,20 +27,22 @@ export default function FluidVideoTransition() {
     }
   }, []);
 
+  // Section height = where the reel card ends (data-media-end's top + h)
+  // plus a ~7svh beat before Services, matching desktop on every size.
   return (
     <section
       data-fluid-transition
       aria-label="Showreel"
       className="
         relative
-        h-[150svh]
+        h-[127svh]
         overflow-hidden
         [--fluid-travel:0.28]
 
-        sm:h-[152svh]
+        sm:h-[131svh]
         sm:[--fluid-travel:0.32]
 
-        md:h-[150svh]
+        md:h-[133svh]
         md:[--fluid-travel:0.36]
 
         lg:h-[145svh]
