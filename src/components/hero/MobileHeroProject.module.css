@@ -9,19 +9,21 @@
   pointer-events: none;
 }
 
+/* The outline is an inline clip path (MobileHeroProject) so it can flow; the
+   float, sway and entrance are driven per frame there too. */
 .blob {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  -webkit-mask-image: url("/hero/mobile-hero-blob.svg");
-  mask-image: url("/hero/mobile-hero-blob.svg");
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  animation: mobile-hero-float 10s ease-in-out infinite alternate;
+  transform-origin: 50% 55%;
+  will-change: transform, filter, opacity;
+}
+
+.defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
 
 .image {
@@ -31,12 +33,7 @@
   object-fit: cover;
   object-position: 50% 50%;
   transform: scale(1.08);
-  animation: mobile-hero-image-drift 12s ease-in-out infinite alternate;
-}
-
-@keyframes mobile-hero-float {
-  from { transform: translate3d(0, 0, 0) rotate(-0.35deg) scale(0.995); }
-  to { transform: translate3d(0, -0.45rem, 0) rotate(0.35deg) scale(1.008); }
+  animation: mobile-hero-image-drift 4s ease-in-out infinite alternate;
 }
 
 @keyframes mobile-hero-image-drift {
@@ -56,7 +53,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .blob,
   .image {
     animation: none;
   }
