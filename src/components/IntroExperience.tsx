@@ -21,7 +21,7 @@ import { createOrbitalLines } from "@/lib/intro/orbitalLines";
 import { createServiceCards } from "@/lib/services/serviceCards";
 import { isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
 import LineDrawingTool from "./dev/LineDrawingTool";
-import { ENABLE_LINE_DRAWING_TOOL } from "@/lib/intro/lineData";
+import { ENABLE_LINE_DRAWING_TOOL, lineBreakpoint } from "@/lib/intro/lineData";
 import { createRootCardsScene } from "@/lib/work/rootCardsScene";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -309,7 +309,9 @@ export default function IntroExperience() {
       // The line only belongs to the intro (hero → services). Past that, leave
       // it out of sceneTarget: the pointer trail refracts sceneTarget, and would
       // otherwise reveal a stray piece of line over Work and Stats.
-      if (servicesRect.bottom > 0) lines.render(renderer, Math.min(scroll, handoffScroll), reduced ? 1 : lineProgress);
+      // No line on phones (the line layouts' own "mobile" breakpoint).
+      const phone = lineBreakpoint(window.innerWidth) === "mobile";
+      if (!phone && servicesRect.bottom > 0) lines.render(renderer, Math.min(scroll, handoffScroll), reduced ? 1 : lineProgress);
       const inServices = servicesRect.top < window.innerHeight && servicesRect.bottom > 0;
       if (inServices) serviceCards.render(renderer, serviceCardElements, stage, pointer, reduced ? 0 : time, dt);
       if (fluid && inStudio && video.readyState >= 2 && !reduced) {
