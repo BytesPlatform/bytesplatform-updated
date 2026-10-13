@@ -52,10 +52,25 @@ function playIntros() {
   document.documentElement.removeAttribute("data-site-loading");
   gsap.globalTimeline.resume();
 }
+/**
+ * html[data-site-transition] is present while the overlay is up (loading,
+ * revealing, or flying out to another page), so pointer effects such as the
+ * home page's trail can stand down until the page is actually in view.
+ */
+function markTransition(active: boolean) {
+  document.documentElement.toggleAttribute("data-site-transition", active);
+}
+
 if (typeof window !== "undefined" && !reducedMotion()) {
+  markTransition(true);
   holdIntros();
   // Should the loader never mount, never leave the site frozen.
-  window.setTimeout(playIntros, MAX_LOAD_MS + 4000);
+  window.setTimeout(() => {
+    if (document.querySelector('[data-state="open"]') || !document.querySelector("[data-live]")) {
+      markTransition(false);
+      playIntros();
+    }
+  }, MAX_LOAD_MS + 4000);
 }
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
@@ -96,6 +111,7 @@ export default function RouteTransition() {
     if (!overlay || !canvas || !word || !probe || !dot || !counter || !ctx || reduced) {
       playIntros();
       if (overlay) overlay.dataset.state = "open";
+      markTransition(false);
       return;
     }
 
@@ -118,7 +134,10 @@ export default function RouteTransition() {
     /** Whether the counter came in during this load (it usually doesn't). */
     let counterShown = false;
 
-    const setState = (state: "cover" | "flight" | "open") => { overlay.dataset.state = state; };
+    const setState = (state: "cover" | "flight" | "open") => {
+      overlay.dataset.state = state;
+      markTransition(state !== "open");
+    };
     const setCounter = (value: number) => { counter.textContent = String(Math.round(value * 100)).padStart(3, "0"); };
 
     /** Reads the HTML word's exact position so the canvas draws it in place. */

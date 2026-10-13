@@ -95,7 +95,13 @@ export default function IntroExperience() {
     let workScene: ReturnType<typeof createRootCardsScene> | null = null;
     let workTrigger: ScrollTrigger | null = null;
     const pointer = { x: 0, y: 0, has: false };
-    const onPointer = (event: PointerEvent) => { pointer.x = event.clientX; pointer.y = event.clientY; pointer.has = true; };
+    // While the site loader/page transition is up, the pointer isn't tracked
+    // and the trail neither starts nor draws (see RouteTransition).
+    const inTransition = () => document.documentElement.hasAttribute("data-site-transition");
+    const onPointer = (event: PointerEvent) => {
+      if (inTransition()) { pointer.has = false; return; }
+      pointer.x = event.clientX; pointer.y = event.clientY; pointer.has = true;
+    };
     const onLeave = () => { pointer.has = false; ink?.setMouse(-1, -1); };
     if (!touchOnly) {
       window.addEventListener("pointermove", onPointer, { passive: true });
@@ -276,7 +282,9 @@ export default function IntroExperience() {
       }
       const dt = Math.min(elapsed / 1000, 0.05);
       const trailBottom = Math.max(workRect.bottom, statsRect?.bottom ?? -Infinity);
-      const trailPointer = !reduced && !coarse && pointer.has && pointer.y >= heroRect.top && pointer.y < trailBottom;
+      const transitioning = inTransition();
+      if (transitioning) pointer.has = false;
+      const trailPointer = !transitioning && !reduced && !coarse && pointer.has && pointer.y >= heroRect.top && pointer.y < trailBottom;
       pearlTrail?.update(dt, pointer.x - stage.left, pointer.y - stage.top, trailPointer, width, height);
       const inHero = heroRect.bottom > 0 && heroRect.top < window.innerHeight;
       renderer.autoClear = true;
@@ -355,7 +363,7 @@ export default function IntroExperience() {
 
       // Liquid sits above the line; the hero masking trail stays below it.
       renderer.setScissorTest(false);
-      pearlTrail?.render();
+      if (!transitioning) pearlTrail?.render();
       const readout = studio.querySelector<HTMLElement>("[data-fluid-readout]");
       if (readout) readout.textContent = `Progress ${state.progress.toFixed(2)} · shared canvas ${canvas.width}×${canvas.height} · lines ${(lineProgress * 100).toFixed(0)}%`;
     };
