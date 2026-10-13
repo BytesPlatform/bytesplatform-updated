@@ -1,14 +1,21 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ActionPill from "@/components/ui/ActionPill";
+import { prefersReducedMotion } from "@/lib/animation/prefs";
 import ShowreelPlayer from "./ShowreelPlayer";
+import { Words } from "./reveal";
 import "./FluidVideoTransition.css";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const DEBUG_MODES = ["normal", "undistorted", "distortion map"] as const;
 
 /** DOM layout only; IntroExperience owns the shared visual system. */
 export default function FluidVideoTransition() {
+  const copy = useRef<HTMLDivElement>(null);
   const [debug, setDebug] = useState(false);
   const [mode, setMode] = useState(0);
   const [playerOpen, setPlayerOpen] = useState(false);
@@ -25,6 +32,26 @@ export default function FluidVideoTransition() {
     ) {
       setDebug(true);
     }
+  }, []);
+
+  // Copy entrance: the heading rises word by word, then the paragraph and the
+  // pill settle in. Hidden states are set up front and tweened *to* rest, as
+  // in Stats, so a ScrollTrigger refresh never leaves them stuck visible.
+  useEffect(() => {
+    const el = copy.current;
+    if (!el || prefersReducedMotion()) return;
+    const context = gsap.context(() => {
+      const ease = "expo.out";
+      gsap.set("[data-word]", { yPercent: 115 });
+      gsap.set("[data-fluid-lede]", { y: 28, opacity: 0, filter: "blur(6px)" });
+      gsap.set("[data-fluid-pill]", { y: 32, opacity: 0, scale: 0.92 });
+      gsap.timeline({ scrollTrigger: { trigger: el, start: "top 82%", toggleActions: "play none none reverse" } })
+        .to("[data-word]", { yPercent: 0, duration: 1.2, stagger: 0.07, ease }, 0)
+        .to("[data-fluid-lede]", { y: 0, opacity: 1, filter: "blur(0px)", duration: 1.1, ease }, 0.35)
+        .to("[data-fluid-pill]", { y: 0, opacity: 1, scale: 1, duration: 1.1, ease }, 0.5)
+        .set("[data-fluid-lede]", { clearProps: "filter" });
+    }, el);
+    return () => context.revert();
   }, []);
 
   // Section height = where the reel card ends (data-media-end's top + h)
@@ -71,6 +98,7 @@ export default function FluidVideoTransition() {
         "
       >
         <div
+          ref={copy}
           data-fluid-copy
           className="
             absolute
@@ -89,21 +117,23 @@ export default function FluidVideoTransition() {
           "
         >
           <h2 className="max-w-[12ch] text-[clamp(2.65rem,4.15vw,4.75rem)] font-medium leading-[0.98] tracking-[-0.055em] text-ink">
-            Ideas in motion.
+            <Words text="Ideas in motion." />
             <br />
-            <span className="text-blue">Made to be seen.</span>
+            <span className="text-blue"><Words text="Made to be seen." /></span>
           </h2>
 
-          <p className="mt-6 max-w-[39ch] text-[clamp(1rem,1.2vw,1.2rem)] leading-[1.5] tracking-[-0.015em] text-ink-mute">
+          <p data-fluid-lede className="mt-6 max-w-[39ch] text-[clamp(1rem,1.2vw,1.2rem)] leading-[1.5] tracking-[-0.015em] text-ink-mute">
             A fast cut through the digital products, brand systems, 3D worlds,
             and interactive experiences we bring to life.
           </p>
 
-          <ActionPill
-            href="#work"
-            label="Explore our work"
-            className="mt-8"
-          />
+          {/* Animated through a wrapper: the pill's own transform has a CSS transition. */}
+          <div data-fluid-pill className="mt-8 w-fit">
+            <ActionPill
+              href="#work"
+              label="Explore our work"
+            />
+          </div>
         </div>
 
         <div

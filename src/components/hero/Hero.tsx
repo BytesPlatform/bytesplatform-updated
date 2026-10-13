@@ -136,6 +136,48 @@ export default function Hero() {
         }, sharp);
     }
 
+    // ------------------------------------------------------- the hero foot
+    // The meta line lifts in word by word as the morph settles, and the phone
+    // CTA grows out of a dot into its full pill before its label arrives.
+    const metaParts = el.querySelectorAll<HTMLElement>("[data-meta-part]");
+    const metaSlash = q<HTMLElement>("[data-meta-slash]");
+    const foot = q<HTMLElement>("[data-hero-foot]");
+    const cta = q<HTMLElement>("[data-hero-cta]");
+    const ctaParts = el.querySelectorAll<HTMLElement>("[data-hero-cta-part]");
+    let footTl: gsap.core.Timeline | null = null;
+
+    function hideFoot() {
+      gsap.set(metaParts, { yPercent: 110 });
+      if (metaSlash) gsap.set(metaSlash, { opacity: 0, rotate: -90, scale: 0.4 });
+      if (cta) gsap.set(cta, { opacity: 0, y: 24 });
+      gsap.set(ctaParts, { opacity: 0, y: 8 });
+    }
+
+    function runFoot() {
+      const ease = "expo.out";
+      footTl = gsap.timeline({ delay: 0.35 })
+        .to(metaParts, { yPercent: 0, duration: 1.1, stagger: 0.12, ease }, 0)
+        .to(metaSlash ?? [], { opacity: 1, rotate: 0, scale: 1, duration: 0.9, ease }, 0.08);
+      // Only on phones is the CTA laid out; measure it to start as a centred dot.
+      if (foot && cta && cta.offsetWidth) {
+        // The pill's clip-path reads --cta-side, inherited from the foot so the
+        // pill's own transform tweens never touch it. A custom property tweens
+        // as a plain length, where browsers would normalise an inset() string.
+        const side = Math.max(0, (cta.offsetWidth - cta.offsetHeight) / 2);
+        footTl
+          .fromTo(cta, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.15)
+          .fromTo(foot, { "--cta-side": `${side}px` }, { "--cta-side": "0px", duration: 1, ease: "expo.inOut", immediateRender: true }, 0.55)
+          .to(ctaParts, { opacity: 1, y: 0, duration: 0.8, stagger: 0.08, ease }, 1.05);
+      }
+    }
+
+    function showFoot() {
+      footTl?.kill();
+      const parts = [...metaParts, metaSlash, cta, ...ctaParts].filter(Boolean);
+      if (parts.length) gsap.set(parts, { clearProps: "transform,opacity" });
+      foot?.style.removeProperty("--cta-side");
+    }
+
     // ------------------------------------------------------------- startup
     // Reduced motion: the composition is simply there — no morph, no trail,
     // no parallax.
@@ -145,6 +187,7 @@ export default function Hero() {
       return cleanup;
     }
 
+    hideFoot();
     releaseScroll = mountScroll({ smooth: true });
     // wait for the webfont so the letters condense into their final shapes,
     // and for the site loader to finish so the morph plays in view
@@ -152,10 +195,13 @@ export default function Hero() {
       if (cancelled) return;
       if (needsSimpleReveal()) runSimpleReveal();
       else runMorph();
+      runFoot();
     });
 
     function cleanup() {
       cancelled = true;
+      // never leave the foot hidden behind a killed timeline
+      showFoot();
       morphTl?.kill();
       // never leave the word blurred or filtered behind a killed timeline
       finishMorph?.();
@@ -186,20 +232,22 @@ export default function Hero() {
           data-hero-foot
           className="relative z-10 flex flex-col gap-6 px-[var(--bp-gut)] pb-[var(--bp-gut)] sm:flex-row sm:items-end sm:justify-between"
         >
+          {/* Each part sits in a clipped slot so the entrance can lift it in. */}
           <p className="hero-meta whitespace-nowrap">
-            Technology studio
-            <span className="mx-2 opacity-40">/</span>
-            Texas
+            <span className="inline-block overflow-hidden align-top"><span data-meta-part className="inline-block">Technology studio</span></span>
+            <span className="mx-2 inline-block opacity-40"><span data-meta-slash className="inline-block">/</span></span>
+            <span className="inline-block overflow-hidden align-top"><span data-meta-part className="inline-block">Texas</span></span>
           </p>
 
           {/* Phones only: the nav drops its "Start a project" below 640px, so the
               hero carries it as a full-width button. */}
           <a
             href="/contact"
-            className="flex h-14 items-center justify-center gap-3 rounded-full bg-[#1f2028] text-[0.95rem] font-medium text-paper transition-colors duration-300 active:bg-blue sm:hidden"
+            data-hero-cta
+            className="flex h-14 items-center justify-center gap-3 rounded-full bg-[#1f2028] [clip-path:inset(0_var(--cta-side,0px)_round_999px)] text-[0.95rem] font-medium text-paper transition-colors duration-300 active:bg-blue sm:hidden"
           >
-            Start a project
-            <svg viewBox="0 0 16 16" aria-hidden className="h-4 w-4 fill-none stroke-current" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <span data-hero-cta-part className="inline-block">Start a project</span>
+            <svg data-hero-cta-part viewBox="0 0 16 16" aria-hidden className="h-4 w-4 fill-none stroke-current" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3.2 12.8 12.8 3.2m0 0H5.4m7.4 0v7.4" />
             </svg>
           </a>
