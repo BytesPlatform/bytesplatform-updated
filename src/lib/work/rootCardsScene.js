@@ -366,6 +366,16 @@ const grooveMaterial = new THREE.MeshStandardMaterial({
   color: 0xd6d1c7, roughness: 0.36, metalness: 0.28
 });
 
+// The braid's vertical extent. Portrait screens widen the FOV to keep a card
+// in frame (see updateCameraFov) and the closing parallax looks further down,
+// so it runs well past the camera's travel (y 8.9 → 3.75) at both ends.
+const ROOT_BOTTOM_Y = -34;
+const ROOT_TOP_Y = 30;
+const ROOT_STEP = 0.2;
+const ROOT_POINTS = Math.round((ROOT_TOP_Y - ROOT_BOTTOM_Y) / ROOT_STEP) + 1;
+// Tube segments per world unit, as the original 36-unit braid had them.
+const rootSegments = (perOriginal) => Math.round(perOriginal * (ROOT_TOP_Y - ROOT_BOTTOM_Y) / 36);
+
 function braidPoint(y, phase, radius = 0.57) {
   const angle = y * 0.46 + phase;
   return new THREE.Vector3(
@@ -376,8 +386,8 @@ function braidPoint(y, phase, radius = 0.57) {
 }
 
 function braidCurve(phase, radius, offset = 0) {
-  return new THREE.CatmullRomCurve3(Array.from({ length: 181 }, (_, i) => {
-    const y = -18 + i * 0.2;
+  return new THREE.CatmullRomCurve3(Array.from({ length: ROOT_POINTS }, (_, i) => {
+    const y = ROOT_BOTTOM_Y + i * ROOT_STEP;
     const point = braidPoint(y, phase, radius);
     point.x += Math.cos(y * 0.46 + phase + offset) * 0.025;
     return point;
@@ -387,27 +397,27 @@ function braidCurve(phase, radius, offset = 0) {
 for (let strand = 0; strand < 3; strand++) {
   const phase = strand * Math.PI * 2 / 3;
   const ribbon = new THREE.Mesh(
-    new THREE.TubeGeometry(braidCurve(phase, 0.57), 420, 0.34, 20, false),
+    new THREE.TubeGeometry(braidCurve(phase, 0.57), rootSegments(420), 0.34, 20, false),
     pearlMaterial
   );
   rootGroup.add(ribbon);
   // Fine longitudinal ribs give the pearl strands a woven surface.
   for (let rib = -3; rib <= 3; rib++) {
-    const curve = new THREE.CatmullRomCurve3(Array.from({ length: 181 }, (_, i) => {
-      const y = -18 + i * 0.2;
+    const curve = new THREE.CatmullRomCurve3(Array.from({ length: ROOT_POINTS }, (_, i) => {
+      const y = ROOT_BOTTOM_Y + i * ROOT_STEP;
       const point = braidPoint(y, phase);
       const angle = y * 0.46 + phase + rib * 0.15;
       point.x += Math.cos(angle) * 0.342;
       point.z += Math.sin(angle) * 0.342;
       return point;
     }));
-    rootGroup.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 300, 0.007, 4, false), grooveMaterial));
+    rootGroup.add(new THREE.Mesh(new THREE.TubeGeometry(curve, rootSegments(300), 0.007, 4, false), grooveMaterial));
   }
   rootGroup.add(new THREE.Mesh(
-    new THREE.TubeGeometry(braidCurve(phase + 0.13, 0.95), 420, 0.052, 10, false), silverMaterial
+    new THREE.TubeGeometry(braidCurve(phase + 0.13, 0.95), rootSegments(420), 0.052, 10, false), silverMaterial
   ));
   rootGroup.add(new THREE.Mesh(
-    new THREE.TubeGeometry(braidCurve(phase + 0.13, 1.025), 420, 0.02, 8, false), filamentMaterial
+    new THREE.TubeGeometry(braidCurve(phase + 0.13, 1.025), rootSegments(420), 0.02, 8, false), filamentMaterial
   ));
 }
 
