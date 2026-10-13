@@ -159,6 +159,17 @@ export default function ShowreelPlayer({ open, initialPointer, onClose }: Showre
       <button ref={closeRef} type="button" className={styles.close} onClick={onClose} aria-label="Close showreel">
         <span aria-hidden />
         <span aria-hidden />
+        {/* "Click to exit" circling inside the button, around the ×. */}
+        <svg aria-hidden viewBox="0 0 100 100" className={styles.closeRing}>
+          <defs>
+            <path id="showreel-close-ring" d="M50 50 m-37 0 a37 37 0 1 1 74 0 a37 37 0 1 1 -74 0" />
+          </defs>
+          <text>
+            <textPath href="#showreel-close-ring" textLength="230" lengthAdjust="spacing">
+              CLICK TO EXIT • CLICK TO EXIT •
+            </textPath>
+          </text>
+        </svg>
       </button>
 
       <div
