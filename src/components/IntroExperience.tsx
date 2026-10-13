@@ -8,12 +8,15 @@ import Hero from "./hero/Hero";
 import FluidVideoTransition from "./sections/FluidVideoTransition";
 import ServicesSection from "./sections/ServicesSection";
 import FeaturedWork from "./sections/FeaturedWork";
+import StatsSection from "./sections/StatsSection";
+import ClientsSection from "./sections/ClientsSection";
 import SiteFooter from "./sections/SiteFooter";
 import { createFloatingCards, type FloatingCards } from "@/lib/hero/floatingCards";
 import { createInkTrail, type InkTrail } from "@/lib/hero/inkTrail";
 import { createFluidVideoRenderer } from "@/lib/fluid/createFluidVideoRenderer";
 import { createAutoScrollScene } from "@/lib/fluid/autoScrollScene";
 import { createPearlTrail } from "@/lib/intro/pearlTrail";
+import { createSheet } from "@/lib/intro/sheet";
 import { createOrbitalLines } from "@/lib/intro/orbitalLines";
 import { createServiceCards } from "@/lib/services/serviceCards";
 import { isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
@@ -30,6 +33,9 @@ const responsive = (width: number) => width < 768
   : width < 1024 ? { strength: 0.8, duration: 1.5 } : { strength: 1, duration: 1.7 };
 
 /** One persistent canvas, renderer and visual tick for every visual section. */
+/** How fast Work drifts up (relative to the page) as Stats slides over it. */
+const WORK_PARALLAX = 0.35;
+
 export default function IntroExperience() {
   const root = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -45,6 +51,7 @@ export default function IntroExperience() {
     const servicesHandoff = services.querySelector<HTMLElement>("[data-services-handoff]")!;
     const work = container.querySelector<HTMLElement>("[data-featured-work]")!;
     const footer = container.querySelector<HTMLElement>("[data-site-footer]")!;
+    const stats = container.querySelector<HTMLElement>("[data-stats]");
     const start = container.querySelector<HTMLElement>("[data-media-start]")!;
     const end = container.querySelector<HTMLElement>("[data-media-end]")!;
     const video = container.querySelector<HTMLVideoElement>("[data-fluid-video]")!;
@@ -58,15 +65,6 @@ export default function IntroExperience() {
     // no listeners, no simulation, no extra passes.
     const touchOnly = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
     const loading = new AbortController();
-    // The lift only toggles the radius; the transition animates it in and out.
-    canvas.style.transition = "border-radius 1.0s cubic-bezier(0.16, 1, 0.3, 1)";
-    // True from the first pixel of lift until the corners have flattened again,
-    // so the footer stays behind them for the whole way back.
-    let cornersOut = false;
-    const onCornersSettled = (event: TransitionEvent) => {
-      if (event.propertyName.startsWith("border") && canvas.style.borderRadius === "0px") cornersOut = false;
-    };
-    canvas.addEventListener("transitionend", onCornersSettled);
     let renderer: THREE.WebGLRenderer;
     try {
       if (!canvas.getContext("webgl2")) return;
@@ -119,6 +117,9 @@ export default function IntroExperience() {
     // Composite the hero trail behind the shared scene and its blue line.
     const sceneTarget = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false, stencilBuffer: false });
     const pearlTrail = touchOnly ? null : createPearlTrail(renderer, sceneTarget.texture);
+    const statsSheet = createSheet(0xf0f1fa);
+    // The canvas paints Stats' paper from here on; the DOM keeps only its text.
+    if (stats) stats.dataset.sheet = "canvas";
     const inkScene = new THREE.Scene();
     const camera = new THREE.Camera();
     const inkGeometry = new THREE.PlaneGeometry(2, 2);
@@ -221,38 +222,22 @@ export default function IntroExperience() {
       const workStart = workTrigger?.start ?? Number.POSITIVE_INFINITY;
       const workEnd = workTrigger?.end ?? Number.POSITIVE_INFINITY;
       const scrollY = window.scrollY;
-      const footerRevealHeight = footer.offsetHeight;
-      const workDeparture = workTrigger
-        ? THREE.MathUtils.clamp(scrollY - workEnd, 0, footerRevealHeight)
-        : 0;
+      // Stats slides up over Work (which stays put), then lifts off the fixed
+      // footer. Its paper is drawn on this canvas (see sheet below) so the
+      // pointer trail keeps running across it; the canvas rises above the
+      // footer while Stats is on screen and is transparent outside the sheet.
+      const statsRect = stats?.getBoundingClientRect() ?? null;
+      const statsOnScreen = !!statsRect && statsRect.top < window.innerHeight && statsRect.bottom > 0;
       const workOnStage = workTrigger
-        ? scrollY >= workStart - 1 && scrollY < workEnd + height
+        ? scrollY >= workStart - 1 && (!statsRect || statsRect.top > 0)
         : workRect.top <= 1 && workRect.bottom > 1;
-      // Once its pin releases, move the complete Work viewport upward as one
-      // rigid panel. The footer stays fixed beneath it; only the panel's actual
-      // bottom corners are rounded (there is no shrinking mask or crop).
-      if (workDeparture > 0) {
-        const radius = THREE.MathUtils.clamp(width * 0.035, 28, 64);
-        const departure = -workDeparture;
-        canvas.style.transform = `translate3d(0, ${departure}px, 0)`;
-        canvas.style.borderRadius = `0 0 ${radius}px ${radius}px`;
-        canvasLayer.style.zIndex = "2";
-        canvasLayer.style.pointerEvents = "none";
-        footer.style.visibility = "visible";
-        cornersOut = true;
-      } else {
-        canvas.style.transform = "none";
-        canvas.style.borderRadius = "0px";
-        if (!cornersOut) {
-          canvasLayer.style.zIndex = "0";
-          canvasLayer.style.pointerEvents = "";
-          footer.style.visibility = "hidden";
-        }
-      }
+      canvasLayer.style.zIndex = statsOnScreen ? "2" : "0";
+      canvasLayer.style.pointerEvents = statsOnScreen ? "none" : "";
+      footer.style.visibility = statsRect && statsRect.bottom < window.innerHeight + 1 ? "visible" : "hidden";
       // On the way back, keep Work alive underneath the descending blue wipe
       // until the handoff jumps to Services; otherwise the canvas flashes blank.
       const shouldRenderWork = workOnStage || holdWorkForLoader;
-      const shouldInteractWithWork = workOnStage && workDeparture === 0 && !loaderActive;
+      const shouldInteractWithWork = workOnStage && !statsOnScreen && !loaderActive;
       if (workVisible !== shouldRenderWork || workInteractive !== shouldInteractWithWork) {
         workVisible = shouldRenderWork;
         workInteractive = shouldInteractWithWork;
@@ -290,7 +275,8 @@ export default function IntroExperience() {
         return;
       }
       const dt = Math.min(elapsed / 1000, 0.05);
-      const trailPointer = !reduced && !coarse && pointer.has && pointer.y >= heroRect.top && pointer.y < workRect.bottom;
+      const trailBottom = Math.max(workRect.bottom, statsRect?.bottom ?? -Infinity);
+      const trailPointer = !reduced && !coarse && pointer.has && pointer.y >= heroRect.top && pointer.y < trailBottom;
       pearlTrail?.update(dt, pointer.x - stage.left, pointer.y - stage.top, trailPointer, width, height);
       const inHero = heroRect.bottom > 0 && heroRect.top < window.innerHeight;
       renderer.autoClear = true;
@@ -312,7 +298,10 @@ export default function IntroExperience() {
       // services stage pins so the line stays put behind the card stack.
       const handoffScroll = servicesHandoffRect.top - bounds.top;
       const lineProgress = lines.progressAtScroll(scroll);
-      lines.render(renderer, Math.min(scroll, handoffScroll), reduced ? 1 : lineProgress);
+      // The line only belongs to the intro (hero → services). Past that, leave
+      // it out of sceneTarget: the pointer trail refracts sceneTarget, and would
+      // otherwise reveal a stray piece of line over Work and Stats.
+      if (servicesRect.bottom > 0) lines.render(renderer, Math.min(scroll, handoffScroll), reduced ? 1 : lineProgress);
       const inServices = servicesRect.top < window.innerHeight && servicesRect.bottom > 0;
       if (inServices) serviceCards.render(renderer, serviceCardElements, stage, pointer, reduced ? 0 : time, dt);
       if (fluid && inStudio && video.readyState >= 2 && !reduced) {
@@ -333,10 +322,25 @@ export default function IntroExperience() {
       renderer.clear();
       inkUniforms.uHasInk.value = ink ? 1 : 0;
       inkUniforms.uHeroBottom.value = heroRect.bottom - stage.top;
-      renderer.render(inkScene, camera);
+      // While Stats is up the canvas sits above the footer, transparent outside
+      // the sheet; the intro layers (the blue line) must not show through there.
+      if (!statsOnScreen) renderer.render(inkScene, camera);
 
       // Work joins the same renderer after the earlier sections leave view.
-      if (workScene && workVisible) workScene.frame();
+      if (workScene && workVisible) {
+        // Parallax as Stats slides over: Work drifts up at a fraction of the
+        // scroll speed instead of holding still.
+        workScene.setScrollOffset(workTrigger ? Math.max(0, scrollY - workEnd) * WORK_PARALLAX : 0);
+        workScene.frame();
+      }
+      // Stats' paper, over Work and under the trail.
+      if (statsOnScreen && statsRect) {
+        const autoClear = renderer.autoClear;
+        renderer.setRenderTarget(null);
+        renderer.autoClear = false;
+        statsSheet.render(renderer, { w: width, h: height }, statsRect, stage.top, THREE.MathUtils.clamp(width * 0.04, 28, 64));
+        renderer.autoClear = autoClear;
+      }
 
       // The loader is a WebGL layer too, so the shared canvas never breaks.
       if (loaderProgress > 0) {
@@ -382,11 +386,12 @@ export default function IntroExperience() {
       canvas.style.transform = "";
       canvas.style.borderRadius = "";
       canvas.style.transition = "";
-      canvas.removeEventListener("transitionend", onCornersSettled);
       canvasLayer.style.zIndex = "";
       canvasLayer.style.pointerEvents = "";
       footer.style.visibility = "";
       pearlTrail?.dispose();
+      statsSheet.dispose();
+      if (stats) delete stats.dataset.sheet;
       ink?.destroy();
       cards?.destroy();
       fluid?.dispose();
@@ -423,6 +428,13 @@ export default function IntroExperience() {
         </h2>
       </div>
       <FeaturedWork />
+      {/* The closing sheet: slides up over Work (which stays put), then lifts
+          off the fixed footer. Its paper is painted by this canvas (data-sheet)
+          so the pointer trail runs across it; the DOM carries only content. */}
+      <div data-stats className="relative z-[3] rounded-[clamp(1.75rem,4vw,4rem)] bg-paper">
+        <StatsSection />
+        <ClientsSection />
+      </div>
       <SiteFooter />
       {ENABLE_LINE_DRAWING_TOOL && <LineDrawingTool root={root} />}
     </div>

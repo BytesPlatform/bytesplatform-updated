@@ -1,0 +1,11 @@
+/* The footer stage tucks up under Stats' rounded bottom edge, so the corners
+   lift off the dark footer (as Work's do) instead of paper on paper. Its
+   height grows by the same amount so the footer still fully clears. */
+[data-stats] + #contact {
+  margin-top: calc(-1 * clamp(1.75rem, 4vw, 4rem));
+  height: calc(85svh + clamp(1.75rem, 4vw, 4rem));
+}
+
+/* The shared canvas paints the sheet (rounded paper under the pointer trail);
+   without it (no WebGL) the section keeps its own paper background. */
+[data-stats][data-sheet="canvas"] { background: transparent; }

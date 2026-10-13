@@ -1505,9 +1505,24 @@ function updateCameraFov(elapsed) {
 // RESIZE
 // ======================================================
 
+// Parallax: shift the rendered picture up by this many CSS pixels (a view
+// offset, so the whole frame moves as one image) while the page scrolls on.
+let viewOffsetY = 0;
+let viewSize = { width: window.innerWidth, height: window.innerHeight };
+function applyViewOffset() {
+  if (viewOffsetY > 0) {
+    const { width, height } = viewSize;
+    camera.setViewOffset(width, height, 0, viewOffsetY, width, height);
+  } else if (camera.view?.enabled) {
+    camera.clearViewOffset();
+  }
+}
+
 function resize(width, height) {
+  viewSize = { width, height };
   camera.aspect = width / Math.max(1, height);
   camera.updateProjectionMatrix();
+  applyViewOffset();
   if (ownsRenderer) {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height, false);
@@ -1857,6 +1872,13 @@ return {
   frame: animate,
   resize,
   setProgress(progress) { targetScroll = THREE.MathUtils.clamp(progress, 0, 1); },
+  /** Moves the frame up by `px` CSS pixels (0 resets), for scroll parallax. */
+  setScrollOffset(px) {
+    const next = Math.max(0, px);
+    if (next === viewOffsetY) return;
+    viewOffsetY = next;
+    applyViewOffset();
+  },
   setVisible(visible, interactive = visible) {
     suspended = !visible;
     if (!interactive) {

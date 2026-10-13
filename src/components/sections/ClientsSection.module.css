@@ -1,0 +1,73 @@
+.rows {
+  display: grid;
+  gap: clamp(0.75rem, 1.4vw, 1.25rem);
+  /* Breathing room above and below so a hovered tile's lift and shadow stay
+     inside the mask (the mask hides anything outside this box). */
+  margin-top: calc(clamp(3rem, 7vw, 6rem) - 2rem);
+  margin-bottom: -2rem;
+  padding-block: 2rem;
+  /* Logos drift in from and out to nothing at the page edges. */
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+
+.row {
+  --tile-gap: clamp(0.75rem, 1.4vw, 1.25rem);
+  /* Clip sideways only, so the lift isn't cut off at the top. */
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* Two copies of the row back to back; sliding by exactly half loops seamlessly.
+   Spacing is padding on each item (not gap) so both halves are the same width. */
+.track {
+  display: flex;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: clients-drift 46s linear infinite;
+}
+
+.track > li { padding-right: var(--tile-gap); }
+
+.row[data-reverse] .track { animation-direction: reverse; animation-duration: 52s; }
+.row:hover .track,
+.row:focus-within .track { animation-play-state: paused; }
+
+.tile {
+  display: flex;
+  width: clamp(9.5rem, 15vw, 14rem);
+  aspect-ratio: 16 / 9;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(0.9rem, 1.6vw, 1.4rem);
+  border: 1px solid var(--bp-hairline);
+  border-radius: clamp(0.9rem, 1.4vw, 1.25rem);
+  background: #fff;
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1), border-color 300ms ease, box-shadow 500ms ease;
+}
+
+.tile img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.tile:hover,
+.tile:focus-visible {
+  transform: translateY(-4px);
+  border-color: rgb(36 87 255 / 0.4);
+  box-shadow: 0 14px 30px -18px rgb(17 17 17 / 0.35);
+  outline: none;
+}
+
+@keyframes clients-drift {
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rows { mask-image: none; padding-inline: var(--bp-gut); }
+  .row { overflow: visible; }
+  .track { width: auto; flex-wrap: wrap; row-gap: var(--tile-gap); animation: none; }
+  .track > li[aria-hidden] { display: none; }
+}
