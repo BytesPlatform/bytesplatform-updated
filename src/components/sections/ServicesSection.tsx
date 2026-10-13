@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { prefersReducedMotion } from "@/lib/animation/prefs";
 import { jumpTo } from "@/lib/animation/scroll";
 import { createDiveScene } from "@/lib/fluid/diveScene";
+import { createServiceCardInteraction } from "@/lib/services/cardInteraction";
 import ActionPill from "@/components/ui/ActionPill";
 import "./ServicesSection.css";
 
@@ -19,9 +21,42 @@ const SERVICES = [
   { label: "Government Opportunity & Proposal Technology", href: "/services/government-proposal-technology" },
   { label: "E-Invoicing & Business System Integration", href: "/services/e-invoicing-integration" },
 ] as const;
-const SERVICE_ANGLES = [-8, 9, 7, -6, 5, -6];
-const STACK_LEAD_IN_SCREENS = 0.82;
-const STACK_SCROLL_SCREENS = STACK_LEAD_IN_SCREENS + SERVICES.length + 0.65;
+// Disable this after tuning; copy the panel values into DEFAULT_RING first.
+const SHOW_RING_CONTROLS = false;
+const DEFAULT_RING = { rotationX: 5, rotationY: 0, rotationZ: 7, cameraX: 103, cameraY: 142, cameraZ: 200 };
+type RingSettings = typeof DEFAULT_RING;
+const STORAGE_KEY = "bytes-services-ring-v3";
+const DESCRIPTIONS = [
+  "Intelligent systems that automate workflows and actions.",
+  "Purpose-built software. From first idea to your next big launch.",
+  "Digital experiences that work beautifully on every screen.",
+  "Your people, processes and data. Connected in one place.",
+  "Find the right opportunities. Build proposals that win.",
+  "Seamless invoicing and systems that work together.",
+];
+const WORKFLOWS = [
+  ["New lead", "Form submission", "AI Agent", "Analyze, enrich, and take action", "Send personalized email", "Notify team", "Update CRM"],
+  ["Your idea", "Product discovery", "Product engine", "Build, test, and ship", "Design experience", "Deploy product", "Scale up"],
+  ["New experience", "Web + mobile", "Application", "Fast, intuitive, connected", "Responsive design", "Connect API", "Launch app"],
+  ["Business data", "One source of truth", "Connected operations", "Manage, track, and grow", "Sync customers", "Plan resources", "View insights"],
+  ["New opportunity", "Matched to your business", "Proposal engine", "Research, qualify, and respond", "Review requirements", "Build proposal", "Submit response"],
+  ["New invoice", "Ready to process", "Integration hub", "Validate, sync, and deliver", "Validate invoice", "Sync accounts", "Confirm delivery"],
+];
+
+function Workflow({ index }: { index: number }) {
+  const words = WORKFLOWS[index];
+  return <div className="service-workflow" aria-hidden="true">
+    <svg className="service-workflow__wires" viewBox="0 0 340 380" fill="none"><path d="M135 65 V110 Q135 130 155 130 M155 190 V220 Q155 240 125 240 V330 M125 250 H165 M125 290 H165 M125 330 H165" stroke="white" strokeWidth="2" />{[[135,90],[155,205],[165,250],[165,290],[165,330]].map(([x,y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="4" fill="#1550ff" stroke="white" strokeWidth="1.5" />)}</svg>
+    <div className="service-workflow__lead"><span className="service-workflow__icon">▤</span><div>{words[0]}<small>{words[1]}</small></div></div>
+    <div className="service-workflow__agent"><span className="service-workflow__icon">✧</span><div>{words[2]}<small>{words[3]}</small></div></div>
+    <div className="service-workflow__status"><span>● &nbsp; Agent running...</span><small>✓ &nbsp; Analyzing input</small><small>✓ &nbsp; Enriching data</small><small>✓ &nbsp; Preparing actions</small><small>◌ &nbsp; Completing workflow</small></div>
+    <div className="service-workflow__actions">{words.slice(4).map((word, i) => <div key={word}><span className="service-workflow__icon">{["✉", "⌘", "▱"][i]}</span>{word}<b>✓</b></div>)}</div>
+  </div>;
+}
+// Each 60-degree interval is one screen; cards stay visible into the portal.
+const ORBIT_SCROLL_SCREENS = SERVICES.length - 1;
+const EXIT_SCROLL_SCREENS = 0.3;
+const STACK_SCROLL_SCREENS = ORBIT_SCROLL_SCREENS + EXIT_SCROLL_SCREENS;
 // Same short beat as the original handoff: the dive starts just after the pill
 // has scaled in, and the section ends right behind it.
 const DIVE_START_SCREENS = STACK_SCROLL_SCREENS + 0.04;
@@ -29,17 +64,48 @@ const HANDOFF_SCROLL_SCREENS = STACK_SCROLL_SCREENS + 0.06;
 
 export default function ServicesSection() {
   const root = useRef<HTMLElement>(null);
+  const ring = useRef<HTMLDivElement>(null);
+  const camera = useRef<HTMLDivElement>(null);
+  const [settings, setSettings] = useState<RingSettings>(DEFAULT_RING);
+  const [mounted, setMounted] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(false);
+  const settingsRef = useRef(settings);
+  const scrollAngle = useRef(0);
+  const entryAngle = useRef(0);
+  const applyRing = () => {
+    const value = settingsRef.current;
+    if (ring.current) ring.current.style.transform = `rotateX(${value.rotationX}deg) rotateZ(${value.rotationZ}deg) rotateY(${value.rotationY + scrollAngle.current + entryAngle.current}deg)`;
+    // Camera values are tuned at a 1000px card; the CSS units rescale them per breakpoint.
+    if (camera.current) camera.current.style.transform = `translateZ(var(--ring-focal)) translate3d(calc(var(--cam-x) * ${-value.cameraX}), calc(var(--cam-y) * ${-value.cameraY}), calc(var(--cam-z) * ${-value.cameraZ}))`;
+  };
+  useEffect(() => {
+    setMounted(true);
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      if (saved && Object.keys(DEFAULT_RING).every(key => Number.isFinite(saved[key]))) setSettings(saved);
+    } catch { /* Use defaults if storage is unavailable. */ }
+    const stage = root.current?.querySelector("[data-services-stage]");
+    const observer = new IntersectionObserver(([entry]) => setControlsVisible(entry.isIntersecting), { threshold: 0.1 });
+    if (stage) observer.observe(stage);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
+    settingsRef.current = settings;
+    applyRing();
+    if (mounted) try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch { /* Settings still work without storage. */ }
+  }, [settings, mounted]);
 
   useEffect(() => {
     const section = root.current;
     const handoff = section?.querySelector<HTMLElement>("[data-services-handoff]");
     const stage = section?.querySelector<HTMLElement>("[data-services-stage]");
-    const pillWrap = section?.querySelector<HTMLElement>("[data-services-pill-wrap]");
     const pill = section?.querySelector<HTMLElement>("[data-services-pill]");
-    const overlay = document.querySelector<HTMLElement>("[data-services-dive-overlay]");
     const canvasLayer = document.querySelector<HTMLCanvasElement>("[data-intro-canvas]")?.parentElement;
+    const overlay = document.querySelector<HTMLElement>("[data-services-dive-overlay]");
     const next = document.querySelector<HTMLElement>("[data-featured-work]");
-    if (!section || !handoff || !stage || !pillWrap || !pill || !overlay || !next) return;
+    if (!section || !handoff || !stage || !pill || !overlay || !next) return;
 
     const reduced = prefersReducedMotion();
     const context = gsap.context(() => {
@@ -51,81 +117,62 @@ export default function ServicesSection() {
         .fromTo(upperWords, { xPercent: -135, opacity: 0 }, { xPercent: 0, opacity: 1, duration: 1.15, stagger: { each: 0.12, from: "end" }, ease: "expo.out" })
         .fromTo(lowerWords, { xPercent: 120, opacity: 0 }, { xPercent: 0, opacity: 1, duration: 1.1, stagger: 0.1, ease: "expo.out" }, 0.16);
 
-      const cards = gsap.utils.toArray<HTMLElement>("[data-service-card]");
-      const finalCardEnd = STACK_LEAD_IN_SCREENS + SERVICES.length - 1 + 0.74;
-      const stackPoint = (depth: number) => ({
-        x: depth === 0 ? 0 : (depth % 2 ? 1 : -1) * Math.ceil(depth / 2) * 12,
-        y: -depth * 13,
-        rotation: depth === 0 ? 0 : (depth % 2 ? 1 : -1) * depth * 1.65,
-        scale: 1 - depth * 0.027,
-        autoAlpha: 1 - depth * 0.045,
-        filter: `blur(${depth * 0.25}px)`,
-      });
-      const stackTimeline = gsap.timeline({
+      // Reveal the card faces as the stage enters. Keep the camera and ring
+      // fully opaque so their 3D children do not flatten during the entrance.
+      const cardSurfaces = gsap.utils.toArray<HTMLElement>(".service-orbit-card__surface", section);
+      const pillWrap = section.querySelector<HTMLElement>("[data-services-pill-wrap]");
+      const entrance = gsap.timeline({
         scrollTrigger: {
           trigger: handoff,
-          start: "top top",
-          end: () => `+=${window.innerHeight * STACK_SCROLL_SCREENS}`,
-          // Lenis already eases wheel input; a shorter scrub keeps the cards
-          // visually attached to the scroll position instead of trailing it.
-          scrub: 0.22,
+          start: "top 80%",
+          end: "top 8%",
+          scrub: true,
           invalidateOnRefresh: true,
         },
       });
-      cards.forEach((card, index) => {
-        const point = stackPoint(index);
-        const visual = card.querySelector<HTMLElement>("[data-service-card-visual]");
-        const surface = card.querySelector<HTMLElement>("[data-service-surface]");
-        const angle = SERVICE_ANGLES[index] + point.rotation;
-        stackTimeline.set(card, { x: point.x, y: point.y, scale: point.scale, autoAlpha: point.autoAlpha, filter: point.filter, transformOrigin: "50% 50%" }, 0);
-        if (surface) stackTimeline.set(surface, { rotation: angle, transformOrigin: "50% 50%" }, 0);
-        if (visual) stackTimeline.set(visual, { "--service-exit": 0, "--service-angle": angle }, 0);
-      });
-      cards.forEach((card, index) => {
-        const visual = card.querySelector<HTMLElement>("[data-service-card-visual]");
-        const surface = card.querySelector<HTMLElement>("[data-service-surface]");
-        const direction = index % 2 === 0 ? -1 : 1;
-        const exitAngle = SERVICE_ANGLES[index] + direction * (25 + index * 2);
-        stackTimeline.to(card, {
-          x: () => direction * window.innerWidth * 0.92,
-          y: () => -window.innerHeight * (index % 3 === 0 ? 0.12 : 0.2),
-          scale: 0.76,
-          autoAlpha: 0,
-          filter: "blur(12px)",
-          duration: 0.74,
-          ease: "power2.in",
-        }, STACK_LEAD_IN_SCREENS + index);
-        if (surface) stackTimeline.to(surface, { rotation: exitAngle, duration: 0.74, ease: "power2.in" }, STACK_LEAD_IN_SCREENS + index);
-        if (visual) stackTimeline.to(visual, { "--service-exit": 1, "--service-angle": exitAngle, duration: 0.74, ease: "power2.in" }, STACK_LEAD_IN_SCREENS + index);
-        cards.slice(index + 1).forEach((nextCard, nextIndex) => {
-          const point = stackPoint(nextIndex);
-          const nextVisual = nextCard.querySelector<HTMLElement>("[data-service-card-visual]");
-          const nextSurface = nextCard.querySelector<HTMLElement>("[data-service-surface]");
-          const angle = SERVICE_ANGLES[index + 1 + nextIndex] + point.rotation;
-          stackTimeline.to(nextCard, {
-            x: point.x,
-            y: point.y,
-            scale: point.scale,
-            autoAlpha: point.autoAlpha,
-            filter: point.filter,
-            duration: 0.3,
-            ease: "power3.inOut",
-          }, STACK_LEAD_IN_SCREENS + index + 0.62);
-          if (nextSurface) stackTimeline.to(nextSurface, { rotation: angle, duration: 0.3, ease: "power3.inOut" }, STACK_LEAD_IN_SCREENS + index + 0.62);
-          if (nextVisual) stackTimeline.to(nextVisual, { "--service-exit": 0, "--service-angle": angle, duration: 0.3, ease: "power3.inOut" }, STACK_LEAD_IN_SCREENS + index + 0.62);
+      const revealTurn = { angle: -12 };
+      entrance.fromTo(revealTurn, { angle: -12 }, {
+        angle: 0, duration: 1, ease: "power2.out",
+        onUpdate: () => { entryAngle.current = revealTurn.angle; applyRing(); },
+      }, 0);
+      entrance.fromTo(cardSurfaces,
+        { "--entry-y": "64px", "--entry-scale": 0.86, "--entry-opacity": 0 },
+        { "--entry-y": "0px", "--entry-scale": 1, "--entry-opacity": 1, duration: 1, ease: "power2.out" }, 0);
+      // Wait until the stage is pinned: only then is the bottom button fully
+      // on screen. Its reveal occupies the first fifth of the orbit scroll.
+      if (pillWrap) gsap.fromTo(pillWrap,
+        { y: 42, scale: 0.88, autoAlpha: 0 },
+        {
+          y: 0, scale: 1, autoAlpha: 1, ease: "power2.out",
+          scrollTrigger: {
+            trigger: handoff,
+            start: "top top",
+            end: "top -20%",
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
         });
+
+      const orbit = { angle: 0 };
+      const stackTimeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: handoff, start: "top top",
+          end: () => `+=${window.innerHeight * STACK_SCROLL_SCREENS}`,
+          // Lenis already smooths the scroll; avoid adding a second lag.
+          scrub: true, invalidateOnRefresh: true,
+        },
       });
-      // Pad the scrubbed timeline to its scroll length so one unit is one screen,
-      // then scale the pill in exactly as before once the last card has left.
+      // Keep the 3D hierarchy opaque: fading a preserve-3d parent flattens
+      // its children and can project back-facing cards into the viewport.
+      stackTimeline.to(orbit, { angle: ORBIT_SCROLL_SCREENS * 60, duration: ORBIT_SCROLL_SCREENS, ease: "none", onUpdate: () => { scrollAngle.current = orbit.angle; applyRing(); } }, 0);
       stackTimeline.set({}, {}, STACK_SCROLL_SCREENS);
-      stackTimeline.fromTo(pillWrap,
-        { scale: 0.52, autoAlpha: 0, filter: "blur(16px)" },
-        { scale: 1, autoAlpha: 1, filter: "blur(0px)", duration: 0.6, ease: "power3.out" }, finalCardEnd);
 
     }, section);
 
     const dive = reduced ? null : createDiveScene({
       section: handoff,
+      // The blue line lives on the shared canvas. It must move with the cards
+      // for the dive to read as a camera move into the button.
       layers: canvasLayer ? [canvasLayer, stage] : [stage],
       pill,
       overlay,
@@ -149,6 +196,10 @@ export default function ServicesSection() {
       dive?.kill();
       context.revert();
     };
+  }, []);
+
+  useEffect(() => {
+    if (root.current) return createServiceCardInteraction(root.current);
   }, []);
 
   const enterWork = () => {
@@ -178,28 +229,42 @@ export default function ServicesSection() {
       >
         <div data-services-stage className="services-stage sticky top-0 h-[100svh] overflow-hidden px-[var(--bp-gut)]">
           <div className="services-stack relative mx-auto h-full max-w-[1800px]">
-            <div data-services-pill-wrap className="services-pill-wrap absolute inset-0 z-20 flex items-center justify-center">
+            <div data-services-pill-wrap className="services-pill-wrap absolute inset-0 z-20 flex items-end justify-center">
               <ActionPill portal label="View featured work" onClick={enterWork} className="pointer-events-auto" />
             </div>
 
-            {SERVICES.map((service, index) => (
-              <div
-                data-service-card
-                data-service-index={index}
-                key={service.href}
-                className={`service-orbit-card service-orbit-card--${index + 1} absolute`}
-                style={{ zIndex: SERVICES.length - index }}
-              >
-                <div data-service-float data-service-card-visual data-service-index={index} className="service-orbit-card__float" style={{ "--service-exit": 0, "--service-angle": SERVICE_ANGLES[index] } as React.CSSProperties}>
-                  <div data-service-surface className="service-orbit-card__surface">
-                    <a href={service.href} aria-label={service.label} className="service-orbit-card__body block h-full w-full rounded-[1.6rem] bg-transparent focus-visible:outline-2 focus-visible:outline-blue" />
-                  </div>
+            <div className="services-perspective">
+              <div ref={camera} className="services-camera">
+                <div ref={ring} className="services-ring">
+                  {SERVICES.map((service, index) => (
+                    <a key={service.href} href={service.href} className="service-orbit-card" style={{ "--card-angle": `${-index * 60}deg` } as CSSProperties}>
+                      <div className="service-orbit-card__surface">
+                      <span className="service-orbit-card__number">{String(index + 1).padStart(2, "0")}</span>
+                      <div className="service-orbit-card__copy"><h3>{service.label}</h3><p>{DESCRIPTIONS[index]}</p></div>
+                      <Workflow index={index} />
+                      <span className="service-orbit-card__open" aria-hidden="true">Explore service ↗</span>
+                      </div>
+                    </a>
+                  ))}
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </div>
+      {SHOW_RING_CONTROLS && mounted && controlsVisible && createPortal(
+        <aside className="ring-controls" aria-label="Service ring controls" data-lenis-prevent>
+          <button className="ring-controls__toggle" onClick={() => setPanelOpen(!panelOpen)} aria-expanded={panelOpen}>Ring studio <span>{panelOpen ? "−" : "+"}</span></button>
+          {panelOpen && <div className="ring-controls__body">
+            <p>Scroll spins Y. Rotation values are offsets.<br />Camera positions are in pixels from the pivot.</p>
+            {(["rotationX", "rotationY", "rotationZ", "cameraX", "cameraY", "cameraZ"] as const).map(key => <label key={key}>
+              <span>{key.startsWith("rotation") ? "Ring" : "Camera"} {key.slice(-1)}</span>
+              <input type="range" min={key.startsWith("rotation") ? -180 : -1200} max={key.startsWith("rotation") ? 180 : 1200} step="1" value={settings[key]} onChange={event => setSettings(value => ({ ...value, [key]: Number(event.target.value) }))} />
+              <input aria-label={`${key} value`} type="number" value={settings[key]} onChange={event => setSettings(value => ({ ...value, [key]: Number(event.target.value) }))} />
+            </label>)}
+            <div className="ring-controls__buttons"><button onClick={() => setSettings(DEFAULT_RING)}>Reset</button><button onClick={async () => { try { await navigator.clipboard.writeText(JSON.stringify(settings, null, 2)); setCopied(true); } catch { setCopied(false); } }}>{copied ? "Copied values" : "Copy values"}</button></div>
+          </div>}
+        </aside>, document.body)}
     </section>
   );
 }

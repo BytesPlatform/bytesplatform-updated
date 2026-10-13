@@ -1,50 +1,78 @@
 .services-section { isolation: isolate; }
-.services-stage { transform-origin: 50% 50%; }
-
-.services-heading [data-heading-upper] > span,
-.services-heading [data-heading-lower] > span {
-  display: inline-block;
-  will-change: transform, opacity;
+/* Card internals are authored at a 1000px card; --cu is one of those px at the current card size. */
+.services-stage { transform-origin: 50% 50%; --ring-focal: max(600px, 70vw); --ring-radius: max(600px, 70vw); --card-width: min(1000px, 76vw, 125svh); --cu: calc(var(--card-width) / 1000); --cam-x: var(--cu); --cam-y: var(--cu); --cam-z: var(--cu); }
+.services-heading [data-heading-upper] > span, .services-heading [data-heading-lower] > span { display: inline-block; will-change: transform, opacity; }
+.services-pill-wrap { pointer-events: none; padding-bottom: clamp(24px, 5svh, 56px); }
+.services-perspective { position: absolute; inset: 0; perspective: var(--ring-focal); perspective-origin: 50% 50%; }
+.services-camera, .services-ring { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; }
+.services-camera { transform: translateZ(var(--ring-focal)); }
+.services-ring { transform: none; }
+.service-orbit-card { position: absolute; left: 0; top: 0; width: var(--card-width); aspect-ratio: 1.62; transform-origin: 0 0; transform: rotateY(var(--card-angle)) translateZ(calc(-1 * var(--ring-radius))) translate(-50%, -50%); transform-style: preserve-3d; backface-visibility: hidden; text-decoration: none; color: #08090c; --wf-w: .37; --wu: calc(var(--card-width) * var(--wf-w) / 370); }
+.service-orbit-card__surface { position: relative; width: 100%; height: 100%; opacity: var(--entry-opacity, 1); transform: translateY(var(--entry-y, 0px)) scale(var(--entry-scale, 1)) rotateX(var(--hover-x, 0deg)) rotateY(var(--hover-y, 0deg)); border-radius: calc(42 * var(--cu)); border: 2px solid rgba(255,255,255,.95); color: #08090c; background: radial-gradient(ellipse at 18% 85%, #ffffffd9, transparent 42%), radial-gradient(ellipse at 76% 36%, #bcc2d388, transparent 50%), radial-gradient(ellipse at 40% 20%, #ffffffd9, #e1e4ef88 55%, #f7f8ffbb); box-shadow: inset 0 0 0 6px #ffffff40, inset 0 0 45px #ffffffb0, 0 40px 70px -30px #30375950; text-decoration: none; overflow: hidden; }
+.service-orbit-card__surface::before { content: ""; position: absolute; inset: 0; opacity: .23; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='500'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .021' numOctaves='3' seed='8'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' d='M0 0h700v500H0z'/%3E%3C/svg%3E"); background-size: cover; mix-blend-mode: multiply; }
+.service-orbit-card:focus-visible { outline: 4px solid #104dff; outline-offset: 8px; }
+.service-orbit-card__number { position: absolute; top: 8%; left: 7%; font: italic calc(28 * var(--cu)) monospace; border-bottom: 1px solid; padding-bottom: calc(8 * var(--cu)); }
+.service-orbit-card__copy { position: absolute; left: 7%; bottom: 11%; width: 57%; z-index: 1; }
+.service-orbit-card__copy h3 { font-size: calc(var(--card-width) * .055); font-weight: 750; line-height: .98; letter-spacing: -.045em; text-transform: uppercase; margin: 0 0 calc(18 * var(--cu)); }
+.service-orbit-card__copy p { font-size: calc(var(--card-width) * .023); line-height: 1.3; max-width: 85%; margin: 0; }
+/* Sized in --wu (one px of the 370px-wide desktop workflow) so it scales as one piece. */
+.service-workflow { position: absolute; right: 3%; top: 17%; width: calc(var(--wf-w) * 100%); height: calc(432 * var(--wu)); font: calc(13 * var(--wu)) Arial, sans-serif; color: #202332; }
+.service-workflow__wires { position: absolute; inset: 0; width: 100%; height: 100%; }
+.service-workflow__lead, .service-workflow__agent, .service-workflow__actions > div, .service-workflow__status { position: absolute; border: 1px solid #ffffffd9; border-radius: calc(15 * var(--wu)); background: linear-gradient(120deg, #ffffffbb, #e5e7f180); box-shadow: 0 calc(10 * var(--wu)) calc(22 * var(--wu)) #282d5020, inset 0 0 8px #ffffff50; }
+.service-workflow__lead, .service-workflow__agent { display: flex; align-items: center; gap: calc(12 * var(--wu)); padding: calc(12 * var(--wu)); width: 65%; left: 0; }
+.service-workflow__lead { top: 0; }
+.service-workflow small { display: block; font-size: calc(10 * var(--wu)); margin-top: calc(5 * var(--wu)); color: #616677; }
+.service-workflow__icon { display: inline-grid; place-items: center; flex-shrink: 0; width: calc(34 * var(--wu)); height: calc(34 * var(--wu)); border-radius: calc(9 * var(--wu)); background: #b8c9ff60; color: #104dff; font-size: calc(25 * var(--wu)); }
+.service-workflow__agent { top: 31%; left: -4%; background: linear-gradient(120deg, #30384f, #171b2b); border-color: #a6b9ec; color: white; font-size: calc(16 * var(--wu)); }
+.service-workflow__agent small { color: #c3c8da; }
+.service-workflow__status { right: -3%; top: 15%; width: 36%; padding: calc(16 * var(--wu)) calc(10 * var(--wu)); font-size: calc(9 * var(--wu)); transform: translateZ(-10px); }
+.service-workflow__status > span { color: #104dff; }
+.service-workflow__status small { font-size: calc(9 * var(--wu)); margin-top: calc(15 * var(--wu)); }
+.service-workflow__actions { position: absolute; right: 0; bottom: 0; width: 74%; display: grid; gap: calc(9 * var(--wu)); }
+.service-workflow__actions > div { position: relative; display: flex; align-items: center; gap: calc(9 * var(--wu)); padding: calc(7 * var(--wu)); border-radius: calc(12 * var(--wu)); font-size: calc(10 * var(--wu)); }
+.service-workflow__actions .service-workflow__icon { width: calc(27 * var(--wu)); height: calc(27 * var(--wu)); font-size: calc(21 * var(--wu)); }
+.service-workflow__actions b { margin-left: auto; border-radius: 50%; background: #23a183; color: white; padding: calc(2 * var(--wu)) calc(4 * var(--wu)); font-size: calc(9 * var(--wu)); }
+.ring-controls { position: fixed; bottom: 20px; right: 20px; width: 310px; max-width: calc(100vw - 24px); z-index: 9999; border: 1px solid #ffffff30; border-radius: 16px; background: #171b28ee; color: #fff; box-shadow: 0 16px 50px #0003; font: 12px Arial,sans-serif; }
+.ring-controls__toggle { width: 100%; display: flex; justify-content: space-between; padding: 14px 16px; background: transparent; border: 0; color: inherit; font-weight: 600; cursor: pointer; }
+.ring-controls__body { padding: 0 16px 16px; max-height: 65svh; overflow: auto; }
+.ring-controls p { color: #aab3ca; font-size: 11px; line-height: 1.5; margin: 0 0 14px; }
+.ring-controls label { display: grid; grid-template-columns: 62px 1fr 54px; align-items: center; gap: 8px; margin: 12px 0; }
+.ring-controls input[type=range] { width: 100%; accent-color: #557fff; }
+.ring-controls input[type=number] { width: 54px; border: 1px solid #ffffff30; border-radius: 5px; padding: 4px; background: #ffffff0a; color: white; }
+.ring-controls__buttons { display: flex; gap: 8px; margin-top: 16px; }
+.ring-controls__buttons button { flex: 1; padding: 8px; border: 1px solid #ffffff30; background: #ffffff10; border-radius: 7px; color: white; cursor: pointer; }
+@media (min-width: 768px) and (max-width: 1199px) and (orientation: portrait) {
+  .services-stage { --ring-focal: 92vw; --ring-radius: 92vw; --card-width: min(84vw, 125svh); }
 }
-
-.service-orbit-card { will-change: transform, opacity; }
-.service-orbit-card__float,
-.service-orbit-card__surface { width: 100%; height: 100%; will-change: transform; }
-.service-orbit-card__body {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
+/* Landscape phones: keep the card clear of the bottom pill. */
+@media (min-width: 768px) and (max-height: 500px) {
+  .services-stage { --card-width: min(76vw, 95svh); }
 }
-
-.services-pill-wrap { pointer-events: none; }
-.service-orbit-card {
-  left: 50%;
-  top: 50%;
-  width: clamp(19rem, 35vw, 44rem);
-  aspect-ratio: 1.42;
-  margin: 0;
-  translate: -50% -50%;
-}
-.service-orbit-card--1 .service-orbit-card__surface { transform: rotate(-8deg); }
-.service-orbit-card--2 .service-orbit-card__surface { transform: rotate(9deg); }
-.service-orbit-card--3 .service-orbit-card__surface { transform: rotate(7deg); }
-.service-orbit-card--4 .service-orbit-card__surface { transform: rotate(-6deg); }
-.service-orbit-card--5 .service-orbit-card__surface { transform: rotate(5deg); }
-.service-orbit-card--6 .service-orbit-card__surface { transform: rotate(-6deg); }
-
 @media (max-width: 767px) {
-  .services-heading [data-heading-lower] { margin-top: 0.08em; }
-  .service-orbit-card { width: 84vw; }
+  .services-heading [data-heading-lower] { margin-top: .08em; }
+  /* Portrait card: workflow on top, copy below. Center the camera so the card is not pushed off the narrow screen. */
+  .services-stage { --card-width: min(88vw, 58svh); --cam-x: 0px; --cam-y: calc(var(--cu) * .35); }
+  .service-orbit-card { aspect-ratio: .78; border-radius: 24px; --wf-w: .6; }
+  .service-orbit-card__number { font-size: calc(var(--card-width) * .05); top: 6%; }
+  .service-orbit-card__copy { width: 86%; bottom: 7%; }
+  .service-orbit-card__copy h3 { font-size: calc(var(--card-width) * .068); margin-bottom: calc(var(--card-width) * .03); }
+  .service-orbit-card__copy p { font-size: calc(var(--card-width) * .04); max-width: 100%; }
+  .service-workflow { top: 9%; right: 18%; }
+  .ring-controls { right: 12px; bottom: 12px; }
 }
-
 @media (prefers-reduced-motion: reduce) {
   .services-handoff { height: auto !important; }
-  .services-stage { position: relative; height: auto; min-height: 100svh; overflow: visible; }
-  .services-stage > div { height: auto; padding-block: 8svh; }
-  .services-pill-wrap { position: relative; inset: auto; margin-bottom: 4svh; pointer-events: auto; }
-  .service-orbit-card,
-  .service-orbit-card[style] { position: relative; inset: auto; left: auto; top: auto; width: 100%; aspect-ratio: 1.42; margin: 0; opacity: 1 !important; transform: none !important; translate: none !important; filter: none !important; }
-  .services-stack { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-content: center; }
-  .services-pill-wrap { grid-column: 1 / -1; grid-row: 1; }
+  .services-stage { position: relative; height: auto; overflow: visible; }
+  .services-stack { height: auto; padding-block: 40px; }
+  .services-perspective, .services-camera, .services-ring { position: static; width: auto; height: auto; transform: none !important; perspective: none; }
+  .services-ring { display: grid; gap: 30px; }
+  .ring-controls { display: none; }
+  .service-orbit-card { position: relative; transform: none; margin: auto; }
+  .services-pill-wrap { position: relative; opacity: 1; visibility: visible; margin-bottom: 40px; }
 }
+
+.service-orbit-card__number, .service-workflow { z-index: 2; }
+.service-orbit-card__copy { z-index: 2; }
+.service-orbit-card__open { position: absolute; right: 5%; bottom: 4%; z-index: 2; font-size: max(11px, calc(12 * var(--cu))); font-weight: 600; color: #104dff; opacity: var(--hover-glow, 0); transform: translateY(calc((1 - var(--hover-glow, 0)) * 5px)); pointer-events: none; }
+.service-orbit-card:focus-visible .service-orbit-card__open { opacity: 1; transform: none; }
+@media (max-width: 767px) { .service-orbit-card__surface { border-radius: 24px; } }
