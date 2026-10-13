@@ -33,6 +33,14 @@ const responsive = (width: number) => width < 768
   : width < 1024 ? { strength: 0.8, duration: 1.5 } : { strength: 1, duration: 1.7 };
 
 /** One persistent canvas, renderer and visual tick for every visual section. */
+/**
+ * Share of Work's pinned scroll kept as a closing hold: the camera finishes on
+ * the last card before this, so its smoothing settles and the card sits
+ * centred before Stats starts sliding over it.
+ */
+const WORK_END_HOLD = 0.15;
+const workCameraProgress = (pin: number) => Math.min(1, pin / (1 - WORK_END_HOLD));
+
 /** How fast Work drifts up (relative to the page) as Stats slides over it. */
 const WORK_PARALLAX = 0.35;
 
@@ -200,9 +208,9 @@ export default function IntroExperience() {
         start: "top top",
         end: WORK_SCROLL_LENGTH,
         scrub: true,
-        onUpdate: self => workScene?.setProgress(self.progress),
+        onUpdate: self => workScene?.setProgress(workCameraProgress(self.progress)),
       });
-      workScene.setProgress(workTrigger.progress);
+      workScene.setProgress(workCameraProgress(workTrigger.progress));
       workScene.setVisible(false);
       ScrollTrigger.refresh();
     });

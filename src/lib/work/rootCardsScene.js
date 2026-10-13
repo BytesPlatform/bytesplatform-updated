@@ -33,13 +33,15 @@ const CAMERA_FOV = 55;
 const CAMERA_OPEN_FOV = 52;
 const CAMERA_FOV_TRANSITION_SPEED = 5;
 
-const CAMERA_START_Y = 8.9;
-// Stop on the seventh and final card: its Y (FIRST_CARD_Y - 6 * CARD_Y_GAP)
-// and orbit angle, offset like the first card is from the camera start.
-const CAMERA_END_Y = 3.75;
+// The camera starts just above the first card and stops on the last one,
+// offset like the first card is from the camera start. Both follow the card
+// spacing (see applyCardSpacing), so they're set on resize.
+const CAMERA_START_OFFSET = 0.1;
+const CAMERA_END_OFFSET = 0.05;
+let cameraStartY = 8.9;
+let cameraEndY = 3.75;
 
 const CAMERA_START_ANGLE = 0.25;
-const CAMERA_END_ANGLE = 3.79;
 
 const CAMERA_BASE_RADIUS = 12;
 
@@ -54,7 +56,15 @@ const CARD_DISTANCE = 8.0;
 const CARD_HOVER_LIFT = 0.32;
 const CARD_HOVER_TILT = 0.05;
 
+// Vertical gap between cards along the root. Landscape keeps the original
+// tight spiral; portrait screens see far more height (the FOV widens to keep a
+// card in frame), so the cards spread out to fill it, with the previous and
+// next cards showing above and below the current one.
 const CARD_Y_GAP = 0.85;
+const CARD_Y_GAP_PORTRAIT = 2.4;
+/** Aspect (width / height) at which the portrait spacing is fully applied. */
+const PORTRAIT_ASPECT = 0.5;
+let cardYGap = CARD_Y_GAP;
 
 const FIRST_CARD_Y = 8.8;
 
@@ -63,6 +73,12 @@ const CARD_BASE_ANGLE =
 
 const CARD_ANGLE_DIFFERENCE =
   THREE.MathUtils.degToRad(34);
+
+// End looking straight down the last card's orbit angle, so the closing hold
+// (WORK_END_HOLD in IntroExperience) settles with that card centred.
+const CAMERA_END_ANGLE =
+  CARD_BASE_ANGLE +
+  (CARD_COUNT - 1) * CARD_ANGLE_DIFFERENCE;
 
 const CARD_TILT_X =
   THREE.MathUtils.degToRad(0);
@@ -1123,7 +1139,7 @@ const cardData =
 
       y:
         FIRST_CARD_Y -
-        CARD_Y_GAP *
+        cardYGap *
         index,
 
       title:
@@ -1312,14 +1328,21 @@ let smoothScroll =
 // GET SCROLL PROGRESS
 // ======================================================
 
-function updateCamera() {
+// Same easing as the original 0.055-per-frame at 60fps, but by elapsed time,
+// so slower devices don't trail further behind the scroll.
+const CAMERA_EASE_PER_60FPS_FRAME = 0.055;
+let previousCameraTime = 0;
+
+function updateCamera(elapsed = previousCameraTime) {
+  const frames = Math.min(Math.max(elapsed - previousCameraTime, 0), 0.1) * 60;
+  previousCameraTime = elapsed;
 
   smoothScroll +=
     (
       targetScroll -
       smoothScroll
     ) *
-    0.055;
+    (1 - Math.pow(1 - CAMERA_EASE_PER_60FPS_FRAME, frames));
 
 
   const angle =
@@ -1343,8 +1366,8 @@ function updateCamera() {
 
   const cameraY =
     THREE.MathUtils.lerp(
-      CAMERA_START_Y,
-      CAMERA_END_Y,
+      cameraStartY,
+      cameraEndY,
       smoothScroll
     );
 
@@ -1528,8 +1551,20 @@ function applyViewOffset() {
   }
 }
 
+applyCardSpacing(window.innerWidth / Math.max(1, window.innerHeight));
+
+/** Spreads the cards (and the camera's travel) for the screen's shape. */
+function applyCardSpacing(aspect) {
+  const portrait = THREE.MathUtils.smoothstep(1 - aspect, 0, 1 - PORTRAIT_ASPECT);
+  cardYGap = THREE.MathUtils.lerp(CARD_Y_GAP, CARD_Y_GAP_PORTRAIT, portrait);
+  cardPivots.forEach((item, index) => { item.pivot.position.y = FIRST_CARD_Y - cardYGap * index; });
+  cameraStartY = FIRST_CARD_Y + CAMERA_START_OFFSET;
+  cameraEndY = FIRST_CARD_Y - cardYGap * (CARD_COUNT - 1) + CAMERA_END_OFFSET;
+}
+
 function resize(width, height) {
   viewSize = { width, height };
+  applyCardSpacing(width / Math.max(1, height));
   camera.aspect = width / Math.max(1, height);
   camera.updateProjectionMatrix();
   applyViewOffset();
@@ -1824,7 +1859,7 @@ function animate() {
     previousCardTime = elapsed;
     previousFovTime = elapsed;
   } else {
-    updateCamera();
+    updateCamera(elapsed);
     updateCards(elapsed);
     updateActiveCard();
     updateCameraFov(elapsed);
