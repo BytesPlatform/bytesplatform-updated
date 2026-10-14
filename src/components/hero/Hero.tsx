@@ -147,26 +147,34 @@ export default function Hero() {
     let footTl: gsap.core.Timeline | null = null;
 
     function runFoot() {
-      // Every tween carries its own start state (immediateRender), set the
-      // moment the timeline is built; only then does the CSS pending state
-      // hand over, so nothing shows in between.
+      // Like the morph, apply every start state synchronously with gsap.set
+      // before the CSS pending state hands over, so the foot can never paint
+      // a frame in its resting (visible) state between the two.
       const ease = "expo.out";
-      const from = { immediateRender: true };
-      footTl = gsap.timeline({ delay: 0.35 })
-        .fromTo(metaParts, { yPercent: 110 }, { ...from, yPercent: 0, duration: 1.1, stagger: 0.12, ease }, 0)
-        .fromTo(metaSlash ?? [], { opacity: 0, rotate: -90, scale: 0.4 }, { ...from, opacity: 1, rotate: 0, scale: 1, duration: 0.9, ease }, 0.08);
       // Only on phones is the CTA laid out; measure it to start as a centred dot.
-      if (foot && cta && cta.offsetWidth) {
+      const ctaLaidOut = !!(foot && cta && cta.offsetWidth);
+      gsap.set(metaParts, { yPercent: 110 });
+      if (metaSlash) gsap.set(metaSlash, { opacity: 0, rotate: -90, scale: 0.4 });
+      if (ctaLaidOut) {
         // The pill's clip-path reads --cta-side, inherited from the foot so the
         // pill's own transform tweens never touch it. A custom property tweens
         // as a plain length, where browsers would normalise an inset() string.
-        const side = Math.max(0, (cta.offsetWidth - cta.offsetHeight) / 2);
-        footTl
-          .fromTo(cta, { opacity: 0, y: 24 }, { ...from, opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.15)
-          .fromTo(foot, { "--cta-side": `${side}px` }, { ...from, "--cta-side": "0px", duration: 1, ease: "expo.inOut" }, 0.55)
-          .fromTo(ctaParts, { opacity: 0, y: 8 }, { ...from, opacity: 1, y: 0, duration: 0.8, stagger: 0.08, ease }, 1.05);
+        const side = Math.max(0, (cta!.offsetWidth - cta!.offsetHeight) / 2);
+        gsap.set(foot, { "--cta-side": `${side}px` });
+        gsap.set(cta, { opacity: 0, y: 24 });
+        gsap.set(ctaParts, { opacity: 0, y: 8 });
       }
       if (foot) foot.dataset.foot = "run";
+
+      footTl = gsap.timeline({ delay: 0.35 })
+        .to(metaParts, { yPercent: 0, duration: 1.1, stagger: 0.12, ease }, 0)
+        .to(metaSlash ?? [], { opacity: 1, rotate: 0, scale: 1, duration: 0.9, ease }, 0.08);
+      if (ctaLaidOut) {
+        footTl
+          .to(cta, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.15)
+          .to(foot, { "--cta-side": "0px", duration: 1, ease: "expo.inOut" }, 0.55)
+          .to(ctaParts, { opacity: 1, y: 0, duration: 0.8, stagger: 0.08, ease }, 1.05);
+      }
     }
 
     function showFoot() {
