@@ -150,7 +150,11 @@ export default function ShowreelPlayer({ open, initialPointer, onClose }: Showre
         onPause={() => setPlaying(false)}
         onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
-        onEnded={() => setPlaying(false)}
+        onEnded={() => {
+          setPlaying(false);
+          // Close by itself once the reel has played through.
+          onClose();
+        }}
       >
         <source src="/showreel/showreel-av1.webm" type='video/webm; codecs="av01,opus"' />
         <source src="/showreel/showreel.mp4" type="video/mp4" />
