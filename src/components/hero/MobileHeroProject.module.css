@@ -1,9 +1,9 @@
 .stage {
   position: absolute;
   z-index: 5;
-  top: clamp(8.5rem, 18svh, 11rem);
+  top: clamp(5.25rem, 11svh, 7.5rem);
   left: 50%;
-  width: min(92vw, 23rem);
+  width: min(92vw, 26rem, 50svh);
   aspect-ratio: 494 / 545;
   transform: translateX(-50%);
   pointer-events: none;
@@ -47,7 +47,7 @@
 
 @media (max-height: 720px) {
   .stage {
-    top: 7.6rem;
+    top: 5.25rem;
     width: min(70vw, 19rem);
   }
 }
