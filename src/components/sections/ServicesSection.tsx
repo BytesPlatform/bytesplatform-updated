@@ -53,6 +53,35 @@ function Workflow({ index }: { index: number }) {
     <div className="service-workflow__actions">{words.slice(4).map((word, i) => <div key={word}><span className="service-workflow__icon">{["✉", "⌘", "▱"][i]}</span>{word}<b>✓</b></div>)}</div>
   </div>;
 }
+function ServiceCard({ index, variant }: { index: number; variant: "desktop" | "mobile" }) {
+  const service = SERVICES[index];
+  return <a href={service.href} className={variant === "desktop" ? "service-orbit-card" : "service-mobile-card"} style={variant === "desktop" ? { "--card-angle": `${-index * 60}deg` } as CSSProperties : undefined}>
+    <div className="service-orbit-card__surface">
+      <span className="service-orbit-card__number">{String(index + 1).padStart(2, "0")}</span>
+      <div className="service-orbit-card__copy"><h3>{service.label}</h3><p>{DESCRIPTIONS[index]}</p></div>
+      <Workflow index={index} />
+      <span className="service-orbit-card__open" aria-hidden="true">Explore service ↗</span>
+    </div>
+  </a>;
+}
+
+function DesktopServicesRing({ camera, ring }: { camera: React.RefObject<HTMLDivElement | null>; ring: React.RefObject<HTMLDivElement | null> }) {
+  return <div className="services-perspective">
+    <div ref={camera} className="services-camera">
+      <div ref={ring} className="services-ring">
+        {SERVICES.map((service, index) => <ServiceCard key={service.href} index={index} variant="desktop" />)}
+      </div>
+    </div>
+  </div>;
+}
+
+function MobileServicesTrack({ track }: { track: React.RefObject<HTMLDivElement | null> }) {
+  return <div className="services-mobile-viewport">
+    <div ref={track} className="services-mobile-track">
+      {SERVICES.map((service, index) => <ServiceCard key={service.href} index={index} variant="mobile" />)}
+    </div>
+  </div>;
+}
 // Each 60-degree interval is one screen; cards stay visible into the portal.
 const ORBIT_SCROLL_SCREENS = SERVICES.length - 1;
 const EXIT_SCROLL_SCREENS = 0.3;
@@ -70,15 +99,18 @@ export default function ServicesSection() {
   const root = useRef<HTMLElement>(null);
   const ring = useRef<HTMLDivElement>(null);
   const camera = useRef<HTMLDivElement>(null);
+  const mobileTrack = useRef<HTMLDivElement>(null);
   const [settings, setSettings] = useState<RingSettings>(DEFAULT_RING);
   const [mounted, setMounted] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
   const [copied, setCopied] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(false);
   const settingsRef = useRef(settings);
+  const desktopActive = useRef(false);
   const scrollAngle = useRef(0);
   const entryAngle = useRef(0);
   const applyRing = () => {
+    if (!desktopActive.current) return;
     const value = settingsRef.current;
     if (ring.current) ring.current.style.transform = `rotateX(${value.rotationX}deg) rotateZ(${value.rotationZ}deg) rotateY(${value.rotationY + scrollAngle.current + entryAngle.current}deg)`;
     // Camera values are tuned at a 1000px card; the CSS units rescale them per breakpoint.
@@ -120,58 +152,86 @@ export default function ServicesSection() {
       heading
         .fromTo(upperWords, { xPercent: -135, opacity: 0 }, { xPercent: 0, opacity: 1, duration: 1.15, stagger: { each: 0.12, from: "end" }, ease: "expo.out" })
         .fromTo(lowerWords, { xPercent: 120, opacity: 0 }, { xPercent: 0, opacity: 1, duration: 1.1, stagger: 0.1, ease: "expo.out" }, 0.16);
+    }, section);
 
-      // Reveal the card faces as the stage enters. Keep the camera and ring
-      // fully opaque so their 3D children do not flatten during the entrance.
-      const cardSurfaces = gsap.utils.toArray<HTMLElement>(".service-orbit-card__surface", section);
-      const pillWrap = section.querySelector<HTMLElement>("[data-services-pill-wrap]");
-      const entrance = gsap.timeline({
-        scrollTrigger: {
-          trigger: handoff,
-          start: "top 80%",
-          end: "top 8%",
-          scrub: true,
-          invalidateOnRefresh: true,
-        },
-      });
-      const revealTurn = { angle: -12 };
-      entrance.fromTo(revealTurn, { angle: -12 }, {
-        angle: 0, duration: 1, ease: "power2.out",
-        onUpdate: () => { entryAngle.current = revealTurn.angle; applyRing(); },
-      }, 0);
-      entrance.fromTo(cardSurfaces,
-        { "--entry-y": "64px", "--entry-scale": 0.86, "--entry-opacity": 0 },
-        { "--entry-y": "0px", "--entry-scale": 1, "--entry-opacity": 1, duration: 1, ease: "power2.out" }, 0);
-      // Wait until the stage is pinned: only then is the bottom button fully
-      // on screen. Its reveal occupies the first fifth of the orbit scroll.
-      if (pillWrap) gsap.fromTo(pillWrap,
-        { y: 42, scale: 0.88, autoAlpha: 0 },
-        {
-          y: 0, scale: 1, autoAlpha: 1, ease: "power2.out",
+    const media = gsap.matchMedia();
+    media.add("(min-width: 768px)", () => {
+      if (reduced) return;
+      desktopActive.current = true;
+      const desktopContext = gsap.context(() => {
+        // Reveal the card faces as the stage enters. Keep the camera and ring
+        // fully opaque so their 3D children do not flatten during the entrance.
+        const cardSurfaces = gsap.utils.toArray<HTMLElement>(".service-orbit-card .service-orbit-card__surface", section);
+        const pillWrap = section.querySelector<HTMLElement>("[data-services-pill-wrap]");
+        const entrance = gsap.timeline({
           scrollTrigger: {
             trigger: handoff,
-            start: "top top",
-            end: "top -20%",
+            start: "top 80%",
+            end: "top 8%",
             scrub: true,
             invalidateOnRefresh: true,
           },
         });
+        const revealTurn = { angle: -12 };
+        entrance.fromTo(revealTurn, { angle: -12 }, {
+          angle: 0, duration: 1, ease: "power2.out",
+          onUpdate: () => { entryAngle.current = revealTurn.angle; applyRing(); },
+        }, 0);
+        entrance.fromTo(cardSurfaces,
+          { "--entry-y": "64px", "--entry-scale": 0.86, "--entry-opacity": 0 },
+          { "--entry-y": "0px", "--entry-scale": 1, "--entry-opacity": 1, duration: 1, ease: "power2.out" }, 0);
+        // Wait until the stage is pinned: only then is the bottom button fully
+        // on screen. Its reveal occupies the first fifth of the orbit scroll.
+        if (pillWrap) gsap.fromTo(pillWrap,
+          { y: 42, scale: 0.88, autoAlpha: 0 },
+          {
+            y: 0, scale: 1, autoAlpha: 1, ease: "power2.out",
+            scrollTrigger: {
+              trigger: handoff,
+              start: "top top",
+              end: "top -20%",
+              scrub: true,
+              invalidateOnRefresh: true,
+            },
+          });
 
-      const orbit = { angle: 0 };
-      const stackTimeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: handoff, start: "top top",
-          end: () => `+=${window.innerHeight * STACK_SCROLL_SCREENS}`,
-          // Lenis already smooths the scroll; avoid adding a second lag.
-          scrub: true, invalidateOnRefresh: true,
-        },
-      });
-      // Keep the 3D hierarchy opaque: fading a preserve-3d parent flattens
-      // its children and can project back-facing cards into the viewport.
-      stackTimeline.to(orbit, { angle: ORBIT_SCROLL_SCREENS * 60, duration: ORBIT_SCROLL_SCREENS, ease: "none", onUpdate: () => { scrollAngle.current = orbit.angle; applyRing(); } }, 0);
-      stackTimeline.set({}, {}, STACK_SCROLL_SCREENS);
+        const orbit = { angle: 0 };
+        const stackTimeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: handoff, start: "top top",
+            end: () => `+=${window.innerHeight * STACK_SCROLL_SCREENS}`,
+            // Lenis already smooths the scroll; avoid adding a second lag.
+            scrub: true, invalidateOnRefresh: true,
+          },
+        });
+        // Keep the 3D hierarchy opaque: fading a preserve-3d parent flattens
+        // its children and can project back-facing cards into the viewport.
+        stackTimeline.to(orbit, { angle: ORBIT_SCROLL_SCREENS * 60, duration: ORBIT_SCROLL_SCREENS, ease: "none", onUpdate: () => { scrollAngle.current = orbit.angle; applyRing(); } }, 0);
+        stackTimeline.set({}, {}, STACK_SCROLL_SCREENS);
+      }, section);
+      const disposeInteraction = createServiceCardInteraction(section);
+      applyRing();
+      return () => { desktopActive.current = false; disposeInteraction(); desktopContext.revert(); };
+    });
 
-    }, section);
+    media.add("(max-width: 767px)", () => {
+      if (reduced || !mobileTrack.current) return;
+      const track = mobileTrack.current;
+      const mobileContext = gsap.context(() => {
+        gsap.fromTo(track, { x: 0 }, {
+          x: () => (track.firstElementChild as HTMLElement).offsetLeft - (track.lastElementChild as HTMLElement).offsetLeft,
+          ease: "none",
+          scrollTrigger: {
+            trigger: handoff,
+            start: "top top",
+            end: () => `+=${window.innerHeight * ORBIT_SCROLL_SCREENS}`,
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        });
+      }, section);
+      return () => mobileContext.revert();
+    });
 
     const dive = reduced ? null : createDiveScene({
       section: handoff,
@@ -195,12 +255,9 @@ export default function ServicesSection() {
     return () => {
       window.cancelAnimationFrame(refreshFrame);
       dive?.kill();
+      media.revert();
       context.revert();
     };
-  }, []);
-
-  useEffect(() => {
-    if (root.current) return createServiceCardInteraction(root.current);
   }, []);
 
   const enterWork = () => {
@@ -237,22 +294,8 @@ export default function ServicesSection() {
               <ActionPill portal label="View featured work" onClick={enterWork} className="pointer-events-auto" />
             </div>
 
-            <div className="services-perspective">
-              <div ref={camera} className="services-camera">
-                <div ref={ring} className="services-ring">
-                  {SERVICES.map((service, index) => (
-                    <a key={service.href} href={service.href} className="service-orbit-card" style={{ "--card-angle": `${-index * 60}deg` } as CSSProperties}>
-                      <div className="service-orbit-card__surface">
-                      <span className="service-orbit-card__number">{String(index + 1).padStart(2, "0")}</span>
-                      <div className="service-orbit-card__copy"><h3>{service.label}</h3><p>{DESCRIPTIONS[index]}</p></div>
-                      <Workflow index={index} />
-                      <span className="service-orbit-card__open" aria-hidden="true">Explore service ↗</span>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <DesktopServicesRing camera={camera} ring={ring} />
+            <MobileServicesTrack track={mobileTrack} />
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@
 .services-camera, .services-ring { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; }
 .services-camera { transform: translateZ(var(--ring-focal)); }
 .services-ring { transform: none; }
+.services-mobile-viewport { display: none; }
 .service-orbit-card { position: absolute; left: 0; top: 0; width: var(--card-width); aspect-ratio: 1.62; transform-origin: 0 0; transform: rotateY(var(--card-angle)) translateZ(calc(-1 * var(--ring-radius))) translate(-50%, -50%); transform-style: preserve-3d; backface-visibility: hidden; text-decoration: none; color: #08090c; --wf-w: .37; --wu: calc(var(--card-width) * var(--wf-w) / 370); }
 .service-orbit-card__surface { position: relative; width: 100%; height: 100%; opacity: var(--entry-opacity, 1); transform: translateY(var(--entry-y, 0px)) scale(var(--entry-scale, 1)) rotateX(var(--hover-x, 0deg)) rotateY(var(--hover-y, 0deg)); border-radius: calc(42 * var(--cu)); border: 2px solid rgba(255,255,255,.95); color: #08090c; background: radial-gradient(ellipse at 18% 85%, #ffffffd9, transparent 42%), radial-gradient(ellipse at 76% 36%, #bcc2d388, transparent 50%), radial-gradient(ellipse at 40% 20%, #ffffffd9, #e1e4ef88 55%, #f7f8ffbb); box-shadow: inset 0 0 0 6px #ffffff40, inset 0 0 45px #ffffffb0, 0 40px 70px -30px #30375950; text-decoration: none; overflow: hidden; }
 .service-orbit-card__surface::before { content: ""; position: absolute; inset: 0; opacity: .23; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='500'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .021' numOctaves='3' seed='8'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' d='M0 0h700v500H0z'/%3E%3C/svg%3E"); background-size: cover; mix-blend-mode: multiply; }
@@ -50,14 +51,29 @@
 }
 @media (max-width: 767px) {
   .services-heading [data-heading-lower] { margin-top: .08em; }
-  /* Portrait card: workflow on top, copy below. Center the camera so the card is not pushed off the narrow screen. */
-  .services-stage { --card-width: min(88vw, 58svh); --cam-x: 0px; --cam-y: calc(var(--cu) * .35); }
-  .service-orbit-card { aspect-ratio: .78; border-radius: 24px; --wf-w: .6; }
-  .service-orbit-card__number { font-size: calc(var(--card-width) * .05); top: 6%; }
-  .service-orbit-card__copy { width: 86%; bottom: 7%; }
-  .service-orbit-card__copy h3 { font-size: calc(var(--card-width) * .068); margin-bottom: calc(var(--card-width) * .03); }
-  .service-orbit-card__copy p { font-size: calc(var(--card-width) * .04); max-width: 100%; }
-  .service-workflow { top: 9%; right: 18%; }
+  .services-perspective { display: none; }
+  .services-mobile-viewport { display: block; position: absolute; top: 8svh; left: 0; right: 0; }
+  .services-mobile-track { display: flex; width: max-content; gap: 14px; will-change: transform; }
+  .service-mobile-card { display: block; position: relative; flex: none; width: min(78vw, 340px); height: min(65svh, 560px); min-height: 410px; color: #08090c; text-decoration: none; --card-width: min(78vw, 340px); --cu: calc(var(--card-width) / 1000); --wf-w: .86; --wu: calc(var(--card-width) * var(--wf-w) / 370); }
+  .service-mobile-card:focus-visible { outline: 3px solid #104dff; outline-offset: 4px; }
+  .service-mobile-card .service-orbit-card__surface { border: 1px solid #d9deeb; border-radius: 24px; background: #f1f3fa; box-shadow: none; transform: none; opacity: 1; }
+  .service-mobile-card .service-orbit-card__surface::before { display: none; }
+  .service-mobile-card .service-orbit-card__number { top: 20px; left: 7%; font: italic 15px monospace; padding-bottom: 5px; }
+  .service-mobile-card .service-orbit-card__copy { left: 7%; right: 7%; bottom: 35px; width: auto; }
+  .service-mobile-card .service-orbit-card__copy h3 { font-size: clamp(20px, 5.8vw, 25px); margin: 0 0 8px; }
+  .service-mobile-card .service-orbit-card__copy p { font-size: 13px; line-height: 1.32; max-width: 100%; }
+  .service-mobile-card .service-orbit-card__open { opacity: 1; transform: none; left: 7%; right: auto; bottom: 13px; font-size: 11px; }
+  .service-mobile-card .service-workflow { top: 53px; left: 7%; right: 7%; width: 86%; height: auto; display: flex; flex-direction: column; gap: 7px; font: 11px Arial, sans-serif; }
+  .service-mobile-card .service-workflow__wires, .service-mobile-card .service-workflow__status { display: none; }
+  .service-mobile-card .service-workflow__lead, .service-mobile-card .service-workflow__agent, .service-mobile-card .service-workflow__actions, .service-mobile-card .service-workflow__actions > div { position: relative; top: auto; left: auto; right: auto; bottom: auto; width: 100%; }
+  .service-mobile-card .service-workflow__lead, .service-mobile-card .service-workflow__agent, .service-mobile-card .service-workflow__actions > div { min-height: 32px; padding: 5px 8px; gap: 7px; border-radius: 9px; box-shadow: none; }
+  .service-mobile-card .service-workflow__lead, .service-mobile-card .service-workflow__actions > div { border-color: #dce2f0; background: #fff; }
+  .service-mobile-card .service-workflow__agent { font-size: 11px; background: #202942; }
+  .service-mobile-card .service-workflow small { font-size: 9px; margin-top: 2px; }
+  .service-mobile-card .service-workflow__icon, .service-mobile-card .service-workflow__actions .service-workflow__icon { width: 24px; height: 24px; border-radius: 6px; font-size: 16px; }
+  .service-mobile-card .service-workflow__actions { display: grid; gap: 5px; }
+  .service-mobile-card .service-workflow__actions > div { font-size: 10px; }
+  .service-mobile-card .service-workflow__actions b { font-size: 9px; }
   .ring-controls { right: 12px; bottom: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -69,6 +85,9 @@
   .ring-controls { display: none; }
   .service-orbit-card { position: relative; transform: none; margin: auto; }
   .services-pill-wrap { position: relative; opacity: 1; visibility: visible; margin-bottom: 40px; }
+  .services-mobile-track { will-change: auto; }
+  .services-mobile-viewport { position: relative; top: auto; left: auto; right: auto; }
+  .services-mobile-track { display: grid; width: auto; justify-content: center; gap: 20px; transform: none !important; }
 }
 
 .service-orbit-card__number, .service-workflow { z-index: 2; }
@@ -76,3 +95,8 @@
 .service-orbit-card__open { position: absolute; right: 5%; bottom: 4%; z-index: 2; font-size: max(11px, calc(12 * var(--cu))); font-weight: 600; color: #104dff; opacity: var(--hover-glow, 0); transform: translateY(calc((1 - var(--hover-glow, 0)) * 5px)); pointer-events: none; }
 .service-orbit-card:focus-visible .service-orbit-card__open { opacity: 1; transform: none; }
 @media (max-width: 767px) { .service-orbit-card__surface { border-radius: 24px; } }
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .services-perspective { display: none; }
+  .services-mobile-viewport { display: block; }
+  .service-mobile-card { width: min(86vw, 340px); --card-width: min(86vw, 340px); }
+}
