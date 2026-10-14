@@ -129,6 +129,14 @@
     filter: url(#hero-morph);
   }
 
+  /* The hero foot (meta line, phone CTA) waits hidden from the first paint
+     too, so the server-rendered copy never flashes before its entrance.
+     Hero.tsx hands over to GSAP ("run"); the failsafe shows it regardless. */
+  [data-hero-foot][data-foot="pending"] :is([data-meta-part], [data-meta-slash], [data-hero-cta]) {
+    opacity: 0;
+    animation: hero-foot-failsafe 0.01s 2.5s forwards;
+  }
+
   .hero-period {
     display: inline-block;
     color: var(--bp-accent);
@@ -193,6 +201,10 @@
   to { opacity: 1; }
 }
 
+@keyframes hero-foot-failsafe {
+  to { opacity: 1; }
+}
+
 
 /* ============================================================
    Fallbacks — the composition must read with no JS, no WebGL
@@ -203,10 +215,12 @@
    Hiding the canvas outright removes any chance of an unrendered artefact. */
 @media (scripting: none) {
   .hero-word[data-morph] .hero-char { opacity: 1; animation: none; }
+  [data-hero-foot][data-foot] :is([data-meta-part], [data-meta-slash], [data-hero-cta]) { opacity: 1; animation: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-word[data-morph] .hero-char { opacity: 1; animation: none; }
+  [data-hero-foot][data-foot] :is([data-meta-part], [data-meta-slash], [data-hero-cta]) { opacity: 1; animation: none; }
 
   *, *::before, *::after {
     animation-duration: 0.001ms !important;

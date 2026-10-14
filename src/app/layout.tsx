@@ -105,7 +105,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       className={inter.variable}
+      // The hold script below marks <html> before React hydrates.
+      suppressHydrationWarning
     >
+      <head>
+        {/* Runs as the HTML parses, before first paint and long before the JS
+            bundle: holds every CSS intro (and their failsafes) under the
+            loader from the very first frame. RouteTransition releases it; if
+            the loader never comes alive, let go with its own 8s failsafe. */}
+        <script
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: `try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){var d=document.documentElement;d.setAttribute('data-site-loading','');d.setAttribute('data-site-transition','');setTimeout(function(){if(!document.querySelector('[data-live]')){d.removeAttribute('data-site-loading');d.removeAttribute('data-site-transition')}},8000)}}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="relative antialiased">
         <Script id="restart-on-refresh" strategy="beforeInteractive">
           {`if (performance.getEntriesByType('navigation')[0]?.type === 'reload') {
@@ -125,8 +139,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
-        <main id="main">{children}</main>
+        {/* First in the body: the HTML streams, so the loader must arrive
+            (and paint) before any of the page beneath it. */}
         <RouteTransition />
+        <main id="main">{children}</main>
         <ScrollIndicator />
       </body>
     </html>

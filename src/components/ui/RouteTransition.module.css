@@ -15,6 +15,10 @@
 
 .overlay[data-live] { animation: none; }
 
+/* html[data-site-loading] (set before first paint) pauses every animation;
+   the loader's own no-JS failsafe must still be able to run. */
+:global(html[data-site-loading]) .overlay { animation-play-state: running !important; }
+
 /* In flight the canvas paints everything, the black included. */
 .overlay[data-state="flight"] { background: transparent; }
 .overlay[data-state="flight"] .word { visibility: hidden; }

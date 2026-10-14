@@ -146,18 +146,15 @@ export default function Hero() {
     const ctaParts = el.querySelectorAll<HTMLElement>("[data-hero-cta-part]");
     let footTl: gsap.core.Timeline | null = null;
 
-    function hideFoot() {
-      gsap.set(metaParts, { yPercent: 110 });
-      if (metaSlash) gsap.set(metaSlash, { opacity: 0, rotate: -90, scale: 0.4 });
-      if (cta) gsap.set(cta, { opacity: 0, y: 24 });
-      gsap.set(ctaParts, { opacity: 0, y: 8 });
-    }
-
     function runFoot() {
+      // Every tween carries its own start state (immediateRender), set the
+      // moment the timeline is built; only then does the CSS pending state
+      // hand over, so nothing shows in between.
       const ease = "expo.out";
+      const from = { immediateRender: true };
       footTl = gsap.timeline({ delay: 0.35 })
-        .to(metaParts, { yPercent: 0, duration: 1.1, stagger: 0.12, ease }, 0)
-        .to(metaSlash ?? [], { opacity: 1, rotate: 0, scale: 1, duration: 0.9, ease }, 0.08);
+        .fromTo(metaParts, { yPercent: 110 }, { ...from, yPercent: 0, duration: 1.1, stagger: 0.12, ease }, 0)
+        .fromTo(metaSlash ?? [], { opacity: 0, rotate: -90, scale: 0.4 }, { ...from, opacity: 1, rotate: 0, scale: 1, duration: 0.9, ease }, 0.08);
       // Only on phones is the CTA laid out; measure it to start as a centred dot.
       if (foot && cta && cta.offsetWidth) {
         // The pill's clip-path reads --cta-side, inherited from the foot so the
@@ -165,16 +162,24 @@ export default function Hero() {
         // as a plain length, where browsers would normalise an inset() string.
         const side = Math.max(0, (cta.offsetWidth - cta.offsetHeight) / 2);
         footTl
-          .fromTo(cta, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.15)
-          .fromTo(foot, { "--cta-side": `${side}px` }, { "--cta-side": "0px", duration: 1, ease: "expo.inOut", immediateRender: true }, 0.55)
-          .to(ctaParts, { opacity: 1, y: 0, duration: 0.8, stagger: 0.08, ease }, 1.05);
+          .fromTo(cta, { opacity: 0, y: 24 }, { ...from, opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.15)
+          .fromTo(foot, { "--cta-side": `${side}px` }, { ...from, "--cta-side": "0px", duration: 1, ease: "expo.inOut" }, 0.55)
+          .fromTo(ctaParts, { opacity: 0, y: 8 }, { ...from, opacity: 1, y: 0, duration: 0.8, stagger: 0.08, ease }, 1.05);
       }
+      if (foot) foot.dataset.foot = "run";
     }
 
     function showFoot() {
       footTl?.kill();
-      const parts = [...metaParts, metaSlash, cta, ...ctaParts].filter(Boolean);
-      if (parts.length) gsap.set(parts, { clearProps: "transform,opacity" });
+      // Reset by hand, not with gsap.set: while the site loader is up GSAP's
+      // timeline is held, so a clearProps tween would be queued and fire later,
+      // wiping the entrance's start states (React remounts in dev do this).
+      const parts = [...metaParts, metaSlash, cta, ...ctaParts].filter((part): part is HTMLElement => !!part);
+      gsap.killTweensOf(parts);
+      for (const part of parts) {
+        for (const prop of ["transform", "translate", "rotate", "scale", "opacity"]) part.style.removeProperty(prop);
+      }
+      if (foot) foot.dataset.foot = "done";
       foot?.style.removeProperty("--cta-side");
     }
 
@@ -183,11 +188,12 @@ export default function Hero() {
     // no parallax.
     if (reduced) {
       word.dataset.morph = "done";
+      if (foot) foot.dataset.foot = "done";
       releaseScroll = mountScroll({ smooth: false });
       return cleanup;
     }
 
-    hideFoot();
+    if (foot) foot.dataset.foot = "pending";
     releaseScroll = mountScroll({ smooth: true });
     // wait for the webfont so the letters condense into their final shapes,
     // and for the site loader to finish so the morph plays in view
@@ -230,6 +236,7 @@ export default function Hero() {
 
         <div
           data-hero-foot
+          data-foot="pending"
           className="relative z-10 flex flex-col gap-6 px-[var(--bp-gut)] pb-[var(--bp-gut)] sm:flex-row sm:items-end sm:justify-between"
         >
           {/* Each part sits in a clipped slot so the entrance can lift it in. */}
