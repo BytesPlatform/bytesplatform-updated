@@ -57,10 +57,12 @@ function Workflow({ index }: { index: number }) {
 const ORBIT_SCROLL_SCREENS = SERVICES.length - 1;
 const EXIT_SCROLL_SCREENS = 0.3;
 const STACK_SCROLL_SCREENS = ORBIT_SCROLL_SCREENS + EXIT_SCROLL_SCREENS;
-// Same short beat as the original handoff: the dive starts just after the pill
-// has scaled in, and the section ends right behind it.
+// The dive starts just after the pill has scaled in. The stage then stays
+// pinned for a protected runway so a fast wheel/trackpad flick is absorbed
+// while the dive locks, instead of carrying the page into Featured Work.
 const DIVE_START_SCREENS = STACK_SCROLL_SCREENS + 0.04;
-const HANDOFF_SCROLL_SCREENS = STACK_SCROLL_SCREENS + 0.06;
+const DIVE_RUNWAY_SCREENS = 0.4;
+const HANDOFF_SCROLL_SCREENS = DIVE_START_SCREENS + DIVE_RUNWAY_SCREENS;
 
 export default function ServicesSection() {
   const root = useRef<HTMLElement>(null);

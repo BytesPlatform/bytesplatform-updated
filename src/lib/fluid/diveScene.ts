@@ -148,6 +148,10 @@ export function createDiveScene(opts: DiveOptions) {
     syncLoader();
 
     if (forward) {
+      // Momentum can carry the page into the runway before the lock lands.
+      // The stage is still pinned there, so pulling back to the dive's start
+      // is invisible and keeps Featured Work from becoming active underneath.
+      if (window.scrollY > startTop() + 1) jumpTo(Math.round(startTop()));
       aim();
       opts.freeze();
       opts.pill.classList.add("is-diving");
@@ -171,6 +175,9 @@ export function createDiveScene(opts: DiveOptions) {
 
     // Back up: the blue drops over the next section, the page returns to the
     // source already zoomed into the pill, and the section flies out.
+    // A fast flick up can scroll Services' DOM stage into view before the lock
+    // lands; it sits above the canvas blue, so return to Work's start first.
+    if (window.scrollY < nextTop() - 1) jumpTo(Math.ceil(nextTop()));
     tl.fromTo(opts.overlay,
       { autoAlpha: 1, clipPath: "inset(0% 0% 100% 0%)" },
       { clipPath: "inset(0% 0% 0% 0%)", duration: REVEAL, ease: "power3.inOut" })
@@ -206,6 +213,9 @@ export function createDiveScene(opts: DiveOptions) {
     trigger: opts.section,
     start: () => `top+=${opts.startOffset()} top`,
     end: "bottom top",
+    // onEnter is the primary forward trigger; onUpdate only catches a dive
+    // that onEnter declined (e.g. no recent input when the band was entered).
+    onEnter: () => play(true),
     onUpdate: self => { if (self.direction > 0 && self.progress > 0) play(true); },
     onLeave: () => play(true),
     // Back above the band without the reverse dive (e.g. an anchor jump).
