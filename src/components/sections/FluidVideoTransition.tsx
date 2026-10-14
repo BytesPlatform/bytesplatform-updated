@@ -110,7 +110,7 @@ export default function FluidVideoTransition() {
             lg:top-[11svh]
             lg:max-w-[43rem]
 
-            ml-10
+            sm:ml-10
 
             motion-reduce:static
             motion-reduce:order-first
