@@ -146,3 +146,9 @@ export function jumpTo(y: number) {
   if (activeLenis) activeLenis.scrollTo(y, { immediate: true, force: true });
   else window.scrollTo(0, y);
 }
+
+/** scrolls the page to y over `duration` seconds, so scrubbed scenes play on the way */
+export function glideTo(y: number, duration: number) {
+  if (activeLenis) activeLenis.scrollTo(y, { duration, easing: (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2), force: true });
+  else window.scrollTo({ top: y, behavior: "smooth" });
+}

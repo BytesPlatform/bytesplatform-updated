@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { prefersReducedMotion } from "@/lib/animation/prefs";
-import { jumpTo } from "@/lib/animation/scroll";
+import { glideTo } from "@/lib/animation/scroll";
 import { createDiveScene } from "@/lib/fluid/diveScene";
 import { createServiceCardInteraction } from "@/lib/services/cardInteraction";
 import ActionPill from "@/components/ui/ActionPill";
@@ -57,12 +57,14 @@ function Workflow({ index }: { index: number }) {
 const ORBIT_SCROLL_SCREENS = SERVICES.length - 1;
 const EXIT_SCROLL_SCREENS = 0.3;
 const STACK_SCROLL_SCREENS = ORBIT_SCROLL_SCREENS + EXIT_SCROLL_SCREENS;
-// The dive starts just after the pill has scaled in. The stage then stays
-// pinned for a protected runway so a fast wheel/trackpad flick is absorbed
-// while the dive locks, instead of carrying the page into Featured Work.
+// The dive into Featured Work is scrubbed by scroll (see diveScene): it starts
+// just after the pill has scaled in, flies into the pill, then holds the title
+// on the blue while the stage is still pinned. The handoff's last screen is the
+// reveal, as Work rises behind the blue.
 const DIVE_START_SCREENS = STACK_SCROLL_SCREENS + 0.04;
-const DIVE_RUNWAY_SCREENS = 0.4;
-const HANDOFF_SCROLL_SCREENS = DIVE_START_SCREENS + DIVE_RUNWAY_SCREENS;
+const DIVE_ZOOM_SCREENS = 1;
+const DIVE_TITLE_SCREENS = 0.8;
+const HANDOFF_SCROLL_SCREENS = DIVE_START_SCREENS + DIVE_ZOOM_SCREENS + DIVE_TITLE_SCREENS;
 
 export default function ServicesSection() {
   const root = useRef<HTMLElement>(null);
@@ -179,14 +181,11 @@ export default function ServicesSection() {
       pill,
       overlay,
       next,
-      // Work now renders on the already-moving shared canvas; there is no
-      // second canvas to settle independently on the far side of the dive.
-      nextContent: () => null,
       startOffset: () => window.innerHeight * DIVE_START_SCREENS,
-      ready: () => true,
+      zoomLength: () => window.innerHeight * DIVE_ZOOM_SCREENS,
+      titleLength: () => window.innerHeight * DIVE_TITLE_SCREENS,
       freeze: () => window.dispatchEvent(new Event("intro:dive-freeze")),
       thaw: () => window.dispatchEvent(new Event("intro:dive-thaw")),
-      suspendOthers: () => {},
       setLoaderState: (progress, active, direction, holdWork) => window.dispatchEvent(new CustomEvent("intro:loader-state", {
         detail: { progress, active, direction, holdWork },
       })),
@@ -207,7 +206,10 @@ export default function ServicesSection() {
   const enterWork = () => {
     const handoff = root.current?.querySelector<HTMLElement>("[data-services-handoff]");
     if (!handoff) return;
-    jumpTo(handoff.getBoundingClientRect().top + window.scrollY + window.innerHeight * (DIVE_START_SCREENS + 0.01));
+    // Scroll through the scrubbed dive to Work's top, so it plays on the way.
+    const work = document.querySelector<HTMLElement>("[data-featured-work]");
+    const to = work ? work.getBoundingClientRect().top + window.scrollY : handoff.getBoundingClientRect().top + window.scrollY + handoff.offsetHeight;
+    glideTo(to, 2.4);
   };
 
   return (

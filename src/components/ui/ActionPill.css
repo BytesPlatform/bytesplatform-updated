@@ -54,6 +54,8 @@
 .action-pill:focus-visible .action-pill__icon { transform: translateX(0.15rem); }
 .action-pill.is-diving-instant,
 .action-pill.is-diving-instant .action-pill__fill { transition: none; }
+/* Scroll-scrubbed while diving: the arrow follows the scroll, not a timer. */
+.action-pill.is-diving .action-pill__icon { transition: none; }
 
 @media (max-width: 639px) {
   .action-pill { min-height: 3.8rem; gap: 1.15rem; padding-left: 1.35rem; font-size: 0.8rem; }
