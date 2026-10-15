@@ -32,6 +32,11 @@ type DiveOptions = {
 const ROTATION = 8;
 /** Once started, the dive carries itself across the whole band in this long. */
 const AUTOPLAY_SECONDS = 2.6;
+/** The reveal (the blue sliding off) runs this much faster than the rest. */
+const REVEAL_SPEED = 4;
+/** Autoplay eases firmly, so it lands on the band's end instead of crawling
+ *  into it the way the site's soft wheel easing would. */
+const AUTOPLAY_LERP = 0.22;
 /** Input this recent counts as the reader steering into the band. */
 const INPUT_FRESH_MS = 600;
 
@@ -236,14 +241,16 @@ export function createDiveScene(opts: DiveOptions) {
       autoplay = 0;
       return;
     }
-    const step = (autoplay * (bottom - top) / AUTOPLAY_SECONDS) * (Math.min(deltaMs, 50) / 1000);
+    // The last screen of the band is the reveal: give it more pace.
+    const reveal = y > bottom - window.innerHeight;
+    const step = (autoplay * (bottom - top) / AUTOPLAY_SECONDS) * (reveal ? REVEAL_SPEED : 1) * (Math.min(deltaMs, 50) / 1000);
     nudgeScroll(target => {
       // Push on from wherever is further along this direction (the reader's
       // target or the page), and never past the band's end.
       const from = autoplay > 0 ? Math.max(target, y) : Math.min(target, y);
       if (autoplay > 0 ? from >= bottom : from <= top) return target;
       return autoplay > 0 ? Math.min(bottom, from + step) : Math.max(top, from + step);
-    });
+    }, AUTOPLAY_LERP);
   };
   gsap.ticker.add(drive);
 

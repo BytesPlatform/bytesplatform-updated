@@ -169,10 +169,11 @@ export function onScrollInput(listener: (deltaY: number) => void): () => void {
 /**
  * Moves the scroll target the way a wheel tick does: `to` gets the current
  * target (which already includes the reader's own input) and returns the new
- * one, and Lenis eases there. Returns false when there is no smooth scroller.
+ * one, and Lenis eases there (with `lerp`, or the site's own). Returns false
+ * when there is no smooth scroller.
  */
-export function nudgeScroll(to: (target: number) => number): boolean {
+export function nudgeScroll(to: (target: number) => number, lerp?: number): boolean {
   if (!activeLenis) return false;
-  activeLenis.scrollTo(to(activeLenis.targetScroll), { programmatic: false, lerp: activeLenis.options.lerp ?? 0.1 });
+  activeLenis.scrollTo(to(activeLenis.targetScroll), { programmatic: false, lerp: lerp ?? activeLenis.options.lerp ?? 0.1 });
   return true;
 }
