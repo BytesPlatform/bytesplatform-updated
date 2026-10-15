@@ -178,4 +178,93 @@ export const projects: Project[] = [
       { src: "/projects/team-smith/page-03-01.jpg", caption: "Contact" },
     ],
   },
+  {
+    slug: "cascadia-health",
+    name: "Cascadia Health",
+    discipline: ["Strategy", "UX/UI", "Web", "Service Architecture"],
+    summary:
+      "A healthcare staffing site that sorts facilities, clinicians and families in the first screen — one domain, three sides of care, each with its own way in.",
+    solution:
+      "Segmentation first: the homepage opens on three doors — Request Staff, Join the Talent Team, Request Family Support — each leading to its own seven-step intake that starts with the lightest possible ask. Six services sit on one ladder, from a single per-diem shift to a workforce partnership, with eleven clinical disciplines named on both sides of the market.",
+    caseTheme: { accent: "#6e2a5a", bg: "#f6efe6", fg: "#14213d" },
+    media: "browser",
+    shots: [
+      { src: "/projects/cascadia-health/shot-01.jpg", caption: "Homepage · three audiences in the first screen" },
+      { src: "/projects/cascadia-health/shot-02.jpg", caption: "Facility staffing request · step 1 of 7" },
+      { src: "/projects/cascadia-health/shot-03.jpg", caption: "Pathways for families and professionals" },
+      { src: "/projects/cascadia-health/shot-04.jpg", caption: "Responsive · homepage and staffing request" },
+    ],
+    link: { label: "cascadiahealthllc.com", href: "https://cascadiahealthllc.com/" },
+  },
+  {
+    slug: "goldway-capital",
+    name: "Goldway Capital",
+    discipline: ["Strategy", "UX/UI", "Web", "Content"],
+    summary:
+      "A Georgia senior solutions company across Medicare, final expense, probate property and investment lending — four regulated services under one brand, made easy to follow.",
+    solution:
+      "Entry by situation rather than product: the homepage opens on questions like Turning 65? and Need Flexible Financing?, each leading to its own pathway. Five audience-specific forms ask only what a first conversation needs and say what not to send, with a disclosure written per page, licences published where a sceptic will look, and 28 plain-language articles.",
+    caseTheme: { accent: "#c9a24a", bg: "#0f1b2d", fg: "#f3ecdc" },
+    media: "browser",
+    shots: [
+      { src: "/projects/goldway-capital/shot-01.jpg", caption: "Homepage · senior solutions in Georgia" },
+      { src: "/projects/goldway-capital/shot-02.jpg", caption: "Medicare options · explained, never ranked" },
+      { src: "/projects/goldway-capital/shot-03.jpg", caption: "Request form · says what not to send" },
+      { src: "/projects/goldway-capital/shot-04.jpg", caption: "Large type · two clear consultation paths" },
+    ],
+    link: { label: "goldwaycapital.com", href: "https://goldwaycapital.com/" },
+  },
+  {
+    slug: "trident-foundation-systems",
+    name: "Trident Foundation Systems",
+    discipline: ["Brand Experience", "UX/UI", "Development", "Technical Storytelling"],
+    summary:
+      "A single continuous experience for a foundation and structural engineering firm — connecting the crack a homeowner can see to the below-grade engineering they can't.",
+    solution:
+      "Organised around translation rather than persuasion: four symptoms decoded in the visitor's own words, four systems named with verbs — Stabilize, Reinforce, Protect, Restore — and presented as one engineered sequence, below-grade work shown with numbered callouts, and an evaluation form where Not sure is a valid answer.",
+    caseTheme: { accent: "#b4532a", bg: "#13202e", fg: "#f1ebe2" },
+    media: "browser",
+    shots: [
+      { src: "/projects/trident/shot-01.jpg", caption: "Hero · what holds everything above" },
+      { src: "/projects/trident/shot-02.jpg", caption: "Protect · one stage of an engineered sequence" },
+      { src: "/projects/trident/shot-03.jpg", caption: "What you can see · four symptoms, translated" },
+      { src: "/projects/trident/shot-04.jpg", caption: "Responsive · symptom first, then the evaluation" },
+    ],
+  },
+  {
+    slug: "gilbert-and-sons",
+    name: "Gilbert & Sons",
+    discipline: ["UX/UI", "Development", "Local SEO", "Conversion Strategy"],
+    summary:
+      "A roofing and stucco site for Las Cruces, built for the moment someone finds water on their ceiling — every service on its own page, and call, text or estimate one tap away.",
+    solution:
+      "Nine roofing services at their own URLs, each written for a different search, plus a Las Cruces page written for the climate and thirteen Southern New Mexico markets named. Call, text and estimate sit side by side at every decision point, backed by a six-field estimate form and sixteen question-led articles for the research stage.",
+    caseTheme: { accent: "#b3261e", bg: "#161414", fg: "#f3eee8" },
+    media: "browser",
+    shots: [
+      { src: "/projects/gilbert-and-sons/shot-01.jpg", caption: "Homepage · an estimate form in the first screen" },
+      { src: "/projects/gilbert-and-sons/shot-02.jpg", caption: "Every roofing service · its own page" },
+      { src: "/projects/gilbert-and-sons/shot-03.jpg", caption: "Recent work · built in the field" },
+      { src: "/projects/gilbert-and-sons/shot-04.jpg", caption: "Call or estimate · one tap on every screen" },
+    ],
+    link: { label: "gilbertandsonsroofingandstucco.com", href: "https://gilbertandsonsroofingandstucco.com/" },
+  },
+  {
+    slug: "rob-does-it",
+    name: "Rob Does It",
+    discipline: ["Creative Direction", "UX/UI", "Booking Experience", "Web"],
+    summary:
+      "A site for a Los Angeles host, interviewer and professional crowd mover that moves the way the night does — showing the energy first, with booking never more than one tap away.",
+    solution:
+      "Poster-scale type and real rooms above the fold, with Watch Rob and Book Rob open at once. A feed instead of a gallery — 31 clips tagged by platform, with nine filters that turn one library into audience-specific showreels — plus three openly priced access levels and a five-step availability check framed as a conversation.",
+    caseTheme: { accent: "#d4a63a", bg: "#141210", fg: "#f2ece0" },
+    media: "browser",
+    shots: [
+      { src: "/projects/rob-does-it/shot-01.jpg", caption: "Homepage · Watch Rob and Book Rob, side by side" },
+      { src: "/projects/rob-does-it/shot-02.jpg", caption: "Check availability · step 1 of 5" },
+      { src: "/projects/rob-does-it/shot-03.jpg", caption: "The library · clips tagged by platform" },
+      { src: "/projects/rob-does-it/shot-04.jpg", caption: "Booking flow · five quick steps" },
+    ],
+    link: { label: "itsrobdoesit.com", href: "https://itsrobdoesit.com/" },
+  },
 ];

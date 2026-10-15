@@ -24,10 +24,12 @@ import { COMPACT_QUERY, isCoarsePointer, prefersReducedMotion } from "@/lib/anim
 import LineDrawingTool from "./dev/LineDrawingTool";
 import { ENABLE_LINE_DRAWING_TOOL, lineBreakpoint } from "@/lib/intro/lineData";
 import { createRootCardsScene } from "@/lib/work/rootCardsScene";
+import { projects } from "@/data/projects";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const WORK_SCROLL_LENGTH = "+=300%";
+/** Work's pinned scroll: 300% was tuned for 7 projects, so it grows per card. */
+const WORK_SCROLL_LENGTH = `+=${Math.round((300 / 7) * projects.length)}%`;
 
 const responsive = (width: number) => width < 768
   ? { strength: 0.6, duration: 1.3 }
