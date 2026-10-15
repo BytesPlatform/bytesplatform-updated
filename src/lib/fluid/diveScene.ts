@@ -31,12 +31,16 @@ type DiveOptions = {
 /** The reference makes a restrained turn before the pill fills the frame. */
 const ROTATION = 8;
 /** Once started, the dive carries itself across the whole band in this long. */
-const AUTOPLAY_SECONDS = 2.6;
+const AUTOPLAY_SECONDS = 3.2;
 /** The reveal (the blue sliding off) runs this much faster than the rest. */
 const REVEAL_SPEED = 4;
 /** Autoplay eases firmly, so it lands on the band's end instead of crawling
  *  into it the way the site's soft wheel easing would. */
 const AUTOPLAY_LERP = 0.22;
+/** Share of the reader's own scrolling that still adds to the autoplay's
+ *  pace while it runs (the rest is absorbed), so scrolling on nudges it
+ *  along instead of flinging it. */
+const INPUT_INFLUENCE = 0.3;
 /** Input this recent counts as the reader steering into the band. */
 const INPUT_FRESH_MS = 600;
 
@@ -214,6 +218,8 @@ export function createDiveScene(opts: DiveOptions) {
   // adds speed, and scrolling the other way turns it round, any number of
   // times. It stops at either end of the band.
   let autoplay = 0;
+  /** The scroll target the autoplay set last frame. */
+  let lastSet: number | null = null;
   let lastInput = { direction: 0, at: -Infinity };
   const offInput = onScrollInput(deltaY => {
     if (!deltaY) return;
@@ -235,21 +241,29 @@ export function createDiveScene(opts: DiveOptions) {
       const direction = performance.now() - lastInput.at < INPUT_FRESH_MS ? lastInput.direction : Math.abs(moved) > 0.5 ? Math.sign(moved) : 0;
       if (!direction) return;
       autoplay = direction;
+      lastSet = null;
     }
     // Arrived at the end it was heading for, or carried out of the band.
     if ((autoplay > 0 && y >= bottom - 1) || (autoplay < 0 && y <= top + 1) || y < top - 1 || y > bottom + 1) {
       autoplay = 0;
+      lastSet = null;
       return;
     }
     // The last screen of the band is the reveal: give it more pace.
     const reveal = y > bottom - window.innerHeight;
     const step = (autoplay * (bottom - top) / AUTOPLAY_SECONDS) * (reveal ? REVEAL_SPEED : 1) * (Math.min(deltaMs, 50) / 1000);
     nudgeScroll(target => {
-      // Push on from wherever is further along this direction (the reader's
-      // target or the page), and never past the band's end.
-      const from = autoplay > 0 ? Math.max(target, y) : Math.min(target, y);
-      if (autoplay > 0 ? from >= bottom : from <= top) return target;
-      return autoplay > 0 ? Math.min(bottom, from + step) : Math.max(top, from + step);
+      // Whatever the reader's input added to the target since our last push
+      // counts only partly; the autoplay's own pace does the rest.
+      const base = lastSet ?? y;
+      const input = target - (lastSet ?? y);
+      let from = base + input * INPUT_INFLUENCE;
+      // Never push from behind the page in the direction of travel.
+      from = autoplay > 0 ? Math.max(from, y) : Math.min(from, y);
+      // ...and never past the band's end.
+      const next = autoplay > 0 ? Math.min(bottom, from + step) : Math.max(top, from + step);
+      lastSet = next;
+      return next;
     }, AUTOPLAY_LERP);
   };
   gsap.ticker.add(drive);
