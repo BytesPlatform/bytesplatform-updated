@@ -8,6 +8,12 @@ export function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+/**
+ * Tablets and phones: no Services → Featured Work dive (too expensive there).
+ * Mirrored in ServicesSection.css; keep the two in step.
+ */
+export const COMPACT_QUERY = "(max-width: 1024px), (hover: none) and (pointer: coarse)";
+
 export function isCoarsePointer() {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(pointer: coarse)").matches;

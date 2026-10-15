@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { prefersReducedMotion } from "@/lib/animation/prefs";
+import { COMPACT_QUERY, prefersReducedMotion } from "@/lib/animation/prefs";
 import { glideTo } from "@/lib/animation/scroll";
 import { createDiveScene } from "@/lib/fluid/diveScene";
 import { createServiceCardInteraction } from "@/lib/services/cardInteraction";
@@ -94,6 +94,9 @@ const DIVE_START_SCREENS = STACK_SCROLL_SCREENS + 0.04;
 const DIVE_ZOOM_SCREENS = 1;
 const DIVE_TITLE_SCREENS = 0.8;
 const HANDOFF_SCROLL_SCREENS = DIVE_START_SCREENS + DIVE_ZOOM_SCREENS + DIVE_TITLE_SCREENS;
+// Tablets and phones skip the dive: the stage holds a beat after the last
+// card, then lifts away to reveal Featured Work beneath it.
+const COMPACT_HANDOFF_SCREENS = STACK_SCROLL_SCREENS + 0.15;
 
 export default function ServicesSection() {
   const root = useRef<HTMLElement>(null);
@@ -233,28 +236,33 @@ export default function ServicesSection() {
       return () => mobileContext.revert();
     });
 
-    const dive = reduced ? null : createDiveScene({
-      section: handoff,
-      // The blue line lives on the shared canvas. It must move with the cards
-      // for the dive to read as a camera move into the button.
-      layers: canvasLayer ? [canvasLayer, stage] : [stage],
-      pill,
-      overlay,
-      next,
-      startOffset: () => window.innerHeight * DIVE_START_SCREENS,
-      zoomLength: () => window.innerHeight * DIVE_ZOOM_SCREENS,
-      titleLength: () => window.innerHeight * DIVE_TITLE_SCREENS,
-      freeze: () => window.dispatchEvent(new Event("intro:dive-freeze")),
-      thaw: () => window.dispatchEvent(new Event("intro:dive-thaw")),
-      setLoaderState: (progress, active, direction, holdWork) => window.dispatchEvent(new CustomEvent("intro:loader-state", {
-        detail: { progress, active, direction, holdWork },
-      })),
+    // "all" always matches, so this runs everywhere (GSAP only calls it when
+    // some condition matches) and re-runs whenever "compact" flips.
+    media.add({ all: "all", compact: COMPACT_QUERY }, context => {
+      if (reduced || context.conditions?.compact) return;
+      const dive = createDiveScene({
+        section: handoff,
+        // The blue line lives on the shared canvas. It must move with the cards
+        // for the dive to read as a camera move into the button.
+        layers: canvasLayer ? [canvasLayer, stage] : [stage],
+        pill,
+        overlay,
+        next,
+        startOffset: () => window.innerHeight * DIVE_START_SCREENS,
+        zoomLength: () => window.innerHeight * DIVE_ZOOM_SCREENS,
+        titleLength: () => window.innerHeight * DIVE_TITLE_SCREENS,
+        freeze: () => window.dispatchEvent(new Event("intro:dive-freeze")),
+        thaw: () => window.dispatchEvent(new Event("intro:dive-thaw")),
+        setLoaderState: (progress, active, direction, holdWork) => window.dispatchEvent(new CustomEvent("intro:loader-state", {
+          detail: { progress, active, direction, holdWork },
+        })),
+      });
+      return () => dive.kill();
     });
     const refreshFrame = window.requestAnimationFrame(() => ScrollTrigger.refresh());
 
     return () => {
       window.cancelAnimationFrame(refreshFrame);
-      dive?.kill();
       media.revert();
       context.revert();
     };
@@ -285,7 +293,7 @@ export default function ServicesSection() {
       <div
         data-services-handoff
         className="services-handoff relative z-[2]"
-        style={{ height: `calc(100svh * ${HANDOFF_SCROLL_SCREENS + 1})` }}
+        style={{ "--handoff-screens": HANDOFF_SCROLL_SCREENS + 1, "--handoff-compact-screens": COMPACT_HANDOFF_SCREENS + 1 } as CSSProperties}
         aria-label="Our services"
       >
         <div data-services-stage className="services-stage sticky top-0 h-[100svh] overflow-hidden px-[var(--bp-gut)]">

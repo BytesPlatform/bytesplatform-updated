@@ -19,7 +19,7 @@ import { createPearlTrail } from "@/lib/intro/pearlTrail";
 import { createSheet } from "@/lib/intro/sheet";
 import { createOrbitalLines } from "@/lib/intro/orbitalLines";
 import { createServiceCards } from "@/lib/services/serviceCards";
-import { isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
+import { COMPACT_QUERY, isCoarsePointer, prefersReducedMotion } from "@/lib/animation/prefs";
 import LineDrawingTool from "./dev/LineDrawingTool";
 import { ENABLE_LINE_DRAWING_TOOL, lineBreakpoint } from "@/lib/intro/lineData";
 import { createRootCardsScene } from "@/lib/work/rootCardsScene";
@@ -72,6 +72,9 @@ export default function IntroExperience() {
     // (the site-wide pearl trail and the hero's ink reveal) are never set up there:
     // no listeners, no simulation, no extra passes.
     const touchOnly = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    // Tablets and phones have no dive into Work: Services lifts away instead
+    // and Work is revealed beneath it (see the scissor around workScene below).
+    const compact = window.matchMedia(COMPACT_QUERY);
     const loading = new AbortController();
     let renderer: THREE.WebGLRenderer;
     try {
@@ -164,6 +167,20 @@ export default function IntroExperience() {
     const inkMesh = new THREE.Mesh(inkGeometry, inkMaterial);
     inkMesh.frustumCulled = false;
     inkScene.add(inkMesh);
+    // The same composite, blended over what is already on screen (sceneTarget
+    // is premultiplied): redraws the intro's line over the paper strip that
+    // rounds Services' bottom corners during the compact Work reveal.
+    const inkOverMaterial = new THREE.ShaderMaterial({
+      uniforms: inkUniforms, vertexShader: inkMaterial.vertexShader, fragmentShader: inkMaterial.fragmentShader,
+      depthTest: false, depthWrite: false, blending: THREE.CustomBlending,
+      blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
+    });
+    const inkOverScene = new THREE.Scene();
+    const inkOverMesh = new THREE.Mesh(inkGeometry, inkOverMaterial);
+    inkOverMesh.frustumCulled = false;
+    inkOverScene.add(inkOverMesh);
+    /** Paper behind Services, for its rounded bottom corners as it lifts off Work. */
+    const servicesSheet = createSheet(0xf0f1fa);
 
     const state = { progress: 0 };
     const tune = responsive(window.innerWidth);
@@ -250,7 +267,10 @@ export default function IntroExperience() {
       footer.style.visibility = statsRect && statsRect.bottom < window.innerHeight + 1 ? "visible" : "hidden";
       // On the way back, keep Work alive underneath the descending blue wipe
       // until the handoff jumps to Services; otherwise the canvas flashes blank.
-      const shouldRenderWork = workOnStage || holdWorkForLoader;
+      // Compact: Work draws as soon as its section rises into view, clipped to
+      // the area below its top edge, so Services lifts off to reveal it.
+      const workRising = compact.matches && !workOnStage && workRect.top < window.innerHeight && workRect.bottom > 0;
+      const shouldRenderWork = workOnStage || holdWorkForLoader || workRising;
       const shouldInteractWithWork = workOnStage && !statsOnScreen && !loaderActive;
       if (workVisible !== shouldRenderWork || workInteractive !== shouldInteractWithWork) {
         workVisible = shouldRenderWork;
@@ -319,7 +339,10 @@ export default function IntroExperience() {
       // otherwise reveal a stray piece of line over Work and Stats.
       // No line on phones (the line layouts' own "mobile" breakpoint).
       const phone = lineBreakpoint(window.innerWidth) === "mobile";
-      if (!phone && servicesRect.bottom > 0) lines.render(renderer, Math.min(scroll, handoffScroll), reduced ? 1 : lineProgress);
+      // The line holds still while the stage is pinned, then leaves with it.
+      const unpinScroll = handoffScroll + servicesHandoffRect.height - height;
+      const lineOffset = scroll <= handoffScroll ? scroll : handoffScroll + Math.max(0, scroll - unpinScroll);
+      if (!phone && servicesRect.bottom > 0) lines.render(renderer, lineOffset, reduced ? 1 : lineProgress);
       const inServices = servicesRect.top < window.innerHeight && servicesRect.bottom > 0;
       if (inServices) serviceCards.render(renderer, serviceCardElements, stage, pointer, reduced ? 0 : time, dt);
       if (fluid && inStudio && video.readyState >= 2 && !reduced) {
@@ -348,8 +371,31 @@ export default function IntroExperience() {
       if (workScene && workVisible) {
         // Parallax as Stats slides over: Work drifts up at a fraction of the
         // scroll speed instead of holding still.
-        workScene.setScrollOffset(workTrigger ? Math.max(0, scrollY - workEnd) * WORK_PARALLAX : 0);
+        // Rising into view (compact): Work sits lower and drifts up at the same
+        // slow pace it leaves at under Stats, while Services lifts off it.
+        const clipTop = workRising ? Math.max(0, workRect.top - stage.top) : 0;
+        workScene.setScrollOffset(clipTop > 0 ? -clipTop * WORK_PARALLAX : workTrigger ? Math.max(0, scrollY - workEnd) * WORK_PARALLAX : 0);
+        // Draw Work only below Services' bottom edge, plus a corner radius
+        // above it (the scissor only touches the screen pass; Work's render
+        // targets ignore it).
+        const cornerRadius = THREE.MathUtils.clamp(width * 0.04, 28, 64);
+        const workFrom = Math.max(0, clipTop - cornerRadius);
+        if (clipTop > 0) {
+          renderer.setScissor(0, 0, width, Math.max(0, height - workFrom));
+          renderer.setScissorTest(true);
+        }
         workScene.frame();
+        if (clipTop > 0) {
+          // Paper over that strip with rounded bottom corners, like Stats'
+          // top ones, then the intro's line back on top of the paper.
+          const autoClear = renderer.autoClear;
+          renderer.autoClear = false;
+          renderer.setScissor(0, height - clipTop, width, clipTop - workFrom);
+          servicesSheet.render(renderer, { w: width, h: height }, new DOMRect(stage.left, workRect.top - height * 2, width, height * 2), stage.top, cornerRadius);
+          if (!statsOnScreen) renderer.render(inkOverScene, camera);
+          renderer.autoClear = autoClear;
+          renderer.setScissorTest(false);
+        }
       }
       // Stats' paper, over Work and under the trail.
       if (statsOnScreen && statsRect) {
@@ -409,6 +455,8 @@ export default function IntroExperience() {
       footer.style.visibility = "";
       pearlTrail?.dispose();
       statsSheet.dispose();
+      servicesSheet.dispose();
+      inkOverMaterial.dispose();
       if (stats) delete stats.dataset.sheet;
       ink?.destroy();
       cards?.destroy();

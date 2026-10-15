@@ -1543,7 +1543,7 @@ function updateCameraFov(elapsed) {
 let viewOffsetY = 0;
 let viewSize = { width: window.innerWidth, height: window.innerHeight };
 function applyViewOffset() {
-  if (viewOffsetY > 0) {
+  if (viewOffsetY !== 0) {
     const { width, height } = viewSize;
     camera.setViewOffset(width, height, 0, viewOffsetY, width, height);
   } else if (camera.view?.enabled) {
@@ -1918,8 +1918,9 @@ return {
   resize,
   setProgress(progress) { targetScroll = THREE.MathUtils.clamp(progress, 0, 1); },
   /** Moves the frame up by `px` CSS pixels (0 resets), for scroll parallax. */
+  /** Shifts the view down the scene by px (negative holds the scene lower). */
   setScrollOffset(px) {
-    const next = Math.max(0, px);
+    const next = px;
     if (next === viewOffsetY) return;
     viewOffsetY = next;
     applyViewOffset();
