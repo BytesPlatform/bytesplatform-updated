@@ -1,4 +1,8 @@
 import type { ServiceSlug } from "./services";
+import { digitalServices } from "./serviceCatalog/digital";
+import { dataAiServices } from "./serviceCatalog/dataAi";
+import { cloudSecurityServices } from "./serviceCatalog/cloudSecurity";
+import { businessProcessServices } from "./serviceCatalog/businessProcess";
 
 /**
  * Service page copy, adapted from https://bytesplatform.com/services/*.
@@ -816,4 +820,10 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
       body: "Let's discuss how advanced services can accelerate your digital transformation.",
     },
   },
+
+  // Service lines added in Oct 2026, one file per menu category.
+  ...digitalServices,
+  ...dataAiServices,
+  ...cloudSecurityServices,
+  ...businessProcessServices,
 };

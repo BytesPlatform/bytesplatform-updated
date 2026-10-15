@@ -423,6 +423,25 @@
    panel's slide one after another. */
 .subLink { font-size: clamp(1.3rem, 1.75vw, 1.75rem); }
 
+/* Category labels between service rows, in the heading's small caps, lined
+   up with the row text. They fade in with the rows below them. */
+.subCategory {
+  display: block;
+  padding: 1.4rem 0 0.35rem 0.8rem;
+  color: rgb(17 17 17 / 0.46);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 420ms ease;
+}
+.subCategory:first-child { padding-top: 0; }
+.panelShell[data-open="true"] .subView[data-active="true"] .subCategory {
+  opacity: 1;
+  transition-delay: calc(80ms + var(--sub-index) * 50ms);
+}
+
 /* Every sub-list shares one row size, and scrolls inside the card rather than
    running under the footer on short screens. The list is widened by the rows'
    negative margin (and padded back) so its scroll clip never shaves the

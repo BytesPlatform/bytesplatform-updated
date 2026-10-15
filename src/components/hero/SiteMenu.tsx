@@ -1,5 +1,5 @@
 "use client";
-import { useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useLayoutEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import styles from "./SiteMenu.module.css";
 import { site } from "@/data/site";
@@ -239,9 +239,19 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
                     {group.label}
                   </button>
                   <nav aria-label={group.label} className={`${styles.links} ${styles.subLinks}`} data-lenis-prevent>
-                    {group.items.map((item, index) => (
+                    {group.items.map((item, index) => {
+                      // Services are grouped: a small caps label starts each category.
+                      const category = "category" in item ? item.category : null;
+                      const previous = group.items[index - 1];
+                      const startsCategory = category && (!previous || !("category" in previous) || previous.category !== category);
+                      return (
+                      <Fragment key={item.slug}>
+                      {startsCategory && (
+                        <span className={styles.subCategory} style={{ "--sub-index": index } as React.CSSProperties}>
+                          {category}
+                        </span>
+                      )}
                       <CurrentLink
-                        key={item.slug}
                         href={`${group.base}${item.slug}`}
                         className={`${styles.link} ${styles.subLink}`}
                         tabIndex={open && active ? 0 : -1}
@@ -253,7 +263,9 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
                           <path d="M3.2 12.8 12.8 3.2m0 0H5.4m7.4 0v7.4" />
                         </svg>
                       </CurrentLink>
-                    ))}
+                      </Fragment>
+                      );
+                    })}
                   </nav>
                 </div>
               );
