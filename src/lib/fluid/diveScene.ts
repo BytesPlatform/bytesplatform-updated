@@ -1,5 +1,6 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { nudgeScroll, onScrollInput } from "@/lib/animation/scroll";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -29,6 +30,10 @@ type DiveOptions = {
 
 /** The reference makes a restrained turn before the pill fills the frame. */
 const ROTATION = 8;
+/** Once started, the dive carries itself across the whole band in this long. */
+const AUTOPLAY_SECONDS = 2.6;
+/** Input this recent counts as the reader steering into the band. */
+const INPUT_FRESH_MS = 600;
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 const easeIn = (t: number) => t * t;
@@ -198,6 +203,50 @@ export function createDiveScene(opts: DiveOptions) {
     }
   }
 
+  // Autoplay: once the reader scrolls into the band, the page keeps going on
+  // its own to the band's far end, in the direction they were moving. It
+  // pushes the same scroll target the wheel does, so scrolling the same way
+  // adds speed, and scrolling the other way turns it round, any number of
+  // times. It stops at either end of the band.
+  let autoplay = 0;
+  let lastInput = { direction: 0, at: -Infinity };
+  const offInput = onScrollInput(deltaY => {
+    if (!deltaY) return;
+    lastInput = { direction: Math.sign(deltaY), at: performance.now() };
+    if (autoplay) autoplay = lastInput.direction;
+  });
+  let lastY = window.scrollY;
+  const drive = (_time: number, deltaMs: number) => {
+    const top = startTop();
+    const bottom = nextTop();
+    const y = window.scrollY;
+    const moved = y - lastY;
+    lastY = y;
+    const inside = y > top + 1 && y < bottom - 1;
+    if (!autoplay) {
+      if (!inside) return;
+      // Steered in by recent input, or eased in by the scroller's glide after
+      // the input has gone quiet: either way, carry on in that direction.
+      const direction = performance.now() - lastInput.at < INPUT_FRESH_MS ? lastInput.direction : Math.abs(moved) > 0.5 ? Math.sign(moved) : 0;
+      if (!direction) return;
+      autoplay = direction;
+    }
+    // Arrived at the end it was heading for, or carried out of the band.
+    if ((autoplay > 0 && y >= bottom - 1) || (autoplay < 0 && y <= top + 1) || y < top - 1 || y > bottom + 1) {
+      autoplay = 0;
+      return;
+    }
+    const step = (autoplay * (bottom - top) / AUTOPLAY_SECONDS) * (Math.min(deltaMs, 50) / 1000);
+    nudgeScroll(target => {
+      // Push on from wherever is further along this direction (the reader's
+      // target or the page), and never past the band's end.
+      const from = autoplay > 0 ? Math.max(target, y) : Math.min(target, y);
+      if (autoplay > 0 ? from >= bottom : from <= top) return target;
+      return autoplay > 0 ? Math.min(bottom, from + step) : Math.max(top, from + step);
+    });
+  };
+  gsap.ticker.add(drive);
+
   const trigger = ScrollTrigger.create({
     start: () => startTop() - 1,
     end: () => nextTop() + 1,
@@ -212,6 +261,8 @@ export function createDiveScene(opts: DiveOptions) {
 
   return {
     kill() {
+      gsap.ticker.remove(drive);
+      offInput();
       trigger.kill();
       opts.layers.forEach(layer => transformLayer(layer, 0));
       pillLayer.style.visibility = "";

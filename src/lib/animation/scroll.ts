@@ -8,7 +8,13 @@ type LenisLike = {
   stop(): void;
   start(): void;
   scrollTo(target: string | number | HTMLElement, opts?: Record<string, unknown>): void;
+  on(event: "virtual-scroll", callback: (data: { deltaY: number }) => void): () => void;
+  targetScroll: number;
+  options: { lerp?: number };
 };
+
+/** Subscribers to the reader's scroll input (wheel, touch), as Lenis reports it. */
+const inputListeners = new Set<(deltaY: number) => void>();
 
 let mounted = 0;
 let teardown: Teardown | null = null;
@@ -49,6 +55,7 @@ export function mountScroll(opts: { smooth: boolean }): Teardown {
       });
       lenis = instance as unknown as LenisLike;
       activeLenis = lenis;
+      lenis.on("virtual-scroll", ({ deltaY }) => inputListeners.forEach(listener => listener(deltaY)));
       gsap.ticker.add(tick);
     });
   }
@@ -151,4 +158,21 @@ export function jumpTo(y: number) {
 export function glideTo(y: number, duration: number) {
   if (activeLenis) activeLenis.scrollTo(y, { duration, easing: (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2), force: true });
   else window.scrollTo({ top: y, behavior: "smooth" });
+}
+
+/** Calls back with each scroll input from the reader (positive = down). Returns the unsubscribe. */
+export function onScrollInput(listener: (deltaY: number) => void): () => void {
+  inputListeners.add(listener);
+  return () => { inputListeners.delete(listener); };
+}
+
+/**
+ * Moves the scroll target the way a wheel tick does: `to` gets the current
+ * target (which already includes the reader's own input) and returns the new
+ * one, and Lenis eases there. Returns false when there is no smooth scroller.
+ */
+export function nudgeScroll(to: (target: number) => number): boolean {
+  if (!activeLenis) return false;
+  activeLenis.scrollTo(to(activeLenis.targetScroll), { programmatic: false, lerp: activeLenis.options.lerp ?? 0.1 });
+  return true;
 }
