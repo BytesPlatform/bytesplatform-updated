@@ -425,7 +425,10 @@ export default function IntroExperience() {
   }, []);
 
   return (
-    <div ref={root} data-intro-experience className="relative">
+    // overflow-clip (not hidden: no scroll container, so sticky still works)
+    // keeps the dive's hugely scaled layers from growing the page's scroll
+    // height mid-zoom, which threw the scroll indicator and Lenis's limit.
+    <div ref={root} data-intro-experience className="relative overflow-clip">
       <div className="absolute inset-0 z-0">
         <canvas ref={canvasRef} data-intro-canvas className="pointer-events-none sticky top-0 block h-[100svh] w-full" />
       </div>

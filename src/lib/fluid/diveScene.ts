@@ -70,22 +70,45 @@ export function createDiveScene(opts: DiveOptions) {
 
   // Zoom is exponential so the flight reads as constant speed, not a lurch.
   let scale = 4;
-  let origin = { x: 0, y: 0 };
+  /** The pill's centre on screen while the stage is pinned, and in the stage. */
+  let pillScreen = { x: 0, y: 0 };
+  let pillInStage = { x: 0, y: 0 };
+  /** Each other layer's untransformed page position. They keep scrolling with
+   *  the page through the dive (the shared canvas layer is the tall intro
+   *  container), so their zoom origin is re-aimed at the pill every frame. */
+  const layerPage = new Map<HTMLElement, { left: number; top: number }>();
   let frozen = false;
   let lastKey = "";
 
-  /** Aim at the pill's centre as it sits in the pinned stage (the stage and
-   *  the shared canvas layer both sit at the viewport's top-left mid-dive). */
+  /** Measure untransformed: the pill inside the pinned stage, and every layer
+   *  on the page. Size the zoom so the pill's blue covers the screen. */
   const aim = () => {
+    const saved = opts.layers.map(layer => layer.style.transform);
+    opts.layers.forEach(layer => { layer.style.transform = ""; });
     const at = offsetWithin(opts.pill, pillLayer);
-    origin = { x: at.x + opts.pill.offsetWidth / 2, y: at.y + opts.pill.offsetHeight / 2 };
+    pillInStage = { x: at.x + opts.pill.offsetWidth / 2, y: at.y + opts.pill.offsetHeight / 2 };
+    // The stage is sticky at the viewport's top while the dive runs.
+    const stageLeft = pillLayer.getBoundingClientRect().left;
+    pillScreen = { x: stageLeft + pillInStage.x, y: pillInStage.y };
+    opts.layers.forEach(layer => {
+      if (layer === pillLayer) return;
+      const r = layer.getBoundingClientRect();
+      layerPage.set(layer, { left: r.left + window.scrollX, top: r.top + window.scrollY });
+    });
+    opts.layers.forEach((layer, i) => { layer.style.transform = saved[i]; });
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const reach = Math.max(
-      Math.hypot(origin.x, origin.y), Math.hypot(w - origin.x, origin.y),
-      Math.hypot(origin.x, h - origin.y), Math.hypot(w - origin.x, h - origin.y),
-    );
+    const { x, y } = pillScreen;
+    const reach = Math.max(Math.hypot(x, y), Math.hypot(w - x, y), Math.hypot(x, h - y), Math.hypot(w - x, h - y));
     scale = Math.max(4, (reach * 1.15) / Math.max(1, opts.pill.offsetHeight / 2));
+  };
+
+  /** Where the pill sits in `layer`'s own box at the current scroll. */
+  const originIn = (layer: HTMLElement) => {
+    if (layer === pillLayer) return pillInStage;
+    const page = layerPage.get(layer);
+    if (!page) return pillScreen;
+    return { x: pillScreen.x - (page.left - window.scrollX), y: pillScreen.y - (page.top - window.scrollY) };
   };
 
   const transformLayer = (layer: HTMLElement, v: number) => {
@@ -95,6 +118,7 @@ export function createDiveScene(opts: DiveOptions) {
       layer.style.filter = "";
       return;
     }
+    const origin = originIn(layer);
     layer.style.transformOrigin = `${origin.x}px ${origin.y}px`;
     layer.style.transform = `rotate(${ROTATION * v}deg) scale(${Math.pow(scale, v)})`;
     // Keep the expanding pill crisp while its canvas world falls softly out
