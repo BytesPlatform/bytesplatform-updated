@@ -59,7 +59,8 @@
 @media (max-width: 767px) {
   .services-heading [data-heading-lower] { margin-top: .08em; }
   .services-perspective { display: none; }
-  .services-mobile-viewport { display: block; position: absolute; top: 8svh; left: 0; right: 0; }
+  /* Fills the pinned stage and centres the card row in it vertically. */
+  .services-mobile-viewport { display: flex; align-items: center; position: absolute; inset: 0; }
   .services-mobile-track { display: flex; width: max-content; gap: 14px; will-change: transform; }
   .service-mobile-card { display: block; position: relative; flex: none; width: min(78vw, 340px); height: min(65svh, 560px); min-height: 410px; color: #08090c; text-decoration: none; --card-width: min(78vw, 340px); --cu: calc(var(--card-width) / 1000); --wf-w: .86; --wu: calc(var(--card-width) * var(--wf-w) / 370); }
   .service-mobile-card:focus-visible { outline: 3px solid #104dff; outline-offset: 4px; }
