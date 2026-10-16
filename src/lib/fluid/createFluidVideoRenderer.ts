@@ -9,6 +9,7 @@
  */
 
 import * as THREE from "three";
+import { fluidVideoLog } from "./videoFrameReadiness";
 
 import { fluidFragmentShader, fluidVertexShader } from "@/lib/shaders/fluidVideoTransition";
 import { cornersAt, sizeOf, type Rect } from "./sheet";
@@ -18,6 +19,8 @@ export type FluidVideoRenderer = {
   layout(stage: { w: number; h: number }, from: Rect, to: Rect): void;
   /** draw the transition at progress 0..1 */
   render(progress: number): void;
+  /** Offscreen texture + shader verification; never exposes warm-up pixels. */
+  warmUp(): boolean;
   /** 0 normal · 1 undistorted · 2 distortion map */
   debugMode: number;
   strength: number;
@@ -31,9 +34,6 @@ export type FluidVideoOptions = {
   segments: [number, number];
   radius: [number, number];
   strength: number;
-  /** trilinear filtering: the card shows the frame ~3× smaller than its
-   *  source, where plain linear filtering shimmers */
-  mipmaps: boolean;
 };
 
 export function createFluidVideoRenderer(
@@ -41,13 +41,14 @@ export function createFluidVideoRenderer(
   opts: FluidVideoOptions,
 ): FluidVideoRenderer | null {
   const texture = new THREE.VideoTexture(opts.video);
+  fluidVideoLog(opts.video, "VideoTexture created");
   // The shader writes the sampled colour straight out, and the renderer adds
   // no output conversion for a ShaderMaterial — so leaving the texture
   // untagged (NoColorSpace) passes the video's sRGB values through unchanged.
   texture.colorSpace = THREE.NoColorSpace;
   texture.magFilter = THREE.LinearFilter;
-  texture.minFilter = opts.mipmaps ? THREE.LinearMipmapLinearFilter : THREE.LinearFilter;
-  texture.generateMipmaps = opts.mipmaps;
+  texture.minFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
 
   const uniforms = {
     uTexture: { value: texture },
@@ -85,6 +86,15 @@ export function createFluidVideoRenderer(
   let to: Rect = { x: 0, y: 0, w: 1, h: 1 };
   const stats: FluidVideoRenderer["stats"] = { buffer: [0, 0], css: [0, 0], dpr: 1, video: [0, 0] };
 
+  const probeTarget = new THREE.WebGLRenderTarget(64, 64, { depthBuffer: false });
+  const probeMaterial = new THREE.ShaderMaterial({
+    uniforms: { video: { value: texture } },
+    vertexShader: "void main() { gl_Position = vec4(position.xy * 2.0, 0.0, 1.0); }",
+    fragmentShader: "uniform sampler2D video; void main() { gl_FragColor = texture2D(video, vec2(0.5)); }",
+    depthTest: false, depthWrite: false,
+  });
+  const pixel = new Uint8Array(4);
+
   const api: FluidVideoRenderer = {
     debugMode: 0,
     strength: opts.strength,
@@ -98,6 +108,41 @@ export function createFluidVideoRenderer(
       stats.css = [stage.w, stage.h];
       stats.buffer = [renderer.domElement.width, renderer.domElement.height];
       stats.dpr = dpr;
+    },
+
+    warmUp() {
+      const gl = renderer.getContext();
+      if (gl.isContextLost() || opts.video.readyState < 2 || !opts.video.videoWidth || !opts.video.videoHeight) return false;
+      const target = renderer.getRenderTarget();
+      const autoClear = renderer.autoClear;
+      const scissor = renderer.getScissorTest();
+      try {
+        renderer.setScissorTest(false);
+        renderer.setRenderTarget(probeTarget);
+        renderer.autoClear = true;
+        // Force the first upload even if Three's own rVFC hasn't run yet.
+        texture.needsUpdate = true;
+        mesh.material = probeMaterial;
+        renderer.render(scene, camera);
+        pixel.fill(0);
+        renderer.readRenderTargetPixels(probeTarget, 32, 32, 1, 1, pixel);
+        // Video is opaque, including genuinely black frames. An uninitialized
+        // texture cannot pass this alpha check; colour is deliberately ignored.
+        if (pixel[3] !== 255 || gl.getError() !== gl.NO_ERROR) return false;
+        mesh.material = material;
+        api.layout({ w: 64, h: 64 }, { x: 0, y: 0, w: 64, h: 64 }, { x: 0, y: 0, w: 64, h: 64 });
+        api.render(0);
+        pixel.fill(0);
+        renderer.readRenderTargetPixels(probeTarget, 32, 32, 1, 1, pixel);
+        return pixel[3] === 255 && gl.getError() === gl.NO_ERROR && !gl.isContextLost();
+      } catch {
+        return false;
+      } finally {
+        mesh.material = material;
+        renderer.setRenderTarget(target);
+        renderer.setScissorTest(scissor);
+        renderer.autoClear = autoClear;
+      }
     },
 
     render(t) {
@@ -125,6 +170,8 @@ export function createFluidVideoRenderer(
     },
 
     dispose() {
+      probeTarget.dispose();
+      probeMaterial.dispose();
       geometry.dispose();
       material.dispose();
       texture.dispose();
