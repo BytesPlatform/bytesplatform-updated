@@ -53,9 +53,9 @@ function Workflow({ index }: { index: number }) {
     <div className="service-workflow__actions">{words.slice(4).map((word, i) => <div key={word}><span className="service-workflow__icon">{["✉", "⌘", "▱"][i]}</span>{word}<b>✓</b></div>)}</div>
   </div>;
 }
-function ServiceCard({ index, variant }: { index: number; variant: "desktop" | "mobile" }) {
+function ServiceCard({ index }: { index: number }) {
   const service = SERVICES[index];
-  return <a href={service.href} className={variant === "desktop" ? "service-orbit-card" : "service-mobile-card"} style={variant === "desktop" ? { "--card-angle": `${-index * 60}deg` } as CSSProperties : undefined}>
+  return <a href={service.href} className="service-orbit-card" style={{ "--card-angle": `${-index * 60}deg` } as CSSProperties}>
     <div className="service-orbit-card__surface">
       <span className="service-orbit-card__number">{String(index + 1).padStart(2, "0")}</span>
       <div className="service-orbit-card__copy"><h3>{service.label}</h3><p>{DESCRIPTIONS[index]}</p></div>
@@ -65,11 +65,43 @@ function ServiceCard({ index, variant }: { index: number; variant: "desktop" | "
   </a>;
 }
 
+/** Phones: a short category and the service's three key steps, in order. */
+const MOBILE_DETAILS = [
+  { category: "Automation", steps: ["Capture the lead", "Analyze & enrich", "Take action"] },
+  { category: "Product", steps: ["Shape the idea", "Build & test", "Launch & scale"] },
+  { category: "Apps", steps: ["Design the experience", "Connect the API", "Launch the app"] },
+  { category: "Operations", steps: ["Unify your data", "Manage & track", "Grow with insight"] },
+  { category: "Government", steps: ["Discover opportunities", "Qualify & respond", "Build proposal"] },
+  { category: "Finance", steps: ["Validate invoices", "Sync accounts", "Confirm delivery"] },
+] as const;
+
+/** The phone card: number and category, the steps, then the title and link. */
+function MobileServiceCard({ index }: { index: number }) {
+  const service = SERVICES[index];
+  const details = MOBILE_DETAILS[index];
+  return <a href={service.href} className="service-mobile-card" data-service-mobile-card>
+    <div className="service-mobile-card__head">
+      <span className="service-mobile-card__number">{String(index + 1).padStart(2, "0")}</span>
+      <span className="service-mobile-card__tag">{details.category}</span>
+    </div>
+    <ol className="service-mobile-card__steps" aria-label="How it works">
+      {details.steps.map((step, i) => <li key={step} data-step={i}>
+        <span aria-hidden className="service-mobile-card__dot" />
+        {step}
+        <span aria-hidden className="service-mobile-card__chevron">›</span>
+      </li>)}
+    </ol>
+    <h3 className="service-mobile-card__title">{service.label}</h3>
+    <p className="service-mobile-card__text">{DESCRIPTIONS[index]}</p>
+    <span className="service-mobile-card__link">Explore service <span aria-hidden>→</span></span>
+  </a>;
+}
+
 function DesktopServicesRing({ camera, ring }: { camera: React.RefObject<HTMLDivElement | null>; ring: React.RefObject<HTMLDivElement | null> }) {
   return <div className="services-perspective">
     <div ref={camera} className="services-camera">
       <div ref={ring} className="services-ring">
-        {SERVICES.map((service, index) => <ServiceCard key={service.href} index={index} variant="desktop" />)}
+        {SERVICES.map((service, index) => <ServiceCard key={service.href} index={index} />)}
       </div>
     </div>
   </div>;
@@ -78,7 +110,7 @@ function DesktopServicesRing({ camera, ring }: { camera: React.RefObject<HTMLDiv
 function MobileServicesTrack({ track }: { track: React.RefObject<HTMLDivElement | null> }) {
   return <div className="services-mobile-viewport">
     <div ref={track} className="services-mobile-track">
-      {SERVICES.map((service, index) => <ServiceCard key={service.href} index={index} variant="mobile" />)}
+      {SERVICES.map((service, index) => <MobileServiceCard key={service.href} index={index} />)}
     </div>
   </div>;
 }
@@ -220,10 +252,22 @@ export default function ServicesSection() {
     media.add("(max-width: 767px)", () => {
       if (reduced || !mobileTrack.current) return;
       const track = mobileTrack.current;
+      const cards = Array.from(track.querySelectorAll<HTMLElement>("[data-service-mobile-card]"));
+      // The card nearest the screen's centre is in focus (--focus 1); its
+      // neighbours shrink and fade toward 0 as they move off to the sides.
+      const focus = () => {
+        const middle = window.innerWidth / 2;
+        for (const card of cards) {
+          const r = card.getBoundingClientRect();
+          const away = Math.min(1, Math.abs(r.left + r.width / 2 - middle) / (r.width + 12));
+          card.style.setProperty("--focus", (1 - away).toFixed(3));
+        }
+      };
       const mobileContext = gsap.context(() => {
         gsap.fromTo(track, { x: 0 }, {
           x: () => (track.firstElementChild as HTMLElement).offsetLeft - (track.lastElementChild as HTMLElement).offsetLeft,
           ease: "none",
+          onUpdate: focus,
           scrollTrigger: {
             trigger: handoff,
             start: "top top",
@@ -233,7 +277,8 @@ export default function ServicesSection() {
           },
         });
       }, section);
-      return () => mobileContext.revert();
+      focus();
+      return () => { mobileContext.revert(); cards.forEach(card => card.style.removeProperty("--focus")); };
     });
 
     // "all" always matches, so this runs everywhere (GSAP only calls it when

@@ -60,28 +60,27 @@
   .services-heading [data-heading-lower] { margin-top: .08em; }
   .services-perspective { display: none; }
   /* Fills the pinned stage and centres the card row in it vertically. */
-  .services-mobile-viewport { display: flex; align-items: center; position: absolute; inset: 0; }
-  .services-mobile-track { display: flex; width: max-content; gap: 14px; will-change: transform; }
-  .service-mobile-card { display: block; position: relative; flex: none; width: min(78vw, 340px); height: min(65svh, 560px); min-height: 410px; color: #08090c; text-decoration: none; --card-width: min(78vw, 340px); --cu: calc(var(--card-width) / 1000); --wf-w: .86; --wu: calc(var(--card-width) * var(--wf-w) / 370); }
+  /* Full screen width (out past the stage's gutter) so neighbours can peek in. */
+  .services-mobile-viewport { display: flex; align-items: center; position: absolute; inset: 0 calc(-1 * var(--bp-gut)); }
+  /* Side padding centres the first and last cards; neighbours peek in. */
+  .services-mobile-track { display: flex; align-items: center; width: max-content; gap: 12px; padding-inline: calc((100vw - var(--m-card)) / 2); will-change: transform; --m-card: min(74vw, 330px); }
+  /* The centred card is in focus (--focus, set while the track scrolls). */
+  .service-mobile-card { --focus: 1; display: flex; flex-direction: column; flex: none; box-sizing: border-box; width: var(--m-card); min-height: min(58svh, 480px); padding: 26px 24px 24px; border: 1px solid rgb(17 17 17 / 0.06); border-radius: 26px; background: #f6f7fc; box-shadow: 0 24px 50px -28px rgb(36 44 80 / 0.28); color: var(--color-ink); text-decoration: none; transform: scale(calc(0.9 + 0.1 * var(--focus))); opacity: calc(0.45 + 0.55 * var(--focus)); }
   .service-mobile-card:focus-visible { outline: 3px solid #104dff; outline-offset: 4px; }
-  .service-mobile-card .service-orbit-card__surface { border: 1px solid #d9deeb; border-radius: 24px; background: #f1f3fa; box-shadow: none; transform: none; opacity: 1; }
-  .service-mobile-card .service-orbit-card__surface::before { display: none; }
-  .service-mobile-card .service-orbit-card__number { top: 20px; left: 7%; font: italic 15px monospace; padding-bottom: 5px; }
-  .service-mobile-card .service-orbit-card__copy { left: 7%; right: 7%; bottom: 35px; width: auto; }
-  .service-mobile-card .service-orbit-card__copy h3 { font-size: clamp(20px, 5.8vw, 25px); margin: 0 0 8px; }
-  .service-mobile-card .service-orbit-card__copy p { font-size: 13px; line-height: 1.32; max-width: 100%; }
-  .service-mobile-card .service-orbit-card__open { opacity: 1; transform: none; left: 7%; right: auto; bottom: 13px; font-size: 11px; }
-  .service-mobile-card .service-workflow { top: 53px; left: 7%; right: 7%; width: 86%; height: auto; display: flex; flex-direction: column; gap: 7px; font: 11px Arial, sans-serif; }
-  .service-mobile-card .service-workflow__wires, .service-mobile-card .service-workflow__status { display: none; }
-  .service-mobile-card .service-workflow__lead, .service-mobile-card .service-workflow__agent, .service-mobile-card .service-workflow__actions, .service-mobile-card .service-workflow__actions > div { position: relative; top: auto; left: auto; right: auto; bottom: auto; width: 100%; }
-  .service-mobile-card .service-workflow__lead, .service-mobile-card .service-workflow__agent, .service-mobile-card .service-workflow__actions > div { min-height: 32px; padding: 5px 8px; gap: 7px; border-radius: 9px; box-shadow: none; }
-  .service-mobile-card .service-workflow__lead, .service-mobile-card .service-workflow__actions > div { border-color: #dce2f0; background: #fff; }
-  .service-mobile-card .service-workflow__agent { font-size: 11px; background: #202942; }
-  .service-mobile-card .service-workflow small { font-size: 9px; margin-top: 2px; }
-  .service-mobile-card .service-workflow__icon, .service-mobile-card .service-workflow__actions .service-workflow__icon { width: 24px; height: 24px; border-radius: 6px; font-size: 16px; }
-  .service-mobile-card .service-workflow__actions { display: grid; gap: 5px; }
-  .service-mobile-card .service-workflow__actions > div { font-size: 10px; }
-  .service-mobile-card .service-workflow__actions b { font-size: 9px; }
+  .service-mobile-card__head { display: flex; align-items: center; justify-content: space-between; }
+  .service-mobile-card__number { font: italic 19px monospace; border-bottom: 1.5px solid currentColor; padding-bottom: 6px; }
+  .service-mobile-card__tag { padding: 6px 12px; border-radius: 999px; background: #dfe6ff; font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+  .service-mobile-card__steps { position: relative; display: grid; gap: 14px; margin: 26px 0 0; padding: 0; list-style: none; }
+  /* The dotted thread joining the step dots. */
+  .service-mobile-card__steps::before { content: ""; position: absolute; left: 22px; top: 22px; bottom: 22px; border-left: 1.5px dotted rgb(17 17 17 / 0.28); }
+  .service-mobile-card__steps li { position: relative; display: flex; align-items: center; gap: 14px; min-height: 44px; padding: 0 14px 0 15px; border-radius: 14px; background: #fff; box-shadow: 0 6px 16px -10px rgb(36 44 80 / 0.25); font-size: 13.5px; line-height: 1.2; }
+  .service-mobile-card__dot { position: relative; flex: none; width: 15px; height: 15px; border-radius: 50%; background: #aabbff; }
+  .service-mobile-card__steps li[data-step="1"] .service-mobile-card__dot { background: #104dff; }
+  .service-mobile-card__steps li[data-step="2"] .service-mobile-card__dot { background: #dde4ff; }
+  .service-mobile-card__chevron { margin-left: auto; font-size: 18px; line-height: 1; color: rgb(17 17 17 / 0.35); }
+  .service-mobile-card__title { margin: auto 0 0; padding-top: 22px; font-size: clamp(22px, 6.6vw, 28px); font-weight: 700; line-height: 1.05; letter-spacing: -0.035em; }
+  .service-mobile-card__text { margin: 12px 0 0; font-size: 14px; line-height: 1.4; color: var(--color-ink-mute); }
+  .service-mobile-card__link { margin-top: 18px; font-size: 14px; font-weight: 600; color: #104dff; }
   .ring-controls { right: 12px; bottom: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -95,7 +94,7 @@
   .services-pill-wrap { position: relative; opacity: 1; visibility: visible; margin-bottom: 40px; }
   .services-mobile-track { will-change: auto; }
   .services-mobile-viewport { position: relative; top: auto; left: auto; right: auto; }
-  .services-mobile-track { display: grid; width: auto; justify-content: center; gap: 20px; transform: none !important; }
+  .services-mobile-track { display: grid; width: auto; justify-content: center; gap: 20px; padding-inline: 0; transform: none !important; }
 }
 
 .service-orbit-card__number, .service-workflow { z-index: 2; }
@@ -106,5 +105,5 @@
 @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
   .services-perspective { display: none; }
   .services-mobile-viewport { display: block; }
-  .service-mobile-card { width: min(86vw, 340px); --card-width: min(86vw, 340px); }
+  .service-mobile-card { --m-card: min(86vw, 340px); width: var(--m-card); transform: none; opacity: 1; }
 }
