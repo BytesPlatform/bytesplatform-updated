@@ -156,3 +156,10 @@
 .work-card-cursor[data-available="false"] .work-card-cursor-icon svg { display: none; }
 .work-card-cursor[data-available="false"] .work-card-cursor-icon::after { content: ''; width: 24px; height: 1.5px; background: currentColor; }
 .work-card-cursor--fallback::before { content: ''; position: absolute; inset: 29px; border: 1px solid #ffffffa8; background: #eaf4ffad; border-radius: 50%; box-shadow: 0 0 28px #82b8f566; backdrop-filter: blur(8px); transform: scale(var(--cursor-open)); }
+
+/* Tablets and phones only (COMPACT_QUERY in prefs.ts): the section's own title. */
+.work-heading { display: none; }
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
+  .work-heading { display: block; position: absolute; z-index: 1; top: calc(var(--bp-gut) + 4.75rem); left: var(--bp-gut); right: var(--bp-gut); margin: 0; font-size: clamp(2.75rem, 11vw, 5.5rem); font-weight: 500; line-height: 0.95; letter-spacing: -0.06em; color: var(--color-ink); }
+  .work-heading__slot { display: inline-block; overflow: hidden; padding-bottom: 0.1em; margin-bottom: -0.1em; vertical-align: top; }
+}
