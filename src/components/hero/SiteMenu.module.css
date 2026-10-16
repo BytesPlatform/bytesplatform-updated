@@ -98,7 +98,9 @@
 .panelShell[data-open="true"] .link {
   opacity: 1;
   transform: none;
-  transition-delay: calc(240ms + var(--item-index) * 45ms);
+  /* Only the entrance (opacity, transform) is staggered; colour and the hover
+     fill (color, background-color) always respond at once, in and out. */
+  transition-delay: 0s, 0s, calc(240ms + var(--item-index) * 45ms), calc(240ms + var(--item-index) * 45ms);
 }
 
 .panelShell[data-open="true"] .heading,
@@ -468,11 +470,7 @@
 .panelShell[data-open="true"] .subView[data-active="true"] .subLink {
   transform: none;
   transition-duration: 280ms, 280ms, 420ms, 900ms;
-  transition-delay: calc(80ms + var(--sub-index) * 50ms);
-}
-
-.panelShell[data-open="true"] .subView[data-active="true"] .subLink:hover {
-  transition-delay: 0s;
+  transition-delay: 0s, 0s, calc(80ms + var(--sub-index) * 50ms), calc(80ms + var(--sub-index) * 50ms);
 }
 
 @media (max-width: 639px) {
@@ -501,7 +499,7 @@
   }
 
   .panelShell[data-open="true"] .mainView .link {
-    transition-delay: calc(80ms + var(--item-index) * 35ms);
+    transition-delay: 0s, 0s, calc(80ms + var(--item-index) * 35ms), calc(80ms + var(--item-index) * 35ms);
   }
 
   .panelShell[data-open="true"] .heading,
@@ -516,12 +514,7 @@
   .panelShell[data-open="true"] .subView[data-active="true"] .subLink {
     transform: none;
     transition-duration: 180ms, 180ms, 280ms, 420ms;
-    transition-delay: calc(60ms + var(--sub-index) * 35ms);
-  }
-
-  .panelShell[data-open="true"] .link:hover,
-  .panelShell[data-open="true"] .link:focus-visible {
-    transition-delay: 0s;
+    transition-delay: 0s, 0s, calc(60ms + var(--sub-index) * 35ms), calc(60ms + var(--sub-index) * 35ms);
   }
 
   .mainView {
