@@ -28,8 +28,10 @@ import { projects } from "@/data/projects";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/** Work's pinned scroll: 300% was tuned for 7 projects, so it grows per card. */
-const WORK_SCROLL_LENGTH = `+=${Math.round((300 / 7) * projects.length)}%`;
+/** Work's pinned scroll, in screens: 3 was tuned for 7 projects, so it grows per card. */
+const WORK_SCROLL_SCREENS = (3 / 7) * projects.length;
+/** Tablets and phones scroll the cards slower: a longer pin for the same journey. */
+const WORK_COMPACT_SLOWDOWN = 3;
 
 const responsive = (width: number) => width < 768
   ? { strength: 0.6, duration: 1.3 }
@@ -226,7 +228,8 @@ export default function IntroExperience() {
         trigger: work,
         pin: true,
         start: "top top",
-        end: WORK_SCROLL_LENGTH,
+        end: () => `+=${Math.round(window.innerHeight * WORK_SCROLL_SCREENS * (compact.matches ? WORK_COMPACT_SLOWDOWN : 1))}`,
+        invalidateOnRefresh: true,
         scrub: true,
         onUpdate: self => workScene?.setProgress(workCameraProgress(self.progress)),
       });
