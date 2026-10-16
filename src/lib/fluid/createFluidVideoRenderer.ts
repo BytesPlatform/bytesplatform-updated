@@ -9,6 +9,7 @@
  */
 
 import * as THREE from "three";
+import { introReadyLog } from "@/lib/introWebGLReadiness";
 import { fluidVideoLog } from "./videoFrameReadiness";
 
 import { fluidFragmentShader, fluidVertexShader } from "@/lib/shaders/fluidVideoTransition";
@@ -21,6 +22,7 @@ export type FluidVideoRenderer = {
   render(progress: number): void;
   /** Offscreen texture + shader verification; never exposes warm-up pixels. */
   warmUp(): boolean;
+  prepare(): void;
   /** 0 normal · 1 undistorted · 2 distortion map */
   debugMode: number;
   strength: number;
@@ -94,6 +96,7 @@ export function createFluidVideoRenderer(
     depthTest: false, depthWrite: false,
   });
   const pixel = new Uint8Array(4);
+  let textureLogged = false;
 
   const api: FluidVideoRenderer = {
     debugMode: 0,
@@ -110,9 +113,21 @@ export function createFluidVideoRenderer(
       stats.dpr = dpr;
     },
 
+    prepare() {
+      texture.needsUpdate = true;
+      renderer.initTexture(texture);
+    },
+
     warmUp() {
       const gl = renderer.getContext();
       if (gl.isContextLost() || opts.video.readyState < 2 || !opts.video.videoWidth || !opts.video.videoHeight) return false;
+      if (stats.css.some(n => n <= 0) || from.w <= 0 || from.h <= 0) return false;
+      const savedFrom = from;
+      const savedTo = to;
+      const savedStage = { w: stats.css[0], h: stats.css[1] };
+      probeTarget.setSize(Math.max(1, Math.round(from.w * stats.dpr)), Math.max(1, Math.round(from.h * stats.dpr)));
+      const sampleX = Math.floor(probeTarget.width / 2);
+      const sampleY = Math.floor(probeTarget.height / 2);
       const target = renderer.getRenderTarget();
       const autoClear = renderer.autoClear;
       const scissor = renderer.getScissorTest();
@@ -121,24 +136,33 @@ export function createFluidVideoRenderer(
         renderer.setRenderTarget(probeTarget);
         renderer.autoClear = true;
         // Force the first upload even if Three's own rVFC hasn't run yet.
-        texture.needsUpdate = true;
+        api.prepare();
         mesh.material = probeMaterial;
         renderer.render(scene, camera);
         pixel.fill(0);
-        renderer.readRenderTargetPixels(probeTarget, 32, 32, 1, 1, pixel);
+        renderer.readRenderTargetPixels(probeTarget, sampleX, sampleY, 1, 1, pixel);
         // Video is opaque, including genuinely black frames. An uninitialized
         // texture cannot pass this alpha check; colour is deliberately ignored.
         if (pixel[3] !== 255 || gl.getError() !== gl.NO_ERROR) return false;
+        if (!textureLogged) {
+          textureLogged = true;
+          introReadyLog("video texture initialized");
+        }
         mesh.material = material;
-        api.layout({ w: 64, h: 64 }, { x: 0, y: 0, w: 64, h: 64 }, { x: 0, y: 0, w: 64, h: 64 });
+        // The reel is below the viewport at startup. Translate its measured
+        // initial card into an offscreen target, retaining its real CSS size,
+        // production geometry, shader, radius and progress-zero state.
+        const card = { x: 0, y: 0, w: savedFrom.w, h: savedFrom.h };
+        api.layout({ w: card.w, h: card.h }, card, card);
         api.render(0);
         pixel.fill(0);
-        renderer.readRenderTargetPixels(probeTarget, 32, 32, 1, 1, pixel);
+        renderer.readRenderTargetPixels(probeTarget, sampleX, sampleY, 1, 1, pixel);
         return pixel[3] === 255 && gl.getError() === gl.NO_ERROR && !gl.isContextLost();
       } catch {
         return false;
       } finally {
         mesh.material = material;
+        api.layout(savedStage, savedFrom, savedTo);
         renderer.setRenderTarget(target);
         renderer.setScissorTest(scissor);
         renderer.autoClear = autoClear;

@@ -14,6 +14,7 @@ import ClientsSection from "./sections/ClientsSection";
 import SiteFooter from "./sections/SiteFooter";
 import { createFloatingCards, type FloatingCards } from "@/lib/hero/floatingCards";
 import { createInkTrail, type InkTrail } from "@/lib/hero/inkTrail";
+import { resetIntroWebGLReady, markIntroWebGLReady, isIntroWebGLReady, setIntroReadinessStage, introReadinessDebug, introReadyLog } from "@/lib/introWebGLReadiness";
 import { watchVideoFrame, fluidVideoLog } from "@/lib/fluid/videoFrameReadiness";
 import { createFluidVideoRenderer } from "@/lib/fluid/createFluidVideoRenderer";
 import { createAutoScrollScene } from "@/lib/fluid/autoScrollScene";
@@ -74,6 +75,9 @@ export default function IntroExperience() {
     const serviceCardElements = Array.from(container.querySelectorAll<HTMLElement>("[data-service-card-visual]"));
     let reelShown = -1;
     const reduced = prefersReducedMotion();
+    const readinessToken = resetIntroWebGLReady();
+    const readinessStage = (stage: string) => setIntroReadinessStage(readinessToken, stage);
+    if (reduced) markIntroWebGLReady(readinessToken, true);
     const coarse = isCoarsePointer();
     // Touch-only screens have no pointer to follow, so the pointer-driven effects
     // (the site-wide pearl trail and the hero's ink reveal) are never set up there:
@@ -90,7 +94,29 @@ export default function IntroExperience() {
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
-    } catch { return; }
+    } catch {
+      markIntroWebGLReady(readinessToken, true);
+      // Even without WebGL, retain muted HTML playback when the reel enters.
+      let visible = false;
+      const resumeFallback = () => {
+        if (!reduced && !document.hidden && visible) void video.play().catch(() => {});
+        else video.pause();
+      };
+      const observer = new IntersectionObserver(entries => {
+        visible = !!entries[0]?.isIntersecting;
+        resumeFallback();
+      });
+      observer.observe(studio);
+      document.addEventListener("visibilitychange", resumeFallback);
+      return () => {
+        observer.disconnect();
+        document.removeEventListener("visibilitychange", resumeFallback);
+        video.pause();
+        resetIntroWebGLReady();
+      };
+    }
+    introReadyLog("renderer created");
+    readinessStage("video-frame");
     renderer.setClearColor(0, 0);
     const lines = createOrbitalLines();
     const serviceCards = createServiceCards();
@@ -100,12 +126,16 @@ export default function IntroExperience() {
     });
     let decodedFrame = false;
     let fluidVideoReady = false;
-    let firstFluidFrameAt: number | null = null;
+    let verifiedFluidFrame = false;
+    let confirmationFrame = 0;
     let nextProbeAt = 0;
     let contextLost = false;
     const showFallback = () => {
       fluidVideoReady = false;
-      firstFluidFrameAt = null;
+      verifiedFluidFrame = false;
+      cancelAnimationFrame(confirmationFrame);
+      confirmationFrame = 0;
+      readinessStage("video-frame");
       nextProbeAt = 0;
       video.style.opacity = "";
       if (reel) {
@@ -117,6 +147,10 @@ export default function IntroExperience() {
     const frames = reduced ? null : watchVideoFrame(video, ready => {
       decodedFrame = ready;
       if (!ready) showFallback();
+      else {
+        introReadyLog("video decoded frame ready");
+        readinessStage("layout");
+      }
     });
     const playVideo = () => {
       fluidVideoLog(video, "HTML video play requested");
@@ -236,7 +270,10 @@ export default function IntroExperience() {
     const thawLayout = () => { frozenLayout = null; };
     window.addEventListener("intro:dive-freeze", freezeLayout);
     window.addEventListener("intro:dive-thaw", thawLayout);
-    const measure = () => { needsResize = true; };
+    const measure = () => {
+      needsResize = true;
+      if (!isIntroWebGLReady()) showFallback();
+    };
     const observer = new ResizeObserver(measure);
     observer.observe(hero);
     observer.observe(studio);
@@ -334,14 +371,37 @@ export default function IntroExperience() {
         if (fluid) fluid.strength = responsive(width).strength;
       }
       const inStudio = studioRect.top < window.innerHeight && studioRect.bottom > 0;
-      if (videoVisible !== inStudio) {
-        videoVisible = inStudio;
-        if (inStudio && !reduced) {
-          frames?.restart();
+      // Decode and prove the reel at the top of the page, even while the
+      // global GSAP timeline is held by the loader. The shared ticker runs.
+      const shouldPlayVideo = !reduced && (inStudio || !isIntroWebGLReady());
+      if (videoVisible !== shouldPlayVideo) {
+        videoVisible = shouldPlayVideo;
+        if (shouldPlayVideo) {
+          if (!decodedFrame && !contextLost) frames?.restart();
           playVideo();
-        } else {
-          frames?.suspend();
-          video.pause();
+        } else video.pause();
+      }
+      const layoutValid = stage.width > 0 && stage.height > 0 && startRect.width > 0 && startRect.height > 0 && endRect.width > 0 && endRect.height > 0;
+      if (fluid && decodedFrame && !contextLost && layoutValid && !verifiedFluidFrame && !confirmationFrame && time >= nextProbeAt) {
+        nextProbeAt = time + 0.25;
+        const rect = (r: DOMRect) => ({ x: r.left - stage.left, y: r.top - stage.top, w: r.width, h: r.height });
+        fluid.layout({ w: width, h: height }, rect(startRect), rect(endRect));
+        readinessStage("texture-init");
+        if (fluid.warmUp()) {
+          introReadyLog("first fluid render");
+          readinessStage("post-render-frame");
+          const signature = (layout: Pick<Layout, "stage" | "startRect" | "endRect">) => [layout.stage.width, layout.stage.height, layout.startRect.width, layout.startRect.height, layout.endRect.width, layout.endRect.height].join(",");
+          const renderedLayout = signature({ stage, startRect, endRect });
+          // Two real browser frames, independent of GSAP time or scrolling.
+          confirmationFrame = requestAnimationFrame(() => {
+            confirmationFrame = requestAnimationFrame(() => {
+              confirmationFrame = 0;
+              if (disposed || document.hidden || contextLost || needsResize || !decodedFrame || video.readyState < 2 || !video.videoWidth || !video.videoHeight || renderer.getContext().isContextLost() || renderedLayout !== signature(measureLayout())) return;
+              verifiedFluidFrame = true;
+              introReadyLog("next animation frame confirmed");
+              markIntroWebGLReady(readinessToken);
+            });
+          });
         }
       }
       if (bounds.bottom <= 0 || bounds.top >= window.innerHeight) {
@@ -389,30 +449,20 @@ export default function IntroExperience() {
       if (!phone && servicesRect.bottom > 0) lines.render(renderer, lineOffset, reduced ? 1 : lineProgress);
       const inServices = servicesRect.top < window.innerHeight && servicesRect.bottom > 0;
       if (inServices) serviceCards.render(renderer, serviceCardElements, stage, pointer, reduced ? 0 : time, dt);
-      if (fluid && inStudio && decodedFrame && video.readyState >= 2) {
-        // Verify texture sampling and the real morph shader offscreen. Never
-        // composite warm-up pixels into the shared scene. Retry at most 4 Hz
-        // using the existing ticker, only while a decoded frame is available.
-        if (firstFluidFrameAt === null && time >= nextProbeAt) {
-          nextProbeAt = time + 0.25;
-          if (fluid.warmUp()) {
-            firstFluidFrameAt = time;
-            fluidVideoLog(video, "first WebGL frame rendered");
-          }
-        }
-        // Leave at least one ticker/animation frame between proof and handoff.
-        if (firstFluidFrameAt !== null && time > firstFluidFrameAt) {
-          const rect = (r: DOMRect) => ({ x: r.left - stage.left, y: r.top - stage.top, w: r.width, h: r.height });
-          fluid.layout({ w: width, h: height }, rect(startRect), rect(endRect));
-          fluid.debugMode = Number(studio.dataset.debugMode || 0);
-          fluid.render(state.progress);
-          if (!renderer.getContext().isContextLost()) {
-            if (!fluidVideoReady) fluidVideoLog(video, "HTML fallback hidden");
-            fluidVideoReady = true;
-            video.style.opacity = "0";
-          } else showFallback();
-        }
-      } else if (fluidVideoReady) showFallback();
+      if (fluid && inStudio && decodedFrame && video.readyState >= 2 && verifiedFluidFrame) {
+        const rect = (r: DOMRect) => ({ x: r.left - stage.left, y: r.top - stage.top, w: r.width, h: r.height });
+        fluid.layout({ w: width, h: height }, rect(startRect), rect(endRect));
+        fluid.debugMode = Number(studio.dataset.debugMode || 0);
+        fluid.render(state.progress);
+        if (!renderer.getContext().isContextLost()) {
+          if (!fluidVideoReady) fluidVideoLog(video, "HTML fallback hidden");
+          fluidVideoReady = true;
+          video.style.opacity = "0";
+        } else showFallback();
+      } else if (fluidVideoReady) {
+        fluidVideoReady = false;
+        video.style.opacity = "";
+      }
       // Fade the reel title in as the video settles into its final frame.
       const reelOpacity = reduced || !fluidVideoReady ? 0 : Math.round(Math.min(1, Math.max(0, (state.progress - 0.7) / 0.3)) * 100) / 100;
       if (reel && reelOpacity !== reelShown) {
@@ -485,7 +535,7 @@ export default function IntroExperience() {
     };
     const updateReadout = () => {
       const readout = studio.querySelector<HTMLElement>("[data-fluid-readout]");
-      if (readout) readout.textContent = `video readyState: ${video.readyState} · decoded frame: ${decodedFrame ? "yes" : "no"} · fluid WebGL ready: ${fluidVideoReady ? "yes" : "no"} · video size: ${video.videoWidth}×${video.videoHeight} · canvas: ${canvas.width}×${canvas.height} · DPR: ${dpr} · context lost: ${contextLost ? "yes" : "no"} · progress: ${state.progress.toFixed(2)}`;
+      if (readout) readout.textContent = `${introReadinessDebug()} · video readyState: ${video.readyState} · decoded frame: ${decodedFrame ? "yes" : "no"} · fluid WebGL ready: ${fluidVideoReady ? "yes" : "no"} · video size: ${video.videoWidth}×${video.videoHeight} · canvas: ${canvas.width}×${canvas.height} · DPR: ${dpr} · context lost: ${contextLost ? "yes" : "no"} · progress: ${state.progress.toFixed(2)}`;
     };
     const onContextLost = (event: Event) => {
       event.preventDefault();
@@ -527,6 +577,8 @@ export default function IntroExperience() {
     gsap.ticker.add(tick);
     return () => {
       disposed = true;
+      cancelAnimationFrame(confirmationFrame);
+      resetIntroWebGLReady();
       workCancelled = true;
       loading.abort();
       gsap.ticker.remove(tick);
