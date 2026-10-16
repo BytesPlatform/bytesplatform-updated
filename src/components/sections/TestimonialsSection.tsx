@@ -10,6 +10,19 @@ gsap.registerPlugin(ScrollTrigger);
 
 const TRUSTPILOT_URL = "https://www.trustpilot.com/review/bytesplatform.com";
 
+/** Trustpilot's mark: the green star, then the wordmark in the link's own ink. */
+function TrustpilotLogo({ className = "" }: { className?: string }) {
+  return (
+    <span className={`inline-flex items-center gap-[0.3em] font-semibold normal-case tracking-[-0.02em] ${className}`}>
+      <svg viewBox="0 0 24 24" aria-hidden className="h-[1.15em] w-[1.15em] shrink-0 -translate-y-[0.06em]">
+        <path fill="#00b67a" d="M12 1.2l2.65 8.15H23.2l-6.93 5.04 2.65 8.15L12 17.5l-6.92 5.04 2.64-8.15L.8 9.35h8.56z" />
+        <path fill="#005128" d="M16.06 14.08l-.6-1.83L12 17.5z" />
+      </svg>
+      Trustpilot
+    </span>
+  );
+}
+
 /** Excerpts from our Trustpilot reviews (all rated 5 out of 5). */
 const TESTIMONIALS = [
   {
@@ -118,9 +131,9 @@ export default function TestimonialsSection() {
               href={TRUSTPILOT_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-auto underline-offset-4 transition-colors hover:text-ink hover:underline"
+              className="ml-auto inline-flex items-center gap-[0.55em] whitespace-nowrap underline-offset-4 transition-colors hover:text-ink hover:underline"
             >
-              Reviews on Trustpilot<span className="sr-only"> (opens in a new tab)</span> ↗
+              Reviews on <TrustpilotLogo className="text-[1.25em] text-ink" /><span className="sr-only"> (opens in a new tab)</span> ↗
             </a>
           </div>
 
@@ -163,7 +176,7 @@ export default function TestimonialsSection() {
           rel="noopener noreferrer"
           className="mt-[clamp(3rem,6vw,5rem)] inline-flex items-center gap-3 rounded-full border border-[var(--bp-hairline)] px-6 py-3.5 text-[0.95rem] font-medium tracking-[-0.01em] text-ink transition-colors hover:border-blue hover:bg-blue hover:text-paper"
         >
-          Read all reviews on Trustpilot
+          Read all reviews on <TrustpilotLogo className="text-[1.05em]" />
           <span aria-hidden>↗</span>
           <span className="sr-only"> (opens in a new tab)</span>
         </a>
