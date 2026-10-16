@@ -39,12 +39,13 @@ const responsive = (width: number) => width < 768
 
 /** One persistent canvas, renderer and visual tick for every visual section. */
 /**
- * Share of Work's pinned scroll kept as a closing hold: the camera finishes on
- * the last card before this, so its smoothing settles and the card sits
- * centred before Stats starts sliding over it.
+ * Work's closing hold: the camera finishes on the last card before the pin
+ * ends, so its smoothing settles and the card sits centred before Stats starts
+ * sliding over it. Desktop keeps 15% of its pin; tablets and phones only a
+ * short beat (in screens), so the slower compact pin doesn't stall at the end.
  */
 const WORK_END_HOLD = 0.15;
-const workCameraProgress = (pin: number) => Math.min(1, pin / (1 - WORK_END_HOLD));
+const WORK_COMPACT_HOLD_SCREENS = 0.2;
 
 /** How fast Work drifts up (relative to the page) as Stats slides over it. */
 const WORK_PARALLAX = 0.35;
@@ -80,6 +81,10 @@ export default function IntroExperience() {
     // Tablets and phones have no dive into Work: Services lifts away instead
     // and Work is revealed beneath it (see the scissor around workScene below).
     const compact = window.matchMedia(COMPACT_QUERY);
+    const workSlowdown = () => (compact.matches ? WORK_COMPACT_SLOWDOWN : 1);
+    /** Share of the pin held at the end, after the camera reaches the last card. */
+    const workHold = () => (compact.matches ? WORK_COMPACT_HOLD_SCREENS / (WORK_SCROLL_SCREENS * WORK_COMPACT_SLOWDOWN) : WORK_END_HOLD);
+    const workCameraProgress = (pin: number) => Math.min(1, pin / (1 - workHold()));
     const loading = new AbortController();
     let renderer: THREE.WebGLRenderer;
     try {
@@ -228,7 +233,7 @@ export default function IntroExperience() {
         trigger: work,
         pin: true,
         start: "top top",
-        end: () => `+=${Math.round(window.innerHeight * WORK_SCROLL_SCREENS * (compact.matches ? WORK_COMPACT_SLOWDOWN : 1))}`,
+        end: () => `+=${Math.round(window.innerHeight * WORK_SCROLL_SCREENS * workSlowdown())}`,
         invalidateOnRefresh: true,
         scrub: true,
         onUpdate: self => workScene?.setProgress(workCameraProgress(self.progress)),

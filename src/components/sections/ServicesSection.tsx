@@ -126,9 +126,9 @@ const DIVE_START_SCREENS = STACK_SCROLL_SCREENS + 0.04;
 const DIVE_ZOOM_SCREENS = 1;
 const DIVE_TITLE_SCREENS = 0.8;
 const HANDOFF_SCROLL_SCREENS = DIVE_START_SCREENS + DIVE_ZOOM_SCREENS + DIVE_TITLE_SCREENS;
-// Tablets and phones skip the dive: the stage holds a beat after the last
-// card, then lifts away to reveal Featured Work beneath it.
-const COMPACT_HANDOFF_SCREENS = STACK_SCROLL_SCREENS + 0.15;
+// Tablets and phones skip the dive (and its pill's exit beat): the stage
+// lifts away to reveal Featured Work as soon as the last card settles.
+const COMPACT_HANDOFF_SCREENS = ORBIT_SCROLL_SCREENS + 0.05;
 
 export default function ServicesSection() {
   const root = useRef<HTMLElement>(null);
