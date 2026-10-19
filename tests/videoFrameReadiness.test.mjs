@@ -1,32 +1,82 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createVideoFrameProgress, watchVideoFrame } from '../src/lib/fluid/videoFrameReadiness.ts';
+import { createFluidWarmup, watchVideoFrame, REQUIRED_REAL_FLUID_FRAMES, REQUIRED_DISTINCT_MEDIA_FRAMES } from '../src/lib/fluid/videoFrameReadiness.ts';
 import { resetIntroWebGLReady, markIntroWebGLReady, markIntroWebGLTimeout, isIntroWebGLReady } from '../src/lib/introWebGLReadiness.ts';
-const sample = n => new Uint8Array([n, 0, 0, 255]);
 
-test('same or backwards mediaTime cannot count as advancing frames', () => {
-  const p = createVideoFrameProgress();
-  p.decoded(0.4);
-  assert.equal(p.verify(0.4, sample(1)), true);
-  for (const time of [0.4, 0.400001, 0.3]) {
-    assert.equal(p.decoded(time), false);
-    assert.equal(p.verify(time, sample(2)), false);
-  }
-  assert.equal(p.state.verifiedFrames, 1);
+test('warm-up needs 5 real renders across 3 distinct media frames', () => {
+  assert.equal(REQUIRED_REAL_FLUID_FRAMES, 5);
+  assert.equal(REQUIRED_DISTINCT_MEDIA_FRAMES, 3);
 });
 
-test('three advancing timestamps AND changing GPU pixels are required', () => {
-  const p = createVideoFrameProgress();
-  p.decoded(0.4); p.verify(0.4, sample(1));
-  p.decoded(0.44);
-  assert.equal(p.verify(0.44, sample(1)), false);
-  assert.equal(p.verify(0.44, null), false);
-  assert.equal(p.verify(0.44, sample(2)), true);
-  assert.equal(p.state.ready, false);
-  p.decoded(0.48); p.verify(0.48, sample(3));
-  assert.equal(p.state.ready, true);
-  p.reset();
-  assert.deepEqual(p.state, { decodedFrames: 0, decodedMediaTime: -1, verifiedFrames: 0, verifiedMediaTime: -1, ready: false });
+test('the same media time does not count as a new media frame', () => {
+  const w = createFluidWarmup();
+  assert.equal(w.decoded(0.4), true);
+  for (const time of [0.4, 0.40001, NaN, -1]) assert.equal(w.decoded(time), false);
+  assert.equal(w.state.decodedFrames, 1);
+});
+
+test('advancing media times count', () => {
+  const w = createFluidWarmup();
+  for (const time of [0.033, 0.067, 0.1]) assert.equal(w.decoded(time), true);
+  assert.equal(w.state.decodedFrames, 3);
+  assert.equal(w.state.mediaTime, 0.1);
+});
+
+test('production renders count only once a decoded frame exists', () => {
+  const w = createFluidWarmup();
+  assert.equal(w.rendered(), false);
+  assert.equal(w.state.renders, 0);
+  w.decoded(0.033);
+  assert.equal(w.rendered(), true);
+  assert.equal(w.rendered(), true);
+  assert.equal(w.state.renders, 2);
+  assert.equal(w.state.renderedFrames, 1); // both renders drew the same frame
+});
+
+test('readiness requires both the render count and distinct rendered media frames', () => {
+  const w = createFluidWarmup();
+  // Sequence from the spec: 1, 2, advance, 3, 4, advance, 5.
+  w.decoded(0.033); w.rendered(); w.rendered();
+  w.decoded(0.067); w.rendered(); w.rendered();
+  assert.equal(w.state.ready, false);
+  w.decoded(0.1);
+  w.rendered();
+  assert.equal(w.state.renders, 5);
+  assert.equal(w.state.renderedFrames, 3);
+  assert.equal(w.state.ready, true);
+});
+
+test('media frames alone never make the pipeline ready', () => {
+  const w = createFluidWarmup();
+  for (let i = 1; i <= 30; i++) w.decoded(i / 30);
+  assert.equal(w.state.ready, false);
+  // Decoded frames nobody rendered don't count toward the rendered frames.
+  w.rendered();
+  assert.equal(w.state.renderedFrames, 1);
+  assert.equal(w.state.ready, false);
+});
+
+test('render count alone (one still frame) never makes the pipeline ready', () => {
+  const w = createFluidWarmup();
+  w.decoded(0.033);
+  for (let i = 0; i < 50; i++) w.rendered();
+  assert.equal(w.state.renders, 50);
+  assert.equal(w.state.ready, false);
+  w.decoded(0.067); w.rendered();
+  assert.equal(w.state.ready, false);
+  w.decoded(0.1); w.rendered();
+  assert.equal(w.state.ready, true);
+});
+
+test('readiness stays latched until an explicit reset', () => {
+  const w = createFluidWarmup();
+  for (const time of [0.033, 0.067, 0.1, 0.133, 0.167]) { w.decoded(time); w.rendered(); }
+  assert.equal(w.state.ready, true);
+  assert.equal(w.rendered(), false);
+  w.decoded(0.033); // loop back
+  assert.equal(w.state.ready, true);
+  w.reset();
+  assert.deepEqual(w.state, { decodedFrames: 0, mediaTime: -1, renders: 0, renderedFrames: 0, renderedMediaTime: -1, ready: false });
 });
 
 class Video extends EventTarget {
@@ -42,98 +92,108 @@ class Video extends EventTarget {
     callbacks.forEach(cb => cb(0, { mediaTime: time, presentedFrames: ++this.presented }));
   }
 }
-function setup(t, probe) {
-  for (const key of ["document", "window", "requestAnimationFrame", "cancelAnimationFrame"]) {
+function setup(t, { rvfc = true } = {}) {
+  for (const key of ['document', 'window']) {
     if (!(key in globalThis)) { globalThis[key] = undefined; t.after(() => { delete globalThis[key]; }); }
   }
-  const rafs = new Map(); let id = 0;
   const doc = new EventTarget(); doc.hidden = false;
   t.mock.property(globalThis, 'document', doc);
   t.mock.property(globalThis, 'window', new EventTarget());
-  t.mock.property(globalThis, 'requestAnimationFrame', cb => { rafs.set(++id, cb); return id; });
-  t.mock.property(globalThis, 'cancelAnimationFrame', id => rafs.delete(id));
-  const video = new Video(); const states = [];
-  const watcher = watchVideoFrame(video, probe ?? (() => sample(video.currentTime * 100)), ready => states.push(ready));
+  const video = new Video();
+  if (!rvfc) video.requestVideoFrameCallback = undefined;
+  const states = []; const events = [];
+  const watcher = watchVideoFrame(video, {
+    frame: first => events.push(first ? 'prepare' : 'mark'),
+    wake: () => events.push('wake'),
+    changed: ready => states.push(ready),
+  });
   t.after(() => watcher.dispose());
-  const tick = () => { const pending = [...rafs.values()]; rafs.clear(); pending.forEach(cb => cb()); };
   watcher.restart();
-  return { video, watcher, states, rafs, doc, tick };
+  /** a decoded frame, then the shared ticker's real render(s) */
+  const play = (time, renders = 2) => { video.frame(time); for (let i = 0; i < renders; i++) watcher.rendered(); };
+  return { video, watcher, states, events, doc, play };
 }
 
-test('wake events coalesce, readiness stops probes/listeners, dispose cancels work', t => {
-  const { video, watcher, rafs, tick, states } = setup(t);
-  for (let i = 0; i < 5; i++) for (const event of ['scroll', 'pointerdown', 'touchstart']) window.dispatchEvent(new Event(event));
-  assert.equal(rafs.size, 1); assert.equal(video.callbacks.size, 1);
-  tick(); assert.equal(rafs.size, 1);
-  video.frame(0.4); video.frame(0.44); video.frame(0.48);
+test('watcher: real renders over advancing frames hand off, then stop listening', t => {
+  const { video, watcher, states, events, play } = setup(t);
+  play(0.033); play(0.067);
+  assert.equal(watcher.ready, false);
+  play(0.1, 1);
+  assert.equal(watcher.ready, true);
   assert.equal(states.at(-1), true);
-  assert.equal(rafs.size, 0); assert.equal(video.callbacks.size, 0);
-  window.dispatchEvent(new Event('scroll')); assert.equal(rafs.size, 0);
-  watcher.restart(); watcher.dispose();
-  assert.equal(rafs.size, 0); assert.equal(video.callbacks.size, 0);
+  assert.deepEqual(events.filter(e => e !== 'wake').slice(0, 2), ['prepare', 'mark']);
+  assert.equal(video.callbacks.size, 0);
+  const before = events.length;
+  window.dispatchEvent(new Event('scroll'));
+  assert.equal(events.length, before);
 });
 
-test('context-loss suspend clears readiness and restoration requires three new frames', t => {
-  const { video, watcher, states, rafs } = setup(t);
-  video.frame(0.4); video.frame(0.44); video.frame(0.48);
+test('watcher: renders without decoded progression keep the HTML video up', t => {
+  const { video, watcher, states } = setup(t);
+  video.frame(0.033);
+  for (let i = 0; i < 100; i++) watcher.rendered();
+  assert.equal(watcher.ready, false);
+  assert.notEqual(states.at(-1), true);
+  assert.match(watcher.debug(), /real fluid warmup renders: 100 \(1 media frames\)/);
+});
+
+test('watcher: context loss resets warm-up; restoration warms with new real renders', t => {
+  const { watcher, states, play } = setup(t);
+  play(0.033); play(0.067); play(0.1);
+  assert.equal(watcher.ready, true);
   watcher.suspend();
-  assert.equal(states.at(-1), false); assert.equal(rafs.size, 0);
-  assert.match(watcher.debug(), /GPU verified frames: 0/);
+  assert.equal(watcher.ready, false);
+  assert.equal(states.at(-1), false);
+  watcher.rendered();
+  assert.match(watcher.debug(), /real fluid warmup renders: 0/);
   watcher.restart();
-  video.frame(0.6); video.frame(0.64); assert.equal(states.at(-1), false);
-  video.frame(0.68); assert.equal(states.at(-1), true);
+  play(0.2); play(0.233);
+  assert.equal(watcher.ready, false);
+  play(0.267);
+  assert.equal(watcher.ready, true);
+  assert.equal(states.at(-1), true);
 });
 
-test('hidden document cancels both callbacks and resumes one loop', t => {
-  const { video, doc, rafs } = setup(t);
+test('watcher: loader timeout does not mark WebGL ready, and warm-up completes after it', t => {
+  const token = resetIntroWebGLReady();
+  const { watcher, play } = setup(t);
+  play(0.033);
+  markIntroWebGLTimeout();
+  assert.equal(isIntroWebGLReady(), false);
+  assert.equal(watcher.ready, false);
+  play(0.067); play(0.1);
+  assert.equal(watcher.ready, true);
+  markIntroWebGLReady(token);
+  assert.equal(isIntroWebGLReady(), true);
+});
+
+test('watcher: wake events nudge playback and texture, hidden pauses frame callbacks', t => {
+  const { video, events, doc } = setup(t);
+  video.paused = true;
+  window.dispatchEvent(new Event('touchstart'));
+  assert.ok(events.includes('wake'));
+  assert.equal(video.plays, 1);
   doc.hidden = true; doc.dispatchEvent(new Event('visibilitychange'));
-  assert.equal(rafs.size, 0); assert.equal(video.callbacks.size, 0);
+  assert.equal(video.callbacks.size, 0);
   doc.hidden = false; doc.dispatchEvent(new Event('visibilitychange'));
   doc.dispatchEvent(new Event('visibilitychange'));
-  assert.equal(rafs.size, 1); assert.equal(video.callbacks.size, 1);
+  assert.equal(video.callbacks.size, 1);
 });
 
-test('loader timeout never claims readiness or stops later GPU verification', t => {
-  const token = resetIntroWebGLReady();
-  const { video, rafs, states } = setup(t);
-  video.frame(0.4);
-  markIntroWebGLTimeout();
-  assert.equal(isIntroWebGLReady(), false); assert.equal(states.at(-1), false);
-  assert.equal(rafs.size, 1);
-  video.frame(0.44); video.frame(0.48);
-  assert.equal(states.at(-1), true);
-  markIntroWebGLReady(token); assert.equal(isIntroWebGLReady(), true);
+test('watcher: without frame callbacks the media clock stands in, still needing real renders', t => {
+  const { video, watcher } = setup(t, { rvfc: false });
+  for (const time of [0.033, 0.067, 0.1]) {
+    video.currentTime = time;
+    assert.equal(watcher.ready, false);
+    watcher.rendered(); watcher.rendered();
+  }
+  assert.equal(watcher.ready, true);
 });
 
-test('fallback clock and advancing media cannot pass stale GPU samples; play is throttled', t => {
-  let now = 0; t.mock.method(performance, 'now', () => now);
-  const { video, tick, watcher, states } = setup(t, () => sample(1));
-  video.paused = true;
-  for (let i = 1; i < 10; i++) { now = 1100 + i; video.currentTime = i / 10; tick(); }
-  assert.equal(states.at(-1), false);
-  assert.match(watcher.debug(), /GPU verified frames: 1/);
-  assert.equal(video.plays, 1);
-});
-
-test('loaded media events and repeated RAFs cannot replace decoded frame advancement', t => {
-  let pixels = 0;
-  const { video, tick, states, watcher } = setup(t, () => sample(++pixels));
-  video.dispatchEvent(new Event('canplay'));
-  for (let i = 0; i < 5; i++) tick();
-  assert.equal(states.at(-1), false);
-  assert.match(watcher.debug(), /GPU verified frames: 0/);
-  video.frame(0.4);
-  for (let i = 0; i < 5; i++) tick();
-  assert.match(watcher.debug(), /GPU verified frames: 1/);
-});
-
-test('zero-sized decoded frames are rejected, and seeking invalidates progress', t => {
-  const { video, states, watcher } = setup(t);
-  video.videoWidth = 0; video.frame(0.4);
-  assert.match(watcher.debug(), /GPU verified frames: 0/);
-  video.videoWidth = 1280; video.frame(0.44); video.frame(0.48);
-  assert.match(watcher.debug(), /GPU verified frames: 2/);
-  video.dispatchEvent(new Event('seeking'));
-  assert.equal(states.at(-1), false);
-  assert.match(watcher.debug(), /GPU verified frames: 0/);
+test('watcher: zero-sized frames are not decoded frames', t => {
+  const { video, watcher } = setup(t);
+  video.videoWidth = 0;
+  video.frame(0.033); watcher.rendered();
+  assert.match(watcher.debug(), /media frames seen: 0/);
+  assert.match(watcher.debug(), /real fluid warmup renders: 0/);
 });

@@ -1,65 +1,77 @@
-export const REQUIRED_GPU_VIDEO_FRAMES = 3;
+/** Real production renders (the visible fluid pass on the shared canvas,
+ * still covered by the HTML video) required before the handoff. */
+export const REQUIRED_REAL_FLUID_FRAMES = 5;
+/** Distinct decoded media frames those renders must have consumed. */
+export const REQUIRED_DISTINCT_MEDIA_FRAMES = 3;
 const MEDIA_EPSILON = 0.0001;
 
-/** Pixel progression is deliberately conservative: identical/static pictures
- * cannot prove a new upload, even when the media clock is advancing. */
-export function createVideoFrameProgress() {
-  let pixels: Uint8Array | null = null;
+/** Pure warm-up bookkeeping, no GPU facts. A media frame only counts once a
+ * real render has drawn it, so an advancing clock alone, or renders of one
+ * still frame alone, never pass. Readiness latches until reset(). */
+export function createFluidWarmup() {
   const state = {
-    decodedFrames: 0, decodedMediaTime: -1,
-    verifiedFrames: 0, verifiedMediaTime: -1, ready: false,
+    decodedFrames: 0, mediaTime: -1,
+    renders: 0, renderedFrames: 0, renderedMediaTime: -1, ready: false,
   };
   return {
     state,
     reset() {
-      pixels = null;
-      Object.assign(state, { decodedFrames: 0, decodedMediaTime: -1, verifiedFrames: 0, verifiedMediaTime: -1, ready: false });
+      Object.assign(state, { decodedFrames: 0, mediaTime: -1, renders: 0, renderedFrames: 0, renderedMediaTime: -1, ready: false });
     },
+    /** A decoded frame's media time; false when it isn't a new frame. A loop
+     * or seek jumps backwards, which is a new frame too. */
     decoded(time: number) {
-      if (!Number.isFinite(time) || time <= state.decodedMediaTime + MEDIA_EPSILON) return false;
-      state.decodedMediaTime = time;
+      if (!Number.isFinite(time) || time < 0 || Math.abs(time - state.mediaTime) <= MEDIA_EPSILON) return false;
+      state.mediaTime = time;
       state.decodedFrames++;
       return true;
     },
-    verify(time: number, sample: Uint8Array | null) {
-      if (state.ready || !sample || time !== state.decodedMediaTime || time <= state.verifiedMediaTime + MEDIA_EPSILON) return false;
-      if (pixels && sample.length === pixels.length && sample.every((value, i) => value === pixels![i])) return false;
-      pixels = sample.slice();
-      state.verifiedMediaTime = time;
-      state.verifiedFrames++;
-      state.ready = state.verifiedFrames >= REQUIRED_GPU_VIDEO_FRAMES;
+    /** The real fluid pass just drew; false when it can't count (already
+     * ready, or no decoded frame to have drawn yet). */
+    rendered() {
+      if (state.ready || state.decodedFrames === 0) return false;
+      state.renders++;
+      if (Math.abs(state.mediaTime - state.renderedMediaTime) > MEDIA_EPSILON) {
+        state.renderedMediaTime = state.mediaTime;
+        state.renderedFrames++;
+      }
+      state.ready = state.renders >= REQUIRED_REAL_FLUID_FRAMES && state.renderedFrames >= REQUIRED_DISTINCT_MEDIA_FRAMES;
       return true;
     },
   };
 }
 
-/** One temporary RAF and one rVFC per lifecycle; no loader deadline owns this
- * controller. A hidden document suspends it; context loss resets it. */
-export function watchVideoFrame(
-  video: HTMLVideoElement,
-  probe: () => Uint8Array | null,
-  changed: (ready: boolean) => void,
-) {
-  const progress = createVideoFrameProgress();
+type WatchOptions = {
+  /** a new decoded frame arrived; `first` once per warm-up */
+  frame?(first: boolean): void;
+  /** an interaction/visibility wake while warming */
+  wake?(): void;
+  changed(ready: boolean): void;
+};
+
+/** Media-side facts only: has the HTML video produced real, advancing
+ * frames? The shared ticker does the rendering and reports each real pass
+ * through rendered(); there is no loop of its own. A hidden document pauses
+ * frame callbacks; suspend() (context loss) resets the warm-up. */
+export function watchVideoFrame(video: HTMLVideoElement, opts: WatchOptions) {
+  const warmup = createFluidWarmup();
   let active = false;
-  let raf: number | null = null;
   let callback: number | null = null;
   let listening = false;
   let lastPlay = -Infinity;
   let playPending = false;
-  let lastProgress = 0;
-  let lastRecovery = 0;
-  let lastDecodedLog = -Infinity;
-  let lastDecodedAt = -Infinity;
   let lastFrameCallback = 0;
+  let lastDecodedLog = -Infinity;
+  let lastRenderAt = -Infinity;
+  let lastStallLog = -Infinity;
   let presentedFrames = -1;
   let lastWakeReason = 'initial';
   const supportsFrames = typeof video.requestVideoFrameCallback === 'function';
   const usable = () => video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0 && !video.seeking;
+  const warming = () => active && !warmup.state.ready;
   const cancel = () => {
-    if (raf !== null) cancelAnimationFrame(raf);
     if (callback !== null) video.cancelVideoFrameCallback(callback);
-    raf = callback = null;
+    callback = null;
   };
   const recoverPlay = () => {
     const now = performance.now();
@@ -70,74 +82,38 @@ export function watchVideoFrame(
     }
   };
   const decoded = (time: number) => {
-    // A loop/seek starts a new sequence rather than counting backwards.
-    if (time < progress.state.decodedMediaTime - MEDIA_EPSILON) {
-      progress.reset();
-      lastProgress = performance.now();
+    if (!warmup.decoded(time)) return;
+    const { decodedFrames } = warmup.state;
+    const now = performance.now();
+    if (decodedFrames <= REQUIRED_DISTINCT_MEDIA_FRAMES || now - lastDecodedLog >= 250) {
+      lastDecodedLog = now;
+      fluidVideoLog(video, `decoded media frame ${decodedFrames} time=${time.toFixed(3)}`);
     }
-    if (progress.decoded(time)) {
-      lastDecodedAt = performance.now();
-      if (lastDecodedAt - lastDecodedLog >= 250) {
-        lastDecodedLog = lastDecodedAt;
-        fluidVideoLog(video, `decoded frame mediaTime=${time.toFixed(3)}`);
-      }
+    if (now - lastRenderAt >= 1000 && now - lastStallLog >= 1000) {
+      lastStallLog = now;
+      fluidVideoLog(video, 'decoded video advancing, waiting for a real fluid render');
     }
-  };
-  const attempt = () => {
-    if (!active || document.hidden || progress.state.ready) return;
-    recoverPlay();
-    if (!usable()) return;
-    // Prefer rVFC metadata. If absent/deferred, a media clock plus CHANGING
-    // GPU pixels is required; clock ticks alone never establish readiness.
-    if (!supportsFrames || performance.now() - lastFrameCallback >= 1000) decoded(video.currentTime);
-    const sample = probe(); // Force uploads even between decoded callbacks.
-    const { decodedMediaTime } = progress.state;
-    if (decodedMediaTime >= 0 && progress.verify(decodedMediaTime, sample)) {
-      lastProgress = performance.now();
-      fluidVideoLog(video, `GPU frame verified mediaTime=${decodedMediaTime.toFixed(3)} count=${progress.state.verifiedFrames}`);
-    }
-    if (progress.state.ready) {
-      cancel();
-      listen(false);
-      fluidVideoLog(video, 'continuous VideoTexture ready');
-      changed(true);
-    } else if (progress.state.decodedMediaTime > progress.state.verifiedMediaTime && performance.now() - lastDecodedAt < 750 && performance.now() - lastProgress >= 750 && performance.now() - lastRecovery >= 1000) {
-      lastRecovery = performance.now();
-      fluidVideoLog(video, 'decoded video advancing but GPU verification stalled');
-      // The single scheduled RAF performs the next forced init/upload/probe.
-      // No extra loop or texture allocation is needed for recovery.
-      lastWakeReason = 'recovery';
-    }
-  };
-  const schedule = () => {
-    if (!active || document.hidden || progress.state.ready || raf !== null) return;
-    raf = requestAnimationFrame(() => {
-      raf = null;
-      attempt();
-      schedule();
-    });
+    opts.frame?.(decodedFrames === 1);
   };
   const requestFrame = () => {
-    if (!active || document.hidden || progress.state.ready || callback !== null || !supportsFrames) return;
+    if (!warming() || document.hidden || callback !== null || !supportsFrames) return;
     callback = video.requestVideoFrameCallback((_now, metadata) => {
       callback = null;
       lastFrameCallback = performance.now();
       if (usable() && metadata.presentedFrames !== presentedFrames) {
         presentedFrames = metadata.presentedFrames;
         decoded(metadata.mediaTime);
-        lastWakeReason = 'video-frame';
-        attempt();
       }
       requestFrame();
     });
   };
   const wake = (event?: Event) => {
-    if (!active || progress.state.ready) return;
-    lastWakeReason = event?.type === 'touchstart' ? 'touch' : event?.type === 'pointerdown' ? 'pointer' : event?.type === 'visibilitychange' ? 'visibility' : event?.type ?? 'initial';
+    if (!warming()) return;
+    lastWakeReason = event?.type ?? 'initial';
     if (document.hidden) { cancel(); return; }
     recoverPlay();
     requestFrame();
-    schedule();
+    opts.wake?.();
   };
   const listen = (enabled: boolean) => {
     if (listening === enabled) return;
@@ -149,33 +125,53 @@ export function watchVideoFrame(
     if (enabled) document.addEventListener('visibilitychange', wake);
     else document.removeEventListener('visibilitychange', wake);
   };
-  const restart = () => {
+  const stop = () => {
     cancel();
-    progress.reset();
-    presentedFrames = -1;
-    lastFrameCallback = lastProgress = performance.now();
-    lastRecovery = 0;
-    active = true;
-    changed(false);
-    listen(true);
-    wake();
+    listen(false);
   };
-  const invalidate = () => { if (active) restart(); };
-  video.addEventListener('emptied', invalidate);
-  video.addEventListener('seeking', invalidate);
   return {
-    restart,
-    suspend() { active = false; cancel(); listen(false); progress.reset(); changed(false); },
+    get ready() { return warmup.state.ready; },
+    restart() {
+      cancel();
+      warmup.reset();
+      presentedFrames = -1;
+      lastFrameCallback = performance.now();
+      lastRenderAt = performance.now();
+      active = true;
+      opts.changed(false);
+      listen(true);
+      wake();
+    },
+    /** Call after each real production fluid.render() on a live context. */
+    rendered() {
+      if (!warming()) return;
+      recoverPlay();
+      const now = performance.now();
+      lastRenderAt = now;
+      // Without (or with stalled) frame callbacks, the media clock stands in.
+      if (usable() && (!supportsFrames || now - lastFrameCallback >= 500)) decoded(video.currentTime);
+      if (!warmup.rendered()) return;
+      const { renders, renderedFrames, ready } = warmup.state;
+      if (renders <= REQUIRED_REAL_FLUID_FRAMES) fluidVideoLog(video, `real fluid render warmup ${renders}/${REQUIRED_REAL_FLUID_FRAMES} (media frames ${renderedFrames}/${REQUIRED_DISTINCT_MEDIA_FRAMES})`);
+      if (ready) {
+        stop();
+        fluidVideoLog(video, 'REAL PRODUCTION WEBGL READY');
+        opts.changed(true);
+      }
+    },
+    suspend() {
+      active = false;
+      stop();
+      warmup.reset();
+      opts.changed(false);
+    },
     debug() {
-      const s = progress.state;
-      return `decoded frames: ${s.decodedFrames} · decoded mediaTime: ${s.decodedMediaTime.toFixed(3)} · GPU verified frames: ${s.verifiedFrames} · last GPU mediaTime: ${s.verifiedMediaTime.toFixed(3)} · VideoTexture continuous ready: ${s.ready ? 'yes' : 'no'} · warm-up RAF: ${raf !== null ? 'running' : 'stopped'} · last wake reason: ${lastWakeReason}`;
+      const s = warmup.state;
+      return `decoded frame ready: ${s.decodedFrames > 0 ? 'yes' : 'no'} · media frames seen: ${s.decodedFrames} · last mediaTime: ${s.mediaTime.toFixed(3)} · real fluid warmup renders: ${s.renders} (${s.renderedFrames} media frames) · required warmup renders: ${REQUIRED_REAL_FLUID_FRAMES} (${REQUIRED_DISTINCT_MEDIA_FRAMES} media frames) · last wake: ${lastWakeReason}`;
     },
     dispose() {
       active = false;
-      cancel();
-      listen(false);
-      video.removeEventListener('emptied', invalidate);
-      video.removeEventListener('seeking', invalidate);
+      stop();
     },
   };
 }

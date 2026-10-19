@@ -124,13 +124,14 @@ export default function IntroExperience() {
       video, segments: coarse ? [48, 32] : [72, 48],
       radius: [18, 28], strength: responsive(window.innerWidth).strength,
     });
+    // Latched once the real fluid pass has run under the HTML video for enough
+    // advancing frames; only context loss (suspend/restart) clears it.
     let fluidVideoReady = false;
-    let verifiedFluidFrame = false;
     let contextLost = false;
     const showFallback = () => {
       fluidVideoReady = false;
-      verifiedFluidFrame = false;
       readinessStage("video-frame");
+      video.style.transition = "";
       video.style.opacity = "";
       if (reel) {
         reelShown = 0;
@@ -138,20 +139,22 @@ export default function IntroExperience() {
         reel.style.visibility = "hidden";
       }
     };
-    const frames = fluid ? watchVideoFrame(video, () => {
-      if (contextLost || needsResize) return null;
-      const { stage, startRect, endRect } = measureLayout();
-      if (stage.width <= 0 || stage.height <= 0 || startRect.width <= 0 || startRect.height <= 0 || endRect.width <= 0 || endRect.height <= 0) return null;
-      const rect = (r: DOMRect) => ({ x: r.left - stage.left, y: r.top - stage.top, w: r.width, h: r.height });
-      fluid.layout({ w: stage.width, h: stage.height }, rect(startRect), rect(endRect));
-      readinessStage("continuous-video-frames");
-      return fluid.verifyCurrentVideoFrame();
-    }, ready => {
-      if (!ready) showFallback();
-      else {
-        verifiedFluidFrame = true;
+    const frames = fluid ? watchVideoFrame(video, {
+      frame: first => {
+        if (first) fluid.prepare();
+        else fluid.markTextureForUpdate();
+      },
+      wake: () => fluid.markTextureForUpdate(),
+      changed: ready => {
+        if (!ready) { showFallback(); return; }
+        // The canvas already holds this frame's real fluid pass under the
+        // video, so uncovering it is a like-for-like swap.
+        fluidVideoReady = true;
         markIntroWebGLReady(readinessToken);
-      }
+        video.style.transition = "opacity 120ms linear";
+        video.style.opacity = "0";
+        fluidVideoLog(video, "HTML video handoff");
+      },
     }) : null;
     const playVideo = () => {
       fluidVideoLog(video, "HTML video play requested");
@@ -371,9 +374,9 @@ export default function IntroExperience() {
         if (fluid) fluid.strength = responsive(width).strength;
       }
       const inStudio = studioRect.top < window.innerHeight && studioRect.bottom > 0;
-      // Decode and prove the reel at the top of the page, even while the
+      // Decode and warm the reel at the top of the page, even while the
       // global GSAP timeline is held by the loader. The shared ticker runs.
-      const shouldPlayVideo = !reduced && (inStudio || !verifiedFluidFrame);
+      const shouldPlayVideo = !reduced && (inStudio || !fluidVideoReady);
       if (videoVisible !== shouldPlayVideo) {
         videoVisible = shouldPlayVideo;
         if (shouldPlayVideo) {
@@ -425,19 +428,21 @@ export default function IntroExperience() {
       if (!phone && servicesRect.bottom > 0) lines.render(renderer, lineOffset, reduced ? 1 : lineProgress);
       const inServices = servicesRect.top < window.innerHeight && servicesRect.bottom > 0;
       if (inServices) serviceCards.render(renderer, serviceCardElements, stage, pointer, reduced ? 0 : time, dt);
-      if (fluid && inStudio && video.readyState >= 2 && verifiedFluidFrame) {
+      // The real fluid pass runs from the first decoded frame, wherever the
+      // reel is, underneath the still-opaque HTML video. Warm-up counts these
+      // very renders; the video only hands off once they have run across
+      // advancing frames (see watchVideoFrame). After that, only in view.
+      const fluidLayoutValid = startRect.width > 0 && startRect.height > 0 && endRect.width > 0 && endRect.height > 0;
+      const videoHasFrame = video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0;
+      if (fluid && fluidLayoutValid && videoHasFrame && (inStudio || !fluidVideoReady)) {
         const rect = (r: DOMRect) => ({ x: r.left - stage.left, y: r.top - stage.top, w: r.width, h: r.height });
         fluid.layout({ w: width, h: height }, rect(startRect), rect(endRect));
         fluid.debugMode = Number(studio.dataset.debugMode || 0);
         fluid.render(state.progress);
-        if (!renderer.getContext().isContextLost()) {
-          if (!fluidVideoReady) fluidVideoLog(video, "HTML fallback hidden");
-          fluidVideoReady = true;
-          video.style.opacity = "0";
-        } else showFallback();
-      } else if (fluidVideoReady) {
-        fluidVideoReady = false;
-        video.style.opacity = "";
+        if (!fluidVideoReady && !renderer.getContext().isContextLost()) {
+          readinessStage("fluid-warmup");
+          frames?.rendered();
+        }
       }
       // Fade the reel title in as the video settles into its final frame.
       const reelOpacity = reduced || !fluidVideoReady ? 0 : Math.round(Math.min(1, Math.max(0, (state.progress - 0.7) / 0.3)) * 100) / 100;
@@ -511,7 +516,7 @@ export default function IntroExperience() {
     };
     const updateReadout = () => {
       const readout = studio.querySelector<HTMLElement>("[data-fluid-readout]");
-      if (readout) readout.textContent = `${introReadinessDebug()} · video readyState: ${video.readyState} · ${frames?.debug() ?? "VideoTexture disabled"} · fluid WebGL ready: ${fluidVideoReady ? "yes" : "no"} · video size: ${video.videoWidth}×${video.videoHeight} · canvas: ${canvas.width}×${canvas.height} · DPR: ${dpr} · context lost: ${contextLost ? "yes" : "no"} · progress: ${state.progress.toFixed(2)}`;
+      if (readout) readout.textContent = `${introReadinessDebug()} · video readyState: ${video.readyState} · ${frames?.debug() ?? "VideoTexture disabled"} · production WebGL ready: ${fluidVideoReady ? "yes" : "no"} · HTML video visible: ${video.style.opacity === "0" ? "no" : "yes"} · video size: ${video.videoWidth}×${video.videoHeight} · canvas: ${canvas.width}×${canvas.height} · DPR: ${dpr} · context lost: ${contextLost ? "yes" : "no"} · progress: ${state.progress.toFixed(2)}`;
     };
     const onContextLost = (event: Event) => {
       event.preventDefault();
@@ -525,7 +530,8 @@ export default function IntroExperience() {
     const onContextRestored = () => {
       // Three's earlier listener reinitializes its GPU caches. Retain all
       // shared scenes, targets, listeners and the single ticker; Three lazily
-      // reuploads their resources. The probe forces a fresh video upload.
+      // reuploads their resources. Warm-up restarts with real renders, and
+      // its first decoded frame re-prepares the video texture.
       contextLost = false;
       needsResize = true;
       showFallback();
@@ -571,6 +577,7 @@ export default function IntroExperience() {
       canvas.removeEventListener("webglcontextrestored", onContextRestored);
       frames?.dispose();
       video.pause();
+      video.style.transition = "";
       video.style.opacity = "";
       canvas.style.transform = "";
       canvas.style.borderRadius = "";
