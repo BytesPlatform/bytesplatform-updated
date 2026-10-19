@@ -20,8 +20,9 @@ export type FluidVideoRenderer = {
   layout(stage: { w: number; h: number }, from: Rect, to: Rect): void;
   /** draw the transition at progress 0..1 */
   render(progress: number): void;
-  /** Offscreen texture + shader verification; never exposes warm-up pixels. */
-  warmUp(): boolean;
+  /** Offscreen texture + shader verification. Borrowed samples are valid until
+   * the next probe; the readiness tracker copies accepted frames. */
+  verifyCurrentVideoFrame(): Uint8Array | null;
   prepare(): void;
   /** 0 normal · 1 undistorted · 2 distortion map */
   debugMode: number;
@@ -92,10 +93,11 @@ export function createFluidVideoRenderer(
   const probeMaterial = new THREE.ShaderMaterial({
     uniforms: { video: { value: texture } },
     vertexShader: "void main() { gl_Position = vec4(position.xy * 2.0, 0.0, 1.0); }",
-    fragmentShader: "uniform sampler2D video; void main() { gl_FragColor = texture2D(video, vec2(0.5)); }",
+    fragmentShader: "uniform sampler2D video; void main() { gl_FragColor = texture2D(video, gl_FragCoord.xy / 64.0); }",
     depthTest: false, depthWrite: false,
   });
   const pixel = new Uint8Array(4);
+  const samples = new Uint8Array(64 * 64 * 4);
   let textureLogged = false;
 
   const api: FluidVideoRenderer = {
@@ -118,32 +120,36 @@ export function createFluidVideoRenderer(
       renderer.initTexture(texture);
     },
 
-    warmUp() {
+    verifyCurrentVideoFrame() {
       const gl = renderer.getContext();
-      if (gl.isContextLost() || opts.video.readyState < 2 || !opts.video.videoWidth || !opts.video.videoHeight) return false;
-      if (stats.css.some(n => n <= 0) || from.w <= 0 || from.h <= 0) return false;
+      if (gl.isContextLost() || opts.video.readyState < 2 || !opts.video.videoWidth || !opts.video.videoHeight) return null;
+      if (stats.css.some(n => n <= 0) || from.w <= 0 || from.h <= 0) return null;
       const savedFrom = from;
       const savedTo = to;
       const savedStage = { w: stats.css[0], h: stats.css[1] };
-      probeTarget.setSize(Math.max(1, Math.round(from.w * stats.dpr)), Math.max(1, Math.round(from.h * stats.dpr)));
       const sampleX = Math.floor(probeTarget.width / 2);
       const sampleY = Math.floor(probeTarget.height / 2);
       const target = renderer.getRenderTarget();
+      const viewport = renderer.getViewport(new THREE.Vector4());
+      const scissorBox = renderer.getScissor(new THREE.Vector4());
+      const cubeFace = renderer.getActiveCubeFace();
+      const mipLevel = renderer.getActiveMipmapLevel();
       const autoClear = renderer.autoClear;
       const scissor = renderer.getScissorTest();
       try {
         renderer.setScissorTest(false);
         renderer.setRenderTarget(probeTarget);
         renderer.autoClear = true;
-        // Force the first upload even if Three's own rVFC hasn't run yet.
+        // Force each upload even if Three's own rVFC has been deferred.
         api.prepare();
         mesh.material = probeMaterial;
         renderer.render(scene, camera);
-        pixel.fill(0);
-        renderer.readRenderTargetPixels(probeTarget, sampleX, sampleY, 1, 1, pixel);
+        samples.fill(0);
+        renderer.readRenderTargetPixels(probeTarget, 0, 0, 64, 64, samples);
         // Video is opaque, including genuinely black frames. An uninitialized
-        // texture cannot pass this alpha check; colour is deliberately ignored.
-        if (pixel[3] !== 255 || gl.getError() !== gl.NO_ERROR) return false;
+        // texture cannot pass this alpha check. The caller additionally checks
+        // colour progression across distinct media frames.
+        if (samples.some((value, index) => index % 4 === 3 && value !== 255) || gl.getError() !== gl.NO_ERROR) return null;
         if (!textureLogged) {
           textureLogged = true;
           introReadyLog("video texture initialized");
@@ -157,13 +163,15 @@ export function createFluidVideoRenderer(
         api.render(0);
         pixel.fill(0);
         renderer.readRenderTargetPixels(probeTarget, sampleX, sampleY, 1, 1, pixel);
-        return pixel[3] === 255 && gl.getError() === gl.NO_ERROR && !gl.isContextLost();
+        return pixel[3] === 255 && gl.getError() === gl.NO_ERROR && !gl.isContextLost() ? samples : null;
       } catch {
-        return false;
+        return null;
       } finally {
         mesh.material = material;
         api.layout(savedStage, savedFrom, savedTo);
-        renderer.setRenderTarget(target);
+        renderer.setRenderTarget(target, cubeFace, mipLevel);
+        renderer.setViewport(viewport);
+        renderer.setScissor(scissorBox);
         renderer.setScissorTest(scissor);
         renderer.autoClear = autoClear;
       }
