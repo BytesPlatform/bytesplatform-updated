@@ -6,6 +6,7 @@ import gsap from "gsap";
 import HeroNav from "./HeroNav";
 import HeroTypography from "./HeroTypography";
 import MobileHeroProject from "./MobileHeroProject";
+import ServingLine from "./ServingLine";
 
 import { prefersReducedMotion, fontsReady, introsReady } from "@/lib/animation/prefs";
 import { mountScroll } from "@/lib/animation/scroll";
@@ -247,12 +248,7 @@ export default function Hero() {
           data-foot="pending"
           className="relative z-10 flex flex-col gap-6 px-[var(--bp-gut)] pb-[var(--bp-gut)] sm:flex-row sm:items-end sm:justify-between"
         >
-          {/* Each part sits in a clipped slot so the entrance can lift it in. */}
-          <p className="hero-meta whitespace-nowrap">
-            <span className="inline-block overflow-hidden align-top"><span data-meta-part className="inline-block">Technology studio</span></span>
-            <span className="mx-2 inline-block opacity-40"><span data-meta-slash className="inline-block">/</span></span>
-            <span className="inline-block overflow-hidden align-top"><span data-meta-part className="inline-block">Texas</span></span>
-          </p>
+          <ServingLine />
 
           {/* Phones only: the nav drops its "Start a project" below 640px, so the
               hero carries it as a full-width button. */}
