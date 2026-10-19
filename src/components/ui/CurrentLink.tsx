@@ -27,7 +27,8 @@ type Props = AnchorHTMLAttributes<HTMLAnchorElement> & { href: string; children:
 export default function CurrentLink({ href, children, className, style, onClick, tabIndex, ...rest }: Props) {
   const current = useIsCurrentPage(href);
   const inSection = useIsCurrentSection(href);
-  if (current) {
+  // Section anchors must remain clickable even on the current page.
+  if (current && !href.includes("#")) {
     return <span aria-current="page" className={className} style={style}>{children}</span>;
   }
   return (

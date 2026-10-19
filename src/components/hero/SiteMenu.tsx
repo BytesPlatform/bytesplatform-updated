@@ -12,6 +12,7 @@ import CurrentLink from "@/components/ui/CurrentLink";
 const links = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
+  { label: "Projects", href: "/#work" },
 ];
 
 /** Plain rows listed after the groups. */
@@ -167,7 +168,7 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
                 {links.map((link, index) => (
                   <CurrentLink
                     key={link.href}
-                    href={link.href}
+                    href={pathname === "/" && link.href === "/#work" ? "#work" : link.href}
                     className={styles.link}
                     tabIndex={open ? 0 : -1}
                     style={{ "--item-index": index } as React.CSSProperties}
