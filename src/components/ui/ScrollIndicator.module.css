@@ -1,5 +1,5 @@
-/* A short pill track at the right edge, vertically centred. Purely a read-out:
-   it never takes pointer events. */
+/* A short pill track at the right edge, vertically centred. Always on screen;
+   drag the pill (or press the track) to scroll the page. */
 .indicator {
   --track: 11rem;
   --thumb: 2.1rem;
@@ -12,16 +12,25 @@
   border-radius: 999px;
   /* Colours follow data-tone, set from the background behind the track. */
   background: rgb(17 17 17 / 0.1);
-  opacity: 0;
-  pointer-events: none;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
   transform: translateY(-50%);
-  transition: opacity 450ms ease;
+  transition: opacity 300ms ease, width 200ms ease;
 }
 
-.indicator[data-visible="true"] { opacity: 1; transition-duration: 200ms; }
+/* The track is thin; give the pointer a wider, invisible strip to catch. */
+.indicator::before {
+  content: '';
+  position: absolute;
+  inset: -0.5rem -0.9rem;
+}
+
+.indicator:hover, .indicator[data-dragging="true"] { width: 8px; }
+.indicator[data-dragging="true"] { cursor: grabbing; }
 
 /* Hidden while something has frozen the page, like the showreel player. */
-:global(html[data-scroll-locked]) .indicator { opacity: 0; transition-duration: 200ms; }
+:global(html[data-scroll-locked]) .indicator { opacity: 0; pointer-events: none; transition-duration: 200ms; }
 
 .thumb {
   position: absolute;
@@ -41,6 +50,7 @@
 
 @media (max-width: 639px) {
   .indicator { --track: 8rem; --thumb: 1.6rem; width: 4px; right: 0.35rem; }
+  .indicator[data-dragging="true"] { width: 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

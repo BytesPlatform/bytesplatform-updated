@@ -173,6 +173,19 @@ export function jumpTo(y: number) {
   else window.scrollTo(0, y);
 }
 
+/**
+ * Jumps the page to y for a drag on the scroll bar. Autoplay bands stand down
+ * until endScrub, so they don't carry the page off under the reader's hand.
+ */
+export function scrubTo(y: number) {
+  programmatic = true;
+  jumpTo(y);
+}
+
+export function endScrub() {
+  programmatic = false;
+}
+
 /** scrolls the page to y over `duration` seconds, so scrubbed scenes play on the way */
 export function glideTo(y: number, duration: number) {
   if (!activeLenis) {
