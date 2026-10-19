@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Montserrat } from "next/font/google";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { COMPACT_QUERY, prefersReducedMotion } from "@/lib/animation/prefs";
 import "./FeaturedWork.css";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const montserrat = Montserrat({ subsets: ["latin"], weight: "500", display: "swap" });
 
 /** Work's drift under Stats: a fraction of the scroll (IntroExperience). */
 const WORK_PARALLAX = 0.35;
@@ -112,7 +115,7 @@ export default function FeaturedWork() {
     >
       <h2 ref={heading} aria-hidden className="work-heading">
         <span data-work-heading-rule className="work-heading__rule work-heading__rule--left" />
-        <span data-work-heading-text className="inline-block">Featured Work</span>
+        <span data-work-heading-text className={`work-heading__text ${montserrat.className}`}>Featured Work</span>
         <span data-work-heading-rule className="work-heading__rule work-heading__rule--right" />
       </h2>
     </section>
