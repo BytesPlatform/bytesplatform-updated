@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
+import { INTRO_WEBGL_MAX_WAIT_MS, shouldWaitForIntro, waitForIntroWebGLReady, setIntroLoaderWaiting, markIntroWebGLTimeout } from "@/lib/introWebGLReadiness";
 import styles from "./RouteTransition.module.css";
 
 /**
@@ -122,6 +123,7 @@ export default function RouteTransition() {
     if (!hasLetterSpacing) word.style.letterSpacing = "0";
 
     let disposed = false;
+    let cancelLoadWait = () => {};
     let frame = 0;
     let width = 1;
     let height = 1;
@@ -280,12 +282,32 @@ export default function RouteTransition() {
       unlockInput = lockInput();
       const started = performance.now();
       let loaded = false;
+      const waitForWebGL = shouldWaitForIntro(window.location.pathname, reduced);
+      const waiting = new AbortController();
+      let deadline = 0;
+      cancelLoadWait = () => {
+        waiting.abort();
+        clearTimeout(deadline);
+        if (waitForWebGL) setIntroLoaderWaiting(false);
+      };
+      if (waitForWebGL) setIntroLoaderWaiting(true);
       const fonts = "fonts" in document ? document.fonts.ready : Promise.resolve();
       const windowLoaded = document.readyState === "complete"
         ? Promise.resolve()
-        : new Promise<void>((resolve) => window.addEventListener("load", () => resolve(), { once: true }));
-      const timeout = new Promise<void>((resolve) => setTimeout(resolve, MAX_LOAD_MS));
-      void Promise.race([Promise.all([fonts, windowLoaded]), timeout]).then(() => { loaded = true; });
+        : new Promise<void>((resolve) => window.addEventListener("load", () => resolve(), { once: true, signal: waiting.signal }));
+      const visual = waitForWebGL ? waitForIntroWebGLReady(waiting.signal) : Promise.resolve();
+      const timeout = new Promise<void>(resolve => {
+        deadline = window.setTimeout(() => {
+          if (waitForWebGL) markIntroWebGLTimeout();
+          resolve();
+        }, waitForWebGL ? INTRO_WEBGL_MAX_WAIT_MS : MAX_LOAD_MS);
+      });
+      // All requirements share a deadline starting now, never 6s + 8s.
+      void Promise.race([Promise.all([fonts, windowLoaded, visual]), timeout]).then(() => {
+        if (disposed || waiting.signal.aborted) return;
+        loaded = true;
+        cancelLoadWait();
+      });
 
       let counting = false;
       let shown = 0;
@@ -379,6 +401,7 @@ export default function RouteTransition() {
     document.addEventListener("click", onClick, true);
     return () => {
       disposed = true;
+      cancelLoadWait();
       cancelAnimationFrame(frame);
       clearTimeout(frame);
       unlockInput?.();

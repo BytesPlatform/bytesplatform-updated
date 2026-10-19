@@ -14,6 +14,8 @@ import ClientsSection from "./sections/ClientsSection";
 import SiteFooter from "./sections/SiteFooter";
 import { createFloatingCards, type FloatingCards } from "@/lib/hero/floatingCards";
 import { createInkTrail, type InkTrail } from "@/lib/hero/inkTrail";
+import { resetIntroWebGLReady, markIntroWebGLReady, setIntroReadinessStage, introReadinessDebug, introReadyLog } from "@/lib/introWebGLReadiness";
+import { watchVideoFrame, fluidVideoLog } from "@/lib/fluid/videoFrameReadiness";
 import { createFluidVideoRenderer } from "@/lib/fluid/createFluidVideoRenderer";
 import { createAutoScrollScene } from "@/lib/fluid/autoScrollScene";
 import { createPearlTrail } from "@/lib/intro/pearlTrail";
@@ -73,6 +75,9 @@ export default function IntroExperience() {
     const serviceCardElements = Array.from(container.querySelectorAll<HTMLElement>("[data-service-card-visual]"));
     let reelShown = -1;
     const reduced = prefersReducedMotion();
+    const readinessToken = resetIntroWebGLReady();
+    const readinessStage = (stage: string) => setIntroReadinessStage(readinessToken, stage);
+    if (reduced) markIntroWebGLReady(readinessToken, true);
     const coarse = isCoarsePointer();
     // Touch-only screens have no pointer to follow, so the pointer-driven effects
     // (the site-wide pearl trail and the hero's ink reveal) are never set up there:
@@ -88,16 +93,70 @@ export default function IntroExperience() {
     const loading = new AbortController();
     let renderer: THREE.WebGLRenderer;
     try {
-      if (!canvas.getContext("webgl2")) return;
       renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
-    } catch { return; }
+    } catch {
+      markIntroWebGLReady(readinessToken, true);
+      // Even without WebGL, retain muted HTML playback when the reel enters.
+      let visible = false;
+      const resumeFallback = () => {
+        if (!reduced && !document.hidden && visible) void video.play().catch(() => {});
+        else video.pause();
+      };
+      const observer = new IntersectionObserver(entries => {
+        visible = !!entries[0]?.isIntersecting;
+        resumeFallback();
+      });
+      observer.observe(studio);
+      document.addEventListener("visibilitychange", resumeFallback);
+      return () => {
+        observer.disconnect();
+        document.removeEventListener("visibilitychange", resumeFallback);
+        video.pause();
+        resetIntroWebGLReady();
+      };
+    }
+    introReadyLog("renderer created");
+    readinessStage("video-frame");
     renderer.setClearColor(0, 0);
     const lines = createOrbitalLines();
     const serviceCards = createServiceCards();
-    const fluid = createFluidVideoRenderer(renderer, {
+    const fluid = reduced ? null : createFluidVideoRenderer(renderer, {
       video, segments: coarse ? [48, 32] : [72, 48],
-      radius: [18, 28], strength: responsive(window.innerWidth).strength, mipmaps: true,
+      radius: [18, 28], strength: responsive(window.innerWidth).strength,
     });
+    let fluidVideoReady = false;
+    let verifiedFluidFrame = false;
+    let contextLost = false;
+    const showFallback = () => {
+      fluidVideoReady = false;
+      verifiedFluidFrame = false;
+      readinessStage("video-frame");
+      video.style.opacity = "";
+      if (reel) {
+        reelShown = 0;
+        reel.style.opacity = "0";
+        reel.style.visibility = "hidden";
+      }
+    };
+    const frames = fluid ? watchVideoFrame(video, () => {
+      if (contextLost || needsResize) return null;
+      const { stage, startRect, endRect } = measureLayout();
+      if (stage.width <= 0 || stage.height <= 0 || startRect.width <= 0 || startRect.height <= 0 || endRect.width <= 0 || endRect.height <= 0) return null;
+      const rect = (r: DOMRect) => ({ x: r.left - stage.left, y: r.top - stage.top, w: r.width, h: r.height });
+      fluid.layout({ w: stage.width, h: stage.height }, rect(startRect), rect(endRect));
+      readinessStage("continuous-video-frames");
+      return fluid.verifyCurrentVideoFrame();
+    }, ready => {
+      if (!ready) showFallback();
+      else {
+        verifiedFluidFrame = true;
+        markIntroWebGLReady(readinessToken);
+      }
+    }) : null;
+    const playVideo = () => {
+      fluidVideoLog(video, "HTML video play requested");
+      void video.play().catch(() => {});
+    };
     let cards: FloatingCards | null = null;
     let ink: InkTrail | null = null;
     let disposed = false;
@@ -212,7 +271,9 @@ export default function IntroExperience() {
     const thawLayout = () => { frozenLayout = null; };
     window.addEventListener("intro:dive-freeze", freezeLayout);
     window.addEventListener("intro:dive-thaw", thawLayout);
-    const measure = () => { needsResize = true; };
+    const measure = () => {
+      needsResize = true;
+    };
     const observer = new ResizeObserver(measure);
     observer.observe(hero);
     observer.observe(studio);
@@ -310,13 +371,21 @@ export default function IntroExperience() {
         if (fluid) fluid.strength = responsive(width).strength;
       }
       const inStudio = studioRect.top < window.innerHeight && studioRect.bottom > 0;
-      if (videoVisible !== inStudio) {
-        videoVisible = inStudio;
-        if (inStudio && !reduced) video.play().catch(() => {});
-        else video.pause();
+      // Decode and prove the reel at the top of the page, even while the
+      // global GSAP timeline is held by the loader. The shared ticker runs.
+      const shouldPlayVideo = !reduced && (inStudio || !verifiedFluidFrame);
+      if (videoVisible !== shouldPlayVideo) {
+        videoVisible = shouldPlayVideo;
+        if (shouldPlayVideo) {
+          playVideo();
+        } else video.pause();
       }
       if (bounds.bottom <= 0 || bounds.top >= window.innerHeight) {
         pearlTrail?.update(0, 0, 0, false, width, height);
+        return;
+      }
+      if (contextLost) {
+        updateReadout();
         return;
       }
       const dt = Math.min(elapsed / 1000, 0.05);
@@ -356,15 +425,22 @@ export default function IntroExperience() {
       if (!phone && servicesRect.bottom > 0) lines.render(renderer, lineOffset, reduced ? 1 : lineProgress);
       const inServices = servicesRect.top < window.innerHeight && servicesRect.bottom > 0;
       if (inServices) serviceCards.render(renderer, serviceCardElements, stage, pointer, reduced ? 0 : time, dt);
-      if (fluid && inStudio && video.readyState >= 2 && !reduced) {
+      if (fluid && inStudio && video.readyState >= 2 && verifiedFluidFrame) {
         const rect = (r: DOMRect) => ({ x: r.left - stage.left, y: r.top - stage.top, w: r.width, h: r.height });
         fluid.layout({ w: width, h: height }, rect(startRect), rect(endRect));
         fluid.debugMode = Number(studio.dataset.debugMode || 0);
         fluid.render(state.progress);
-        video.style.opacity = "0";
+        if (!renderer.getContext().isContextLost()) {
+          if (!fluidVideoReady) fluidVideoLog(video, "HTML fallback hidden");
+          fluidVideoReady = true;
+          video.style.opacity = "0";
+        } else showFallback();
+      } else if (fluidVideoReady) {
+        fluidVideoReady = false;
+        video.style.opacity = "";
       }
       // Fade the reel title in as the video settles into its final frame.
-      const reelOpacity = reduced ? 0 : Math.round(Math.min(1, Math.max(0, (state.progress - 0.7) / 0.3)) * 100) / 100;
+      const reelOpacity = reduced || !fluidVideoReady ? 0 : Math.round(Math.min(1, Math.max(0, (state.progress - 0.7) / 0.3)) * 100) / 100;
       if (reel && reelOpacity !== reelShown) {
         reelShown = reelOpacity;
         reel.style.opacity = String(reelOpacity);
@@ -431,18 +507,52 @@ export default function IntroExperience() {
       // Liquid sits above the line; the hero masking trail stays below it.
       renderer.setScissorTest(false);
       if (!transitioning) pearlTrail?.render();
-      const readout = studio.querySelector<HTMLElement>("[data-fluid-readout]");
-      if (readout) readout.textContent = `Progress ${state.progress.toFixed(2)} · shared canvas ${canvas.width}×${canvas.height} · lines ${(lineProgress * 100).toFixed(0)}%`;
+      updateReadout();
     };
+    const updateReadout = () => {
+      const readout = studio.querySelector<HTMLElement>("[data-fluid-readout]");
+      if (readout) readout.textContent = `${introReadinessDebug()} · video readyState: ${video.readyState} · ${frames?.debug() ?? "VideoTexture disabled"} · fluid WebGL ready: ${fluidVideoReady ? "yes" : "no"} · video size: ${video.videoWidth}×${video.videoHeight} · canvas: ${canvas.width}×${canvas.height} · DPR: ${dpr} · context lost: ${contextLost ? "yes" : "no"} · progress: ${state.progress.toFixed(2)}`;
+    };
+    const onContextLost = (event: Event) => {
+      event.preventDefault();
+      contextLost = true;
+      frames?.suspend();
+      showFallback();
+      if (stats) delete stats.dataset.sheet;
+      fluidVideoLog(video, "webglcontextlost");
+      updateReadout();
+    };
+    const onContextRestored = () => {
+      // Three's earlier listener reinitializes its GPU caches. Retain all
+      // shared scenes, targets, listeners and the single ticker; Three lazily
+      // reuploads their resources. The probe forces a fresh video upload.
+      contextLost = false;
+      needsResize = true;
+      showFallback();
+      if (stats) stats.dataset.sheet = "canvas";
+      if (!reduced) frames?.restart();
+      fluidVideoLog(video, "webglcontextrestored");
+      updateReadout();
+    };
+    canvas.addEventListener("webglcontextlost", onContextLost);
+    canvas.addEventListener("webglcontextrestored", onContextRestored);
     const onVisibility = () => {
       if (document.hidden) video.pause();
-      else if (videoVisible && !reduced) video.play().catch(() => {});
+      else if (videoVisible && !reduced) {
+        playVideo();
+      }
       workScene?.setVisible(workVisible && !document.hidden, workInteractive && !document.hidden);
     };
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) onVisibility();
+    };
+    window.addEventListener("pageshow", onPageShow);
     document.addEventListener("visibilitychange", onVisibility);
     gsap.ticker.add(tick);
+    frames?.restart();
     return () => {
       disposed = true;
+      resetIntroWebGLReady();
       workCancelled = true;
       loading.abort();
       gsap.ticker.remove(tick);
@@ -456,6 +566,10 @@ export default function IntroExperience() {
       window.removeEventListener("intro:loader-state", onLoaderState);
       document.documentElement.removeEventListener("pointerleave", onLeave);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", onPageShow);
+      canvas.removeEventListener("webglcontextlost", onContextLost);
+      canvas.removeEventListener("webglcontextrestored", onContextRestored);
+      frames?.dispose();
       video.pause();
       video.style.opacity = "";
       canvas.style.transform = "";

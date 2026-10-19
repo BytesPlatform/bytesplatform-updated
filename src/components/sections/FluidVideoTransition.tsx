@@ -27,7 +27,6 @@ export default function FluidVideoTransition() {
 
   useEffect(() => {
     if (
-      process.env.NODE_ENV !== "production" &&
       new URLSearchParams(window.location.search).has("fluid-debug")
     ) {
       setDebug(true);
