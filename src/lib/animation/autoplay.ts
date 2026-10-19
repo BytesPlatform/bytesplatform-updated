@@ -1,5 +1,5 @@
 import gsap from "gsap";
-import { nudgeScroll, onScrollInput } from "@/lib/animation/scroll";
+import { isProgrammaticScroll, nudgeScroll, onScrollInput } from "@/lib/animation/scroll";
 
 type AutoplayOptions = {
   /** page scroll where the band starts */
@@ -46,6 +46,12 @@ export function createScrollAutoplay(opts: AutoplayOptions) {
     const y = window.scrollY;
     const moved = y - lastY;
     lastY = y;
+    // A jump or glide (back to top, say) passes straight through the band.
+    if (isProgrammaticScroll()) {
+      direction = 0;
+      lastSet = null;
+      return;
+    }
     if (bottom - top < 2) return;
     if (!direction) {
       if (y <= top + 1 || y >= bottom - 1) return;

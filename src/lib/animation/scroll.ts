@@ -20,6 +20,16 @@ let mounted = 0;
 let teardown: Teardown | null = null;
 /** the live Lenis instance, if smooth scrolling is on — for lockScroll */
 let activeLenis: LenisLike | null = null;
+/**
+ * True while the page is carried by an anchor jump or a glide, until it
+ * lands or the reader takes over. Scroll autoplay bands stand down meanwhile.
+ */
+let programmatic = false;
+
+/** whether a jump or glide (not the reader) is moving the page */
+export function isProgrammaticScroll() {
+  return programmatic;
+}
 
 /**
  * Starts smooth scrolling and same-page anchor routing. Lenis loads lazily
@@ -55,7 +65,10 @@ export function mountScroll(opts: { smooth: boolean }): Teardown {
       });
       lenis = instance as unknown as LenisLike;
       activeLenis = lenis;
-      lenis.on("virtual-scroll", ({ deltaY }) => inputListeners.forEach(listener => listener(deltaY)));
+      lenis.on("virtual-scroll", ({ deltaY }) => {
+        programmatic = false;
+        inputListeners.forEach(listener => listener(deltaY));
+      });
       gsap.ticker.add(tick);
     });
   }
@@ -76,7 +89,12 @@ export function mountScroll(opts: { smooth: boolean }): Teardown {
     const target = document.querySelector<HTMLElement>(id);
     if (!target) return;
     e.preventDefault();
-    if (lenis) lenis.scrollTo(target, { offset: 0 });
+    // #top is the very top of the page, whatever a pinned hero reports.
+    const destination = id === "#top" ? 0 : target;
+    if (lenis) {
+      programmatic = true;
+      lenis.scrollTo(destination, { offset: 0, onComplete: () => { programmatic = false; } });
+    } else if (destination === 0) window.scrollTo({ top: 0, behavior: "smooth" });
     else target.scrollIntoView({ behavior: "smooth" });
   };
   document.addEventListener("click", onAnchorClick);
@@ -88,6 +106,7 @@ export function mountScroll(opts: { smooth: boolean }): Teardown {
     lenis?.destroy();
     lenis = null;
     activeLenis = null;
+    programmatic = false;
   };
 
   return release;
@@ -156,8 +175,12 @@ export function jumpTo(y: number) {
 
 /** scrolls the page to y over `duration` seconds, so scrubbed scenes play on the way */
 export function glideTo(y: number, duration: number) {
-  if (activeLenis) activeLenis.scrollTo(y, { duration, easing: (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2), force: true });
-  else window.scrollTo({ top: y, behavior: "smooth" });
+  if (!activeLenis) {
+    window.scrollTo({ top: y, behavior: "smooth" });
+    return;
+  }
+  programmatic = true;
+  activeLenis.scrollTo(y, { duration, onComplete: () => { programmatic = false; }, easing: (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2), force: true });
 }
 
 /** Calls back with each scroll input from the reader (positive = down). Returns the unsubscribe. */
