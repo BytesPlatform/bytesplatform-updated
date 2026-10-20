@@ -1,6 +1,7 @@
 import { site } from "@/data/site";
 import { serviceLinks } from "@/data/services";
 import { productLinks } from "@/data/products";
+import { projects } from "@/data/projects";
 import { getAllPosts } from "@/lib/blog";
 import type { MetadataRoute } from "next";
 
@@ -36,6 +37,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
       priority: 0.8,
+    })),
+    ...projects.map(({ slug }) => ({
+      url: `${BASE}/work/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
     })),
   ];
 }

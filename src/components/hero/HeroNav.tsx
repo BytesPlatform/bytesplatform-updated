@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
+import { isHomePath } from "@/lib/work/caseRoute";
 import NavButton from "../ui/NavButton";
 import SiteMenu from "./SiteMenu";
 
@@ -18,7 +19,8 @@ export default function HeroNav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [buttonActive, setButtonActive] = useState(false);
   const pathname = usePathname();
-  const onHome = pathname === "/";
+  // A case study's URL is still the home page underneath.
+  const onHome = isHomePath(pathname);
   const [caseHost, setCaseHost] = useState<HTMLElement | null>(null);
   useEffect(() => {
     const moveHeader = (event: Event) => setCaseHost((event as CustomEvent<HTMLElement | null>).detail);
