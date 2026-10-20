@@ -12,7 +12,6 @@
 .work-case-study .case-content, .work-case-study .case-close, .work-case-study .case-progress { opacity: var(--case-reveal); }
 .work-case-study[data-transitioning="true"] .case-content, .work-case-study[data-transitioning="true"] .case-close { pointer-events: none; }
 .case-content { display: flex; align-items: center; width: max-content; min-width: 100%; height: 100svh; gap: clamp(28px, 4vw, 80px); }
-.case-stage { position: relative; width: 100vw; height: 100svh; flex: none; }
 .case-close { position: fixed; z-index: 3; top: var(--bp-gut); left: 50%; transform: translate(-50%, calc((1 - var(--case-back-reveal, 0)) * -18px)); padding: 10px 16px; border: 1px solid #fff9; border-radius: 30px; background: #fffffff0; color: #242731; cursor: pointer; font-size: 11px; }
 
 .case-header { position: absolute; left: var(--bp-gut); top: 50%; transform: translateY(-50%); width: 27vw; max-width: 460px; }
@@ -23,15 +22,13 @@
 .case-project-link { display: inline-flex; color: #242731; background: white; border-radius: 30px; padding: 11px 18px; font-size: 11px; text-decoration: none; }
 .case-project-link[hidden] { display: none; }
 
-.case-hero { position: absolute; margin: 0; left: 70%; top: 52%; transform: translate(-50%, -50%); width: 58vw; aspect-ratio: 1500 / 937; max-height: 70svh; border-radius: 10px; overflow: hidden; background: #e2e5ec; }
-.case-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.case-caption { position: absolute; left: 16px; bottom: 16px; font-size: 9px; letter-spacing: .03em; color: #fff; background: #242731aa; padding: 8px 12px; border-radius: 20px; pointer-events: none; }
-.case-gallery { display: flex; align-items: center; gap: clamp(28px, 4vw, 80px); height: 100%; }
+/* One rail of figures, cover first, with a single gap throughout. The fixed
+   intro sits over the rail's leading padding, so the cover starts just past it. */
+.case-gallery { --case-gap: clamp(28px, 4vw, 80px); display: flex; align-items: center; gap: var(--case-gap); height: 100%; padding-left: calc(var(--bp-gut) + 42vw + var(--case-gap)); }
 .case-slide { flex: none; margin: 0; position: relative; }
 .case-slide img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
 .case-slide--landscape { width: min(66vw, 112svh); aspect-ratio: 1500 / 937; }
 .case-slide--portrait { height: 100svh; width: calc(100svh * var(--image-ratio, .461)); }
-.case-slide figcaption { position: absolute; top: calc(100% + 16px); left: 0; font-size: 10px; letter-spacing: .03em; color: color-mix(in srgb, var(--case-fg) 65%, transparent); }
 .case-end { flex: none; width: min(44vw, 720px); padding: 0 7vw 0 2vw; }
 .case-progress { position: fixed; bottom: 0; left: 0; right: 0; height: 3px; background: #24273112; }
 .case-progress-fill { height: 100%; background: var(--case-accent); transform: scaleX(0); transform-origin: left; }
@@ -39,16 +36,12 @@
 @media(max-width: 700px) {
   .case-close { top: 88px; font-size: 10px; }
 
-  .case-stage { width: 100vw; }
   .case-header { top: auto; bottom: 13svh; transform: none; width: calc(100% - 2 * var(--bp-gut)); max-width: none; }
   .case-header h1 { font-size: 30px; margin: 10px 0; }
 
 
-  .case-hero { left: 50%; top: 35%; width: calc(100vw - 2 * var(--bp-gut)); max-height: 28svh; }
-  .case-caption { font-size: 8px; padding: 6px 9px; left: 10px; bottom: 10px; }
   .case-slide--landscape { width: 88vw; }
   .case-slide--portrait { height: 100svh; width: calc(100svh * var(--image-ratio, .461)); }
-  .case-slide figcaption { font-size: 9px; max-width: 85vw; }
   .case-end { width: 88vw; padding: 0 var(--bp-gut); }
 }
 @media(max-height: 700px) and (min-width: 701px) {
@@ -60,7 +53,6 @@
 
 /* Project-specific presentation; the persistent site header keeps its controls. */
 .work-case-study [data-hero-nav] .hero-mark { color: var(--case-accent-ink, var(--case-accent)); }
-.case-stage { width: 116vw; }
 .case-header { top: 21svh; transform: none; width: 42vw; max-width: none; }
 .case-header h1 { font-size: clamp(42px, 4.5vw, 86px); font-weight: 400; margin: 0 0 48px; }
 .case-intro-columns { display: grid; grid-template-columns: minmax(0, 1fr) 12vw; gap: 5vw; }
@@ -71,9 +63,7 @@
 .case-links a { color: var(--case-fg); font-size: 12px; text-decoration: none; overflow-wrap: anywhere; }
 .case-links a:hover { color: var(--case-accent); }
 .case-project-link { margin-top: 20px; padding: 17px 24px; text-transform: uppercase; font-size: 11px; }
-.case-hero { left: 83vw; width: 64vw; }
 .case-slide--portrait img { border-radius: 0; }
-.case-slide--portrait figcaption { top: auto; bottom: 76px; left: 14px; right: 14px; width: fit-content; padding: 6px 10px; border-radius: 20px; background: #0009; color: #fff; }
 .case-palette { position: fixed; z-index: 4; bottom: 26px; left: var(--bp-gut); color: #242731; font: 12px/1.4 Arial, sans-serif; opacity: var(--case-reveal); }
 .work-case-study[data-transitioning="true"] .case-palette { pointer-events: none; }
 .case-palette summary { width: fit-content; list-style: none; padding: 11px 16px; background: white; border-radius: 24px; cursor: pointer; box-shadow: 0 2px 18px #0001; }
@@ -89,7 +79,8 @@
 .case-palette [data-copy] { background: #242731; color: white; }
 .case-palette-status { display: block; font-size: 10px; margin-top: 10px; }
 @media(max-width: 700px) {
-  .case-stage { width: 190vw; }
+  /* The intro fills the first screen; the cover starts on the next. */
+  .case-gallery { padding-left: 100vw; }
   .case-header { top: 21svh; bottom: auto; left: var(--bp-gut); width: calc(100vw - 2 * var(--bp-gut)); }
   .case-header h1 { font-size: 38px; margin-bottom: 24px; }
   .case-intro-columns { grid-template-columns: minmax(0, 1fr) 90px; gap: 18px; }
@@ -99,7 +90,6 @@
   .case-services, .case-links a { font-size: 10px; }
   .case-links { margin-top: 24px; }
   .case-project-link { font-size: 9px; padding: 12px 16px; margin-top: 4px; }
-  .case-hero { left: 144vw; top: 52%; width: 88vw; max-height: none; }
   .case-palette { bottom: 26px; }
   .case-palette-body { width: min(290px, calc(100vw - 2 * var(--bp-gut))); }
 }
@@ -119,8 +109,6 @@
 }
 
 /* Natural image proportions, independent of the viewport's proportions. */
-.case-hero { width: min(64vw, calc(70svh * var(--image-ratio, 1.6))); height: auto; max-height: none; aspect-ratio: var(--image-ratio, 1.6); background: transparent; }
-.case-hero img { object-fit: contain; }
 .case-slide--landscape { width: min(66vw, calc(70svh * var(--image-ratio, 1.6))); aspect-ratio: var(--image-ratio, 1.6); }
 .case-slide--portrait { aspect-ratio: var(--image-ratio, .461); }
 /* The intro stays anchored; its children animate independently as images pass. */
@@ -139,14 +127,13 @@
 .case-next-project:hover .case-next-title, .case-next-project:focus-visible .case-next-title { color: #34343e; }
 .case-next-project:hover .case-next-rule { transform: scaleX(1.15); }
 @media(max-width: 700px) {
-  .case-hero { width: min(88vw, calc(70svh * var(--image-ratio, 1.6))); }
   .case-slide--landscape { width: min(88vw, calc(70svh * var(--image-ratio, 1.6))); }
   .case-end { width: 88vw; padding: 0; }
   .case-next-title, .case-next-label { left: var(--bp-gut); right: var(--bp-gut); }
   .case-next-title { font-size: 48px; }
 }
 /* Passing images occlude the independently animated introduction. */
-.case-hero, .case-slide, .case-end { z-index: 2; }
+.case-slide, .case-end { z-index: 2; }
 
 /* Same centered, expanding cursor language as the reel player's close button. */
 .work-card-cursor { position: fixed; left: 0; top: 0; width: 160px; height: 160px; z-index: 80; pointer-events: none; visibility: hidden; will-change: transform; --cursor-open: 0; }

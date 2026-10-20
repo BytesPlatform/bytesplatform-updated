@@ -10,7 +10,7 @@ import { createCardCursor } from './cardCursor';
 import { projects } from '@/data/projects';
 
 // Enable to restore the camera transition and internal case studies.
-const CASE_STUDIES_ENABLED = false;
+const CASE_STUDIES_ENABLED = true;
 
 /**
  * Embedded version of shader-learning; the section owns scrolling and frames.
@@ -1589,12 +1589,12 @@ caseStudy.setAttribute('data-lenis-prevent', '');
 caseStudy.setAttribute('aria-labelledby', 'case-title');
 caseStudy.innerHTML = `<button class="case-close" aria-label="Close case study">← BACK</button>
   <article class="case-content">
-    <section class="case-stage"><header class="case-header">
+    <header class="case-header">
     <h1 id="case-title" data-case="title"></h1><div class="case-intro-columns"><div class="case-story"><p data-case="overview"></p><p data-case="approach"></p>
     <a class="case-project-link" target="_blank" rel="noopener noreferrer" hidden>Launch project ↗</a></div>
     <aside class="case-facts"><h2>Services</h2><ul class="case-services"></ul><div class="case-links"><h2>Links</h2><a class="case-site-link" target="_blank" rel="noopener noreferrer"></a></div></aside></div></header>
-    <figure class="case-hero"><img alt="" decoding="async"><figcaption class="case-caption" data-case="caption"></figcaption></figure></section>
-    <div class="case-gallery" aria-label="Project images"></div>
+    <section class="case-gallery" aria-label="Project images">
+    <figure class="case-slide case-slide--landscape case-hero"><img alt="" decoding="async"></figure></section>
     <footer class="case-end"><button class="case-next-project"><img class="case-next-preview" alt="" aria-hidden="true"><span class="case-next-title"></span><span class="case-next-label">Next project <span class="case-next-rule"></span><span aria-hidden="true">→</span></span></button></footer>
   </article>
   <div class="case-progress" aria-hidden="true"><div class="case-progress-fill"></div></div>`;
