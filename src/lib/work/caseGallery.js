@@ -90,7 +90,7 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
         figure.className = `case-slide case-slide--${shot.orientation}`;
         const image = document.createElement('img');
         image.src = shot.src;
-        image.alt = `${project.name} — ${shot.caption}`;
+        image.alt = `${project.name}, ${shot.caption}`;
         image.loading = 'lazy';
         image.decoding = 'async';
         image.draggable = false;

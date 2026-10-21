@@ -7,12 +7,12 @@ export const dataAiServices = {
     meta: {
       title: "Generative AI Development",
       description:
-        "Generative AI services from BytesPlatform — use-case discovery, copilots built into your software, content and code generation, model evaluation, responsible AI.",
+        "Generative AI services from BytesPlatform, use-case discovery, copilots built into your software, content and code generation, model evaluation, responsible AI.",
     },
     hero: {
       title: ["Generative AI", "built into your product"],
       intro:
-        "We help you find where generative AI earns its place, then build it into your own software — copilots, generation features and the models behind them, tested and governed.",
+        "We help you find where generative AI earns its place, then build it into your own software, copilots, generation features and the models behind them, tested and governed.",
     },
     statement: "Generative AI is easy to demo and hard to ship. We focus on the part after the demo: quality, cost and trust.",
     labels: { statement: "Why GenAI", offer: "Services", highlights: "How we build", process: "Process", faq: "FAQ" },
@@ -93,7 +93,7 @@ export const dataAiServices = {
     meta: {
       title: "Data Modernization Services",
       description:
-        "Data modernization from BytesPlatform — move legacy databases and warehouses to the cloud, build modern data platforms and pipelines your teams and AI rely on.",
+        "Data modernization from BytesPlatform, move legacy databases and warehouses to the cloud, build modern data platforms and pipelines your teams and AI rely on.",
     },
     hero: {
       title: ["Data", "modernization"],
@@ -179,7 +179,7 @@ export const dataAiServices = {
     meta: {
       title: "Advanced Analytics & BI",
       description:
-        "Advanced analytics from BytesPlatform — dashboards, predictive models, forecasting and self-service BI that turn your data into decisions your teams can act on.",
+        "Advanced analytics from BytesPlatform, dashboards, predictive models, forecasting and self-service BI that turn your data into decisions your teams can act on.",
     },
     hero: {
       title: ["Advanced", "analytics"],
@@ -265,7 +265,7 @@ export const dataAiServices = {
     meta: {
       title: "Data Management & Governance",
       description:
-        "Data management from BytesPlatform — data governance, quality, master data, catalogs and security that keep your data accurate, compliant and easy to find.",
+        "Data management from BytesPlatform, data governance, quality, master data, catalogs and security that keep your data accurate, compliant and easy to find.",
     },
     hero: {
       title: ["Data management", "& governance"],
@@ -351,7 +351,7 @@ export const dataAiServices = {
     meta: {
       title: "Connected Intelligence & IoT",
       description:
-        "Connected intelligence from BytesPlatform — IoT platforms, device connectivity, edge data, digital twins and real-time monitoring that put sensor data to work.",
+        "Connected intelligence from BytesPlatform, IoT platforms, device connectivity, edge data, digital twins and real-time monitoring that put sensor data to work.",
     },
     hero: {
       title: ["Connected", "intelligence"],

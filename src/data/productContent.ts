@@ -11,14 +11,14 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
   "byte-bots": {
     slug: "byte-bots",
     meta: {
-      title: "Byte Bots — AI Chatbots for Sales & Support",
+      title: "Byte Bots, AI Chatbots for Sales & Support",
       description:
         "Byte Bots are custom AI chatbots trained on your business's own data. They answer in your brand's voice, qualify leads, automate support and turn conversations into insight.",
     },
     hero: {
       title: ["Byte Bots"],
       intro:
-        "The future of conversation, powered by AI. Custom chatbots trained on your own business data — they answer accurately in your brand's voice, qualify leads and support customers around the clock.",
+        "The future of conversation, powered by AI. Custom chatbots trained on your own business data. They answer accurately in your brand's voice, qualify leads and support customers around the clock.",
     },
     statement: "Every conversation is a chance to sell, support and learn. Byte Bots make sure none of them are wasted.",
     action: "Book a consultation",
@@ -28,7 +28,7 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
       items: [
         {
           title: "Plug & play integrations",
-          body: "Fits into the tools you already use — on your website, in your CRM and in the chat apps your customers and team live in.",
+          body: "Fits into the tools you already use, on your website, in your CRM and in the chat apps your customers and team live in.",
           tags: ["Website widget", "CRM & ERP connectors", "Slack, Teams, WhatsApp", "Webhooks & REST"],
         },
         {
@@ -38,7 +38,7 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
         },
         {
           title: "Data-driven intelligence",
-          body: "Chat logs become actionable insight — real-time dashboards, alerts, trend forecasts and executive summaries on demand.",
+          body: "Chat logs become actionable insight, real-time dashboards, alerts, trend forecasts and executive summaries on demand.",
         },
         {
           title: "Continuous learning",
@@ -49,14 +49,14 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
     highlights: {
       heading: "Built around your business",
       items: [
-        { title: "Trained on your data", body: "Your products, policies and voice — not generic answers from the open web." },
+        { title: "Trained on your data", body: "Your products, policies and voice, not generic answers from the open web." },
         { title: "In your control", body: "An admin portal for prompts, overrides and ongoing training, so the bot stays on message." },
         { title: "Always on", body: "Customers get answers and leads get followed up, day and night, without adding headcount." },
       ],
     },
     faqs: [
       { q: "How do Byte Bots work?", a: "Each bot is trained on your business's own content and connected to your tools. It answers customer questions, qualifies leads and hands off to your team when a person is needed." },
-      { q: "Can a Byte Bot be customized to my business?", a: "Yes. Every bot is built for your requirements — customer support, sales or internal processes — and speaks in your brand's voice." },
+      { q: "Can a Byte Bot be customized to my business?", a: "Yes. Every bot is built for your requirements, whether customer support, sales or internal processes, and speaks in your brand's voice." },
       { q: "Will it integrate with my existing systems?", a: "Byte Bots connect to websites, CRMs, ERPs and chat channels through ready integrations, webhooks and REST endpoints." },
       { q: "How do I get started?", a: "Book a free consultation. We'll scope your use case, then guide you through setup, training and customization." },
     ],
@@ -69,14 +69,14 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
   "byte-suites": {
     slug: "byte-suites",
     meta: {
-      title: "Byte Suites — Custom CRM & ERP Systems",
+      title: "Byte Suites, Custom CRM & ERP Systems",
       description:
-        "Byte Suites are custom CRM and ERP systems from BytesPlatform — lead management, AI assistance, invoicing, scheduling and analytics in one connected platform.",
+        "Byte Suites are custom CRM and ERP systems from BytesPlatform, lead management, AI assistance, invoicing, scheduling and analytics in one connected platform.",
     },
     hero: {
       title: ["Byte Suites"],
       intro:
-        "The future of CRM. One connected platform for leads, communication, billing and analytics — with an AI assistant built in, and room to grow into a full ERP.",
+        "The future of CRM. One connected platform for leads, communication, billing and analytics, with an AI assistant built in, and room to grow into a full ERP.",
     },
     statement: "Stop stitching tools together. Run customers, sales and operations from one place, built for the way you work.",
     action: "Book a consultation",
@@ -104,7 +104,7 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
         },
         {
           title: "Built-in business tools",
-          body: "Branded invoicing, appointment scheduling, inventory tracking and accounting — native, no third-party add-ons needed.",
+          body: "Branded invoicing, appointment scheduling, inventory tracking and accounting. Native, no third-party add-ons needed.",
           tags: ["Invoicing", "Scheduling", "Inventory", "Accounting"],
         },
       ],

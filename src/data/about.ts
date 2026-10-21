@@ -28,8 +28,8 @@ export const about = {
     },
   ],
   philosophy: [
-    "At Bytes, we don't just build software — we build trust, experiences, and futures. We believe in full transparency, working openly and collaboratively so our clients are part of every step, not just the final product. Innovation drives us, but clarity guides us.",
-    "We challenge the status quo of static portfolios and hidden processes by inviting you into the heart of development — live, real, and evolving. Every line of code, every design choice, is crafted with purpose, passion, and precision.",
+    "At Bytes, we don't just build software, we build trust, experiences, and futures. We believe in full transparency, working openly and collaboratively so our clients are part of every step, not just the final product. Innovation drives us, but clarity guides us.",
+    "We challenge the status quo of static portfolios and hidden processes by inviting you into the heart of development, live, real, and evolving. Every line of code, every design choice, is crafted with purpose, passion, and precision.",
     "Our mission is simple: to empower businesses with digital solutions that don't just look good but perform flawlessly, scale effortlessly, and grow sustainably.",
   ],
   philosophyQuote: "Your vision is our blueprint.",
@@ -40,7 +40,7 @@ export const about = {
     },
     {
       title: "Hyper-speed delivery",
-      body: "Agile methodology and parallel workflows deliver production-ready solutions 3× faster than industry benchmarks — without cutting corners.",
+      body: "Agile methodology and parallel workflows deliver production-ready solutions 3× faster than industry benchmarks, without cutting corners.",
       stat: "3×",
     },
     {

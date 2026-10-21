@@ -7,7 +7,7 @@ export const businessProcessServices = {
     meta: {
       title: "Contact Center Services",
       description:
-        "Contact center services from BytesPlatform — voice, chat, email and technical support run by trained agents, with AI for routing, summaries and routine questions.",
+        "Contact center services from BytesPlatform, voice, chat, email and technical support run by trained agents, with AI for routing, summaries and routine questions.",
     },
     hero: {
       title: ["Contact center", "services"],
@@ -32,7 +32,7 @@ export const businessProcessServices = {
         },
         {
           title: "Technical support",
-          body: "Tiered help desk support for software, devices and accounts — troubleshooting, ticket triage and clean escalations to your engineering team.",
+          body: "Tiered help desk support for software, devices and accounts, troubleshooting, ticket triage and clean escalations to your engineering team.",
           tags: ["Tier 1–2", "Help desk", "Escalations"],
         },
         {
@@ -93,12 +93,12 @@ export const businessProcessServices = {
     meta: {
       title: "Finance & Accounting Services",
       description:
-        "Finance and accounting services from BytesPlatform — payables, receivables, bookkeeping, reconciliations and month-end close, with the repetitive steps automated.",
+        "Finance and accounting services from BytesPlatform, payables, receivables, bookkeeping, reconciliations and month-end close, with the repetitive steps automated.",
     },
     hero: {
       title: ["Finance &", "accounting"],
       intro:
-        "We take on the day-to-day work of your finance team — payables, receivables, reconciliations and close — and automate the steps that slow it down.",
+        "We take on the day-to-day work of your finance team, from payables and receivables to reconciliations and close, and automate the steps that slow it down.",
     },
     statement: "Finance teams lose too many hours to keying in invoices and chasing reconciliations. We take that work on, and make it faster each month.",
     labels: { statement: "Why it matters", offer: "Services", highlights: "How we work", process: "Process", faq: "FAQ" },
@@ -179,7 +179,7 @@ export const businessProcessServices = {
     meta: {
       title: "Staff Augmentation",
       description:
-        "Staff augmentation from BytesPlatform — software engineers, designers and data and AI specialists who join your team and work in your tools.",
+        "Staff augmentation from BytesPlatform, software engineers, designers and data and AI specialists who join your team and work in your tools.",
     },
     hero: {
       title: ["Staff", "augmentation"],
@@ -262,7 +262,7 @@ export const businessProcessServices = {
     meta: {
       title: "Legal Process Outsourcing",
       description:
-        "Legal process outsourcing from BytesPlatform — document review, contract management, research and paralegal support for law firms and in-house legal teams.",
+        "Legal process outsourcing from BytesPlatform, document review, contract management, research and paralegal support for law firms and in-house legal teams.",
     },
     hero: {
       title: ["Legal process", "outsourcing"],
@@ -273,7 +273,7 @@ export const businessProcessServices = {
     labels: { statement: "Why outsource", offer: "Services", highlights: "How we work", process: "Process", faq: "FAQ" },
     offer: {
       heading: "How we support legal teams",
-      body: "Support work for litigation, transactions and day-to-day legal operations. We don't provide legal advice — your attorneys review and own every decision.",
+      body: "Support work for litigation, transactions and day-to-day legal operations. We don't provide legal advice. Your attorneys review and own every decision.",
       items: [
         {
           title: "Document review",
@@ -348,12 +348,12 @@ export const businessProcessServices = {
     meta: {
       title: "Recruitment Process Outsourcing",
       description:
-        "Recruitment process outsourcing from BytesPlatform — sourcing, screening, interview coordination and onboarding support, with AI tools that speed up hiring.",
+        "Recruitment process outsourcing from BytesPlatform, sourcing, screening, interview coordination and onboarding support, with AI tools that speed up hiring.",
     },
     hero: {
       title: ["Recruitment process", "outsourcing"],
       intro:
-        "We run all or part of your hiring — sourcing, screening, scheduling and offers — so your managers meet better candidates with less effort.",
+        "We run all or part of your hiring, from sourcing and screening to scheduling and offers, so your managers meet better candidates with less effort.",
     },
     statement: "Good candidates don't wait around. We keep your hiring pipeline moving, and give your managers back the time they spend on admin.",
     labels: { statement: "Why RPO", offer: "Services", highlights: "How we work", process: "Process", faq: "FAQ" },

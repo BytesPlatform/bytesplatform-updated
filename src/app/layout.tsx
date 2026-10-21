@@ -16,7 +16,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "BytesPlatform — We Build Intelligent Digital Experiences",
+    default: "BytesPlatform. We Build Intelligent Digital Experiences",
     template: "%s · BytesPlatform",
   },
   description:
@@ -43,15 +43,15 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: site.url,
     siteName: "BytesPlatform",
-    title: "BytesPlatform — We Build Intelligent Digital Experiences",
+    title: "BytesPlatform. We Build Intelligent Digital Experiences",
     description:
-      "AI-powered products, scalable applications and intelligent systems — designed and engineered in-house.",
+      "AI-powered products, scalable applications and intelligent systems, designed and engineered in-house.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BytesPlatform — We Build Intelligent Digital Experiences",
+    title: "BytesPlatform. We Build Intelligent Digital Experiences",
     description:
-      "AI-powered products, scalable applications and intelligent systems — designed and engineered in-house.",
+      "AI-powered products, scalable applications and intelligent systems, designed and engineered in-house.",
   },
   robots: {
     index: true,

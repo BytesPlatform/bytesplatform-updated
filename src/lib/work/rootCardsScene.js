@@ -1677,7 +1677,7 @@ function populateCase(index) {
   gallery.populate(projects[index], PROJECT_COVERS[index], projects[nextIndex], PROJECT_COVERS[nextIndex]);
   caseHero.style.setProperty('--image-ratio', String(cardPivots[index].media.aspect || 1500 / 937));
   caseImage.src = PROJECT_COVERS[index].src;
-  caseImage.alt = `${data.title} — ${data.caption}`;
+  caseImage.alt = `${data.title}, ${data.caption}`;
 }
 function nextCaseStudy() {
   if (caseBusy || caseSwitching) return;

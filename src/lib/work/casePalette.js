@@ -40,7 +40,7 @@ export function createCasePalette(dialog) {
   }
   tool.querySelector('[data-reset]').addEventListener('click', () => { drafts.set(project.slug, { ...project.caseTheme }); apply(); });
   tool.querySelector('[data-copy]').addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(code.value); status.textContent = 'Copied — paste into this project in src/data/projects.ts'; }
+    try { await navigator.clipboard.writeText(code.value); status.textContent = 'Copied. Paste into this project in src/data/projects.ts'; }
     catch { code.focus(); code.select(); status.textContent = 'Select and copy the code above.'; }
   });
   return {

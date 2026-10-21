@@ -33,7 +33,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     meta: {
       title: "AI Automation & AI Agents",
       description:
-        "AI automation and custom AI agents from BytesPlatform — workflow automation, LLM-powered assistants and agents that connect to your tools and take real work off your team.",
+        "AI automation and custom AI agents from BytesPlatform, workflow automation, LLM-powered assistants and agents that connect to your tools and take real work off your team.",
     },
     hero: {
       title: ["AI automation", "& AI agents"],
@@ -48,7 +48,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
       items: [
         {
           title: "Custom AI agents",
-          body: "Agents that research, draft, triage and act — reading from your data and working through your tools, with a person in the loop where it matters.",
+          body: "Agents that research, draft, triage and act, reading from your data and working through your tools, with a person in the loop where it matters.",
           tags: ["LLM agents", "Tool use", "Human-in-the-loop"],
         },
         {
@@ -103,9 +103,9 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
       items: ["Claude", "OpenAI", "LangChain", "LlamaIndex", "Python", "Node.js", "n8n", "Pinecone", "PostgreSQL", "AWS"],
     },
     faqs: [
-      { q: "What is the difference between automation and an AI agent?", a: "Automation follows fixed rules — when this happens, do that. An AI agent can read unstructured input, decide which steps to take and use tools to complete them. Most projects combine both." },
+      { q: "What is the difference between automation and an AI agent?", a: "Automation follows fixed rules. When this happens, do that. An AI agent can read unstructured input, decide which steps to take and use tools to complete them. Most projects combine both." },
       { q: "Will AI agents replace my team?", a: "Agents take over repetitive, rules-heavy work so your team can spend time on the decisions and relationships that need people. Sensitive actions can always require human approval." },
-      { q: "Is my data safe?", a: "We design around your data policies — access is limited to what each agent needs, activity is logged, and we can deploy with providers and regions that meet your compliance requirements." },
+      { q: "Is my data safe?", a: "We design around your data policies. Access is limited to what each agent needs, activity is logged, and we can deploy with providers and regions that meet your compliance requirements." },
       { q: "How long does an AI automation project take?", a: "A focused workflow can be prototyped in a few weeks. Larger multi-agent systems are delivered in phases, with each phase in use before the next begins." },
     ],
     cta: {
@@ -119,12 +119,12 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     meta: {
       title: "Custom SaaS & Product Development",
       description:
-        "Custom SaaS and software product development from BytesPlatform — product strategy, UX, multi-tenant architecture, billing and launch for startups and growing businesses.",
+        "Custom SaaS and software product development from BytesPlatform, product strategy, UX, multi-tenant architecture, billing and launch for startups and growing businesses.",
     },
     hero: {
       title: ["Custom SaaS", "& products"],
       intro:
-        "We take software products from idea to paying customers — strategy, design, engineering and launch, by one team that stays with the product as it grows.",
+        "We take software products from idea to paying customers, covering strategy, design, engineering and launch, with one team that stays with the product as it grows.",
     },
     statement: "A good product is more than working code. It's the right features, shipped in the right order, on a foundation that scales.",
     labels: { statement: "Our approach", offer: "Services", highlights: "Foundations", process: "Process", faq: "FAQ" },
@@ -206,7 +206,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     meta: {
       title: "Web & Mobile App Development",
       description:
-        "Web and mobile app development from BytesPlatform — responsive web applications and native or cross-platform iOS and Android apps, designed, built and supported by one team.",
+        "Web and mobile app development from BytesPlatform, responsive web applications and native or cross-platform iOS and Android apps, designed, built and supported by one team.",
     },
     hero: {
       title: ["Web & mobile", "apps"],
@@ -275,7 +275,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
       items: ["React", "Next.js", "React Native", "Flutter", "Swift", "Kotlin", "Node.js", "Firebase", "PostgreSQL", "AWS"],
     },
     faqs: [
-      { q: "Should I build a web app, a mobile app or both?", a: "It depends on your users and how they'll use the product. Many projects start with one platform and add the other — we'll recommend the order that gets you to value fastest." },
+      { q: "Should I build a web app, a mobile app or both?", a: "It depends on your users and how they'll use the product. Many projects start with one platform and add the other. We'll recommend the order that gets you to value fastest." },
       { q: "Native or cross-platform?", a: "Cross-platform suits most business apps and saves time and cost. Native is worth it for heavy graphics, complex device features or the very best performance." },
       { q: "Do you publish apps to the App Store and Google Play?", a: "Yes. We handle store listings, submission and review, and ship updates after launch." },
       { q: "Will you maintain the app after launch?", a: "Yes. We offer ongoing maintenance covering OS updates, security patches, bug fixes and new features." },
@@ -291,7 +291,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     meta: {
       title: "CRM & ERP Systems",
       description:
-        "Custom CRM and ERP systems from BytesPlatform — built, customized and integrated to bring sales, finance, inventory and operations into one connected platform.",
+        "Custom CRM and ERP systems from BytesPlatform, built, customized and integrated to bring sales, finance, inventory and operations into one connected platform.",
     },
     hero: {
       title: ["CRM & ERP", "systems"],
@@ -374,7 +374,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     meta: {
       title: "Government Opportunity & Proposal Technology",
       description:
-        "Government opportunity and proposal technology from BytesPlatform — tools that find relevant tenders and contracts, track deadlines and help teams build stronger proposals faster.",
+        "Government opportunity and proposal technology from BytesPlatform, tools that find relevant tenders and contracts, track deadlines and help teams build stronger proposals faster.",
     },
     hero: {
       title: ["Government", "proposal tech"],
@@ -455,7 +455,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     meta: {
       title: "E-Invoicing & Business System Integration",
       description:
-        "E-invoicing and business system integration from BytesPlatform — connect your ERP, accounting and sales systems to e-invoicing networks and to each other, with clean, compliant data.",
+        "E-invoicing and business system integration from BytesPlatform, connect your ERP, accounting and sales systems to e-invoicing networks and to each other, with clean, compliant data.",
     },
     hero: {
       title: ["E-invoicing &", "integration"],
@@ -510,7 +510,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     },
     faqs: [
       { q: "Do we need to replace our ERP for e-invoicing?", a: "Usually not. We integrate your existing ERP or accounting system with an accredited service provider and fix the data it sends." },
-      { q: "Are you a service provider (ASP)?", a: "No. We work alongside whichever accredited provider you choose, handling the ERP side — data, mapping and integration." },
+      { q: "Are you a service provider (ASP)?", a: "No. We work alongside whichever accredited provider you choose, handling the ERP side, including data, mapping and integration." },
       { q: "We're in the UAE. Can you help with the mandate?", a: "Yes. See our UAE e-invoicing page for the phases, deadlines and how we prepare your systems in time." },
       { q: "Which systems can you integrate?", a: "Most ERP, accounting, CRM, e-commerce and payment platforms with an API or data export. We'll confirm the approach after reviewing your setup." },
     ],
@@ -530,7 +530,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     hero: {
       title: ["Web", "development"],
       intro:
-        "Professional web development tailored to the unique needs of each client — combining creativity with modern technology to build custom solutions that drive business growth.",
+        "Professional web development tailored to the unique needs of each client, combining creativity with modern technology to build custom solutions that drive business growth.",
     },
     statement: "Fast, responsive websites and web applications, engineered from the first wireframe to the last deploy.",
     labels: { statement: "Our approach", offer: "Services", highlights: "Platforms", process: "Process", faq: "FAQ" },
@@ -604,8 +604,8 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     },
     faqs: [
       { q: "Why is web development important for my business?", a: "A professional, responsive and user-friendly website is how most customers first meet your business. It drives engagement and online visibility." },
-      { q: "How long does it take to build a website?", a: "It depends on the complexity and features involved. A standard website can be ready quickly, while larger custom projects take longer — we give you a clear timeline after discovery." },
-      { q: "What types of websites can you create?", a: "Business sites, e-commerce stores, blogs, portfolios and more — on WordPress, Shopify, or fully custom full-stack builds, depending on your requirements." },
+      { q: "How long does it take to build a website?", a: "It depends on the complexity and features involved. A standard website can be ready quickly, while larger custom projects take longer. We give you a clear timeline after discovery." },
+      { q: "What types of websites can you create?", a: "Business sites, e-commerce stores, blogs, portfolios and more, on WordPress, Shopify, or fully custom full-stack builds, depending on your requirements." },
       { q: "Will my website be mobile-friendly?", a: "Absolutely. Every website we build is responsive and works smoothly across smartphones, tablets and desktops." },
     ],
     cta: {
@@ -619,12 +619,12 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     meta: {
       title: "SEO Services",
       description:
-        "SEO services that grow organic rankings, traffic and visibility — keyword strategy, technical SEO, on-page and off-page optimization, and local SEO from BytesPlatform.",
+        "SEO services that grow organic rankings, traffic and visibility, keyword strategy, technical SEO, on-page and off-page optimization, and local SEO from BytesPlatform.",
     },
     hero: {
       title: ["Search engine", "optimization"],
       intro:
-        "If you're not ranking, you're bleeding revenue. We don't just improve your rankings — we drive targeted organic traffic that converts into real business growth.",
+        "If you're not ranking, you're bleeding revenue. We don't just improve your rankings, we drive targeted organic traffic that converts into real business growth.",
     },
     statement: "Every day, customers search for what you offer. If you're not on page one, those clicks go to your competitors.",
     labels: { statement: "Why SEO", offer: "Services", highlights: "Reporting & management", faq: "FAQ" },
@@ -632,7 +632,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
       heading: "Rank for what matters",
       body: "Search strategies built to lift your rankings and keep them growing.",
       items: [
-        { title: "Keyword strategy", body: "Industry-specific research that finds the terms with real buying intent — competitor and SERP analysis, long-tail opportunities and intent mapping." },
+        { title: "Keyword strategy", body: "Industry-specific research that finds the terms with real buying intent, competitor and SERP analysis, long-tail opportunities and intent mapping." },
         { title: "Technical SEO", body: "Full site audits that clear crawl errors, improve Core Web Vitals, fix mobile issues and add structured data for faster, healthier pages." },
         { title: "On-page & off-page", body: "Content aligned with search intent, conversion-focused meta titles and descriptions, and authority-building backlinks." },
         { title: "Local SEO", body: "Google Business Profile optimization, local keywords, citations and reviews, so you own searches in your city or region." },
@@ -659,7 +659,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
       ],
     },
     faqs: [
-      { q: "How long will it take to see results from SEO?", a: "SEO is a long-term strategy. Significant improvements typically take 3–6 months, though early results can appear within a few weeks — and weekly reports show you the progress as it happens." },
+      { q: "How long will it take to see results from SEO?", a: "SEO is a long-term strategy. Significant improvements typically take 3–6 months, though early results can appear within a few weeks, and weekly reports show you the progress as it happens." },
       { q: "Do I need to do anything to my website for SEO?", a: "We audit your site and optimize content, keywords and structure. You may need to approve some updates, but we handle the technical work." },
       { q: "Do you offer local SEO services?", a: "Yes. Local SEO helps your business rank in nearby searches and attract customers in your area." },
       { q: "Will SEO work for any type of business?", a: "SEO benefits businesses of every size and industry, from local stores to e-commerce platforms and service providers." },
@@ -675,19 +675,19 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     meta: {
       title: "App Development Services",
       description:
-        "Native and cross-platform mobile app development for iOS and Android — UX design, development, testing, launch and ongoing support from BytesPlatform.",
+        "Native and cross-platform mobile app development for iOS and Android, UX design, development, testing, launch and ongoing support from BytesPlatform.",
     },
     hero: {
       title: ["Mobile", "apps"],
       intro:
-        "We turn your ideas into powerful mobile experiences — intuitive, user-friendly applications tailored to your business needs.",
+        "We turn your ideas into powerful mobile experiences, intuitive, user-friendly applications tailored to your business needs.",
     },
     statement: "Your app isn't just a tool. It's a direct line to your customers and an extension of your brand.",
     labels: { statement: "Why mobile", offer: "Services", highlights: "Why us", process: "Features", faq: "FAQ" },
     offer: {
       heading: "Development services",
       items: [
-        { title: "Native iOS", body: "Swift and SwiftUI apps optimized for Apple's ecosystem — Face ID, Apple Pay, CloudKit sync and ARKit where it matters.", tags: ["Swift", "SwiftUI", "CloudKit", "TestFlight"] },
+        { title: "Native iOS", body: "Swift and SwiftUI apps optimized for Apple's ecosystem, with Face ID, Apple Pay, CloudKit sync and ARKit where it matters.", tags: ["Swift", "SwiftUI", "CloudKit", "TestFlight"] },
         { title: "Native Android", body: "Kotlin and Java apps that use the full Android platform, with Material Design and Google Play Services.", tags: ["Kotlin", "Java", "Material Design", "Firebase"] },
         { title: "Cross-platform", body: "React Native and Flutter apps that share one codebase across iOS and Android without giving up native feel.", tags: ["React Native", "Flutter"] },
         { title: "UI/UX design", body: "User research, wireframes, Figma prototypes and design systems for intuitive, accessible interfaces." },
@@ -700,7 +700,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
       body: "One team from the first prototype to version two.",
       items: [
         { title: "Pixel-perfect prototypes", body: "High-fidelity Figma prototypes that show the real experience before development starts." },
-        { title: "Frontend to cloud", body: "We handle every layer of your app — interface, backend and cloud services." },
+        { title: "Frontend to cloud", body: "We handle every layer of your app, interface, backend and cloud services." },
         { title: "Post-launch support", body: "Ongoing maintenance, security patches and version management to keep your app current." },
       ],
     },
@@ -734,12 +734,12 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     meta: {
       title: "Digital Marketing Services",
       description:
-        "Social media marketing and PPC advertising from BytesPlatform — content, campaigns and paid media that build brand awareness and generate measurable ROI.",
+        "Social media marketing and PPC advertising from BytesPlatform, content, campaigns and paid media that build brand awareness and generate measurable ROI.",
     },
     hero: {
       title: ["Digital", "marketing"],
       intro:
-        "Social media and paid campaigns designed to help businesses grow — creative that connects, backed by strategy that drives results.",
+        "Social media and paid campaigns designed to help businesses grow, creative that connects, backed by strategy that drives results.",
     },
     statement: "Great marketing is more than attractive posts. It's a connection with your audience and a brand they remember.",
     labels: { statement: "Our approach", offer: "Social media", highlights: "Paid advertising", faq: "FAQ" },
@@ -762,7 +762,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
       ],
     },
     faqs: [
-      { q: "What types of marketing services do you offer?", a: "Social media marketing, pay-per-click advertising, content and email campaigns — all aimed at growing your brand's online presence." },
+      { q: "What types of marketing services do you offer?", a: "Social media marketing, pay-per-click advertising, content and email campaigns, all aimed at growing your brand's online presence." },
       { q: "How do you track the success of marketing campaigns?", a: "We track website traffic, conversions, social engagement and other metrics with analytics tools to measure what's working." },
       { q: "How do you create a marketing strategy for my business?", a: "We start with your business goals, target audience and competitors, then build a marketing plan that fits your needs." },
       { q: "How long will it take to see results?", a: "Paid campaigns can show results within a few weeks; organic growth efforts usually take a few months." },
@@ -778,7 +778,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
     meta: {
       title: "Advanced Services",
       description:
-        "Data and analytics, cybersecurity and emerging technologies — advanced digital solutions from BytesPlatform, from AI automation to scalable tech integrations.",
+        "Data and analytics, cybersecurity and emerging technologies, advanced digital solutions from BytesPlatform, from AI automation to scalable tech integrations.",
     },
     hero: {
       title: ["Advanced", "services"],
@@ -801,7 +801,7 @@ export const serviceContent: Record<ServiceSlug, ServiceContent> = {
       items: [
         {
           title: "Cybersecurity",
-          body: "A multi-layered approach that keeps your business resilient against evolving threats — from detection and incident response to compliance and security awareness training.",
+          body: "A multi-layered approach that keeps your business resilient against evolving threats, from detection and incident response to compliance and security awareness training.",
         },
         {
           title: "Emerging technologies",

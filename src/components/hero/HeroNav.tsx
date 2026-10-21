@@ -94,7 +94,7 @@ export default function HeroNav() {
     <header data-hero-nav className="pointer-events-none fixed inset-x-0 top-0 z-50 flex items-center justify-between gap-6 px-[var(--bp-gut)] pt-[var(--bp-gut)] [&>*]:pointer-events-auto">
       <a
         href={onHome ? "#top" : "/"}
-        aria-label="BytesPlatform — home"
+        aria-label="BytesPlatform home"
         className="hero-mark text-ink transition-opacity duration-500 hover:opacity-60"
       >
         BYTES.

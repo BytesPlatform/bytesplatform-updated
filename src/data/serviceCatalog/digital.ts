@@ -7,12 +7,12 @@ export const digitalServices = {
     meta: {
       title: "Digital Consulting & Strategy",
       description:
-        "Digital consulting and strategy from BytesPlatform — roadmaps, product discovery and experience design that turn business goals into software your team can ship.",
+        "Digital consulting and strategy from BytesPlatform, roadmaps, product discovery and experience design that turn business goals into software your team can ship.",
     },
     hero: {
       title: ["Digital consulting", "& strategy"],
       intro:
-        "We help you decide what to build, in what order and why — then stay on to design it and see it delivered, so the plan never gets lost between the slide deck and the codebase.",
+        "We help you decide what to build, in what order and why, then stay on to design it and see it delivered, so the plan never gets lost between the slide deck and the codebase.",
     },
     statement: "A strategy is only as good as what ships from it. We write plans our own engineers would be happy to build.",
     labels: { statement: "Why strategy", offer: "Services", highlights: "How we work", process: "Process", faq: "FAQ" },
@@ -88,7 +88,7 @@ export const digitalServices = {
     meta: {
       title: "Digital Commerce",
       description:
-        "Digital commerce from BytesPlatform — online stores, B2B portals and marketplaces with secure payments, AI product recommendations and connected order operations.",
+        "Digital commerce from BytesPlatform, online stores, B2B portals and marketplaces with secure payments, AI product recommendations and connected order operations.",
     },
     hero: {
       title: ["Digital", "commerce"],

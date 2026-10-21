@@ -44,7 +44,7 @@ const TESTIMONIALS = [
   {
     title: "A true technology partner",
     quote:
-      "Their team transformed our vision into powerful, professional digital platforms. Their commitment went beyond simply completing a project — they approached the work as a true technology partner invested in our success.",
+      "Their team transformed our vision into powerful, professional digital platforms. Their commitment went beyond simply completing a project. They approached the work as a true technology partner invested in our success.",
     name: "George Wrighster",
     role: "Founder, QuantivaHQ",
     date: "Aug 2026",

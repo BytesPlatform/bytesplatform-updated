@@ -153,7 +153,7 @@ export default function ContactPage() {
             <Words text="Let's talk" tail={<span className="hero-period">.</span>} />
           </h1>
           <p data-hero-fade className={styles.heroIntro}>
-            Questions, feedback or a project in mind — tell us about it. Our team reads every message and replies
+            Questions, feedback or a project in mind. Tell us about it. Our team reads every message and replies
             promptly.
           </p>
         </section>
@@ -195,7 +195,7 @@ export default function ContactPage() {
                   <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
                 </span>
                 <p className={styles.sentTitle}>Message sent<span className="hero-period">.</span></p>
-                <p className={styles.body}>Thanks for reaching out. We&apos;ll get back to you shortly — usually within one business day.</p>
+                <p className={styles.body}>Thanks for reaching out. We&apos;ll get back to you shortly, usually within one business day.</p>
                 <button type="button" className={styles.textButton} onClick={() => setStatus("idle")}>Send another message</button>
               </div>
             ) : (

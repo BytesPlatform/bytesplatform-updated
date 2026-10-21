@@ -7,7 +7,7 @@ export const cloudSecurityServices = {
     meta: {
       title: "Cloud Operations & Migration",
       description:
-        "Cloud migration and cloud operations from BytesPlatform — planned moves to AWS, Azure or Google Cloud, then monitoring and cost control to run them well.",
+        "Cloud migration and cloud operations from BytesPlatform, planned moves to AWS, Azure or Google Cloud, then monitoring and cost control to run them well.",
     },
     hero: {
       title: ["Cloud operations", "& migration"],
@@ -27,7 +27,7 @@ export const cloudSecurityServices = {
         },
         {
           title: "Migration delivery",
-          body: "Workloads moved in waves — rehosted, replatformed or refactored — with tested cutovers and a rollback plan for each.",
+          body: "Workloads rehosted, replatformed or refactored and moved in waves, with tested cutovers and a rollback plan for each.",
           tags: ["Rehost", "Replatform", "Refactor", "Data migration"],
         },
         {
@@ -93,7 +93,7 @@ export const cloudSecurityServices = {
     meta: {
       title: "Cloud App Development & Integration",
       description:
-        "Cloud-native application development from BytesPlatform — scalable apps, APIs and system integrations, plus modernization of legacy software for the cloud.",
+        "Cloud-native application development from BytesPlatform, scalable apps, APIs and system integrations, plus modernization of legacy software for the cloud.",
     },
     hero: {
       title: ["Cloud app development", "& integration"],
@@ -163,7 +163,7 @@ export const cloudSecurityServices = {
       items: ["AWS", "Microsoft Azure", "Google Cloud", "Kubernetes", "Docker", "Node.js", ".NET", "Python", "PostgreSQL", "Kafka"],
     },
     faqs: [
-      { q: "What does cloud-native actually mean?", a: "It means the application is designed to run on cloud infrastructure from the start — packaged in containers or as managed services, deployed automatically, and able to scale and recover without manual work." },
+      { q: "What does cloud-native actually mean?", a: "It means the application is designed to run on cloud infrastructure from the start, packaged in containers or as managed services, deployed automatically, and able to scale and recover without manual work." },
       { q: "Do we need to rewrite our legacy application?", a: "Not always. Some applications can be moved and improved step by step. We assess the codebase and recommend the least disruptive path that still meets your goals." },
       { q: "Can you integrate with the software we already use?", a: "Yes. We connect most business platforms that offer APIs, and build custom connectors or middleware where they don't." },
       { q: "Will we own the code?", a: "Yes. The code, infrastructure definitions and documentation belong to you, so your team or any partner can work on them later." },
@@ -179,18 +179,18 @@ export const cloudSecurityServices = {
     meta: {
       title: "Managed Services",
       description:
-        "Managed IT and application services from BytesPlatform — ongoing support, monitoring and maintenance under clear service levels, so your systems stay reliable.",
+        "Managed IT and application services from BytesPlatform, ongoing support, monitoring and maintenance under clear service levels, so your systems stay reliable.",
     },
     hero: {
       title: ["Managed", "services"],
       intro:
-        "We take ongoing responsibility for your applications and IT — monitoring, support, maintenance and steady improvement — under service levels agreed up front.",
+        "We take ongoing responsibility for your applications and IT, covering monitoring, support, maintenance and steady improvement under service levels agreed up front.",
     },
     statement: "Systems don't stand still after launch. Someone has to watch them, fix them and keep them current. We do that work, every day.",
     labels: { statement: "Why managed", offer: "Services", highlights: "How we work", process: "Onboarding", faq: "FAQ" },
     offer: {
       heading: "What we manage",
-      body: "Pick the scope that fits — a single application, your cloud environment or your wider IT estate.",
+      body: "Pick the scope that fits, a single application, your cloud environment or your wider IT estate.",
       items: [
         {
           title: "Application support",
@@ -265,12 +265,12 @@ export const cloudSecurityServices = {
     meta: {
       title: "Digital Infrastructure",
       description:
-        "Digital infrastructure services from BytesPlatform — networks, servers, hybrid cloud and workplace technology designed, deployed and kept running.",
+        "Digital infrastructure services from BytesPlatform, networks, servers, hybrid cloud and workplace technology designed, deployed and kept running.",
     },
     hero: {
       title: ["Digital", "infrastructure"],
       intro:
-        "We design, build and maintain the networks, servers, hybrid environments and workplace technology your business runs on — from the office floor to the cloud.",
+        "We design, build and maintain the networks, servers, hybrid environments and workplace technology your business runs on, from the office floor to the cloud.",
     },
     statement: "Every application depends on the layers beneath it. When the network, servers and devices are solid, everything above them works better.",
     labels: { statement: "Why it matters", offer: "Services", highlights: "How we build", process: "Process", faq: "FAQ" },
@@ -351,12 +351,12 @@ export const cloudSecurityServices = {
     meta: {
       title: "Cybersecurity Services",
       description:
-        "Cybersecurity services from BytesPlatform — risk assessments, cloud and application security, identity, threat monitoring and compliance readiness.",
+        "Cybersecurity services from BytesPlatform, risk assessments, cloud and application security, identity, threat monitoring and compliance readiness.",
     },
     hero: {
       title: ["Cybersecurity", "services"],
       intro:
-        "We find the gaps in your systems, close them and help you stay ahead of threats — across your cloud, applications, devices and people.",
+        "We find the gaps in your systems, close them and help you stay ahead of threats, across your cloud, applications, devices and people.",
     },
     statement: "Security is not a product you buy once. It is a set of habits, controls and checks that have to hold up every day.",
     labels: { statement: "Why security", offer: "Services", highlights: "How we protect", process: "Process", faq: "FAQ" },
@@ -437,12 +437,12 @@ export const cloudSecurityServices = {
     meta: {
       title: "Emerging Technologies",
       description:
-        "Emerging technology services from BytesPlatform — blockchain, AR/VR, computer vision, IoT and RPA, explored through fast, practical prototypes.",
+        "Emerging technology services from BytesPlatform, blockchain, AR/VR, computer vision, IoT and RPA, explored through fast, practical prototypes.",
     },
     hero: {
       title: ["Emerging", "technologies"],
       intro:
-        "We help you test new technologies against real business problems — with focused prototypes that show what works before you commit to a full build.",
+        "We help you test new technologies against real business problems, with focused prototypes that show what works before you commit to a full build.",
     },
     statement: "New technology is only worth adopting when it solves a real problem. We find out quickly, with working prototypes rather than slide decks.",
     labels: { statement: "Why explore", offer: "Services", highlights: "How we work", process: "Process", faq: "FAQ" },
@@ -478,7 +478,7 @@ export const cloudSecurityServices = {
       items: [
         {
           title: "Problem first",
-          body: "We start with the business problem, then pick the technology — not the other way around.",
+          body: "We start with the business problem, then pick the technology, not the other way around.",
           points: ["Use-case workshops", "Feasibility checks", "Success criteria agreed up front", "Honest go/no-go calls"],
         },
         {

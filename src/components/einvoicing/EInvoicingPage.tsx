@@ -316,7 +316,7 @@ export default function EInvoicingPage() {
             <p data-hero-fade className={styles.heroIntro}>
               Appointing an accredited service provider is the legal step. Getting clean, PINT AE-valid invoice data out of
               your ERP is the real work. We audit, fix and integrate your ERP so every e-invoice passes before it
-              reaches your ASP — whichever ASP you choose.
+              reaches your ASP, whichever ASP you choose.
             </p>
             <ul data-hero-fade className={styles.capabilities}>
               {capabilities.map((item) => <li key={item}><span className="hero-dot" aria-hidden />{item}</li>)}
@@ -419,8 +419,8 @@ export default function EInvoicingPage() {
                 ))}
               </ul>
               <p className={styles.sourceNote}>
-                Under Cabinet Decision 106 of 2025 and Ministerial Decisions 243 &amp; 244 of 2025. Indicative only —
-                confirm your exposure with your tax adviser. Sources:{" "}
+                Under Cabinet Decision 106 of 2025 and Ministerial Decisions 243 &amp; 244 of 2025. Indicative only.
+                Confirm your exposure with your tax adviser. Sources:{" "}
                 {sources.map((source, index) => (
                   <Fragment key={source.href}>
                     {index > 0 && ", "}
@@ -453,7 +453,7 @@ export default function EInvoicingPage() {
           <h2 data-lines className={styles.ctaTitle}><Words text="Start with the audit, not the contract" tail={<span className="hero-period">.</span>} /></h2>
           <p data-reveal className={styles.body}>
             A data audit gives you a written gap report, a committed timeline and an honest answer on whether your
-            go-live date is achievable — whichever ASP you appoint.
+            go-live date is achievable, whichever ASP you appoint.
           </p>
           <div data-reveal><ActionPill href="#review" label="Book a readiness review" /></div>
         </section>

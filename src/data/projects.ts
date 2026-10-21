@@ -53,9 +53,9 @@ export const projects: Project[] = [
     name: "Nonni's Placement",
     discipline: ["Product Design", "Web Platform", "Admin Panel", "Payments"],
     summary:
-      "A placement platform for Washington State families, hospitals and providers — where clinical context, funding and urgency resolve into a shortlist of real communities instead of a phone tree.",
+      "A placement platform for Washington State families, hospitals and providers, where clinical context, funding and urgency resolve into a shortlist of real communities instead of a phone tree.",
     solution:
-      "A structured intake that captures the full clinical picture — care level, behavioral and memory needs, funding, urgency, distance — and organises listings against it, while keeping an RN in the decision. Providers list and maintain their own communities; an admin console governs listings, referrals and the review queue end to end.",
+      "A structured intake that captures the full clinical picture, including care level, behavioral and memory needs, funding, urgency and distance, then organises listings against it, while keeping an RN in the decision. Providers list and maintain their own communities; an admin console governs listings, referrals and the review queue end to end.",
     caseTheme: { accent: "#ff8a1f", bg: "#171411", fg: "#fff0de" },
     media: "browser",
     shots: [
@@ -72,9 +72,9 @@ export const projects: Project[] = [
     name: "The Benavente Group",
     discipline: ["Web Design", "Development", "SEO Architecture", "Content Engine"],
     summary:
-      "A five-page platform and content engine for a Honolulu commercial appraisal firm — each page carrying one burden of proof, and a knowledge system that ranks for the technical vocabulary its buyers search.",
+      "A five-page platform and content engine for a Honolulu commercial appraisal firm, each page carrying one burden of proof, and a knowledge system that ranks for the technical vocabulary its buyers search.",
     solution:
-      "Architecture that assigns one buyer question to each page — can they do this work, are they credible, have they done it before, do they understand my problem, how do I reach them discreetly — plus a definition-led content engine pairing a valuation term with a named professional audience and the Hawai'i jurisdiction.",
+      "Architecture that assigns one buyer question to each page. Can they do this work, are they credible, have they done it before, do they understand my problem, how do I reach them discreetly? Alongside it, a definition-led content engine pairing a valuation term with a named professional audience and the Hawai'i jurisdiction.",
     caseTheme: { accent: "#ba925b", bg: "#f6f0df", fg: "#121d30" },
     media: "browser",
     shots: [
@@ -97,9 +97,9 @@ export const projects: Project[] = [
     name: "Angels of Cascades",
     discipline: ["Brand Direction", "Web Design", "Development", "Motion"],
     summary:
-      "An adult family home experience built around reassurance — where the first thing a worried family meets is warmth, and the admission path is five clear steps rather than a form.",
+      "An adult family home experience built around reassurance, where the first thing a worried family meets is warmth, and the admission path is five clear steps rather than a form.",
     solution:
-      "A narrative structure that opens on a resident's journey — from uncertainty to comfort — then answers the practical questions in order: what care is provided, who it is for, which payers are welcome, and what the five admission steps actually are. Soft violet, editorial typography, and real moments instead of stock reassurance.",
+      "A narrative structure that opens on a resident's journey, from uncertainty to comfort, then answers the practical questions in order: what care is provided, who it is for, which payers are welcome, and what the five admission steps actually are. Soft violet, editorial typography, and real moments instead of stock reassurance.",
     caseTheme: { accent: "#9568e8", bg: "#f2edf9", fg: "#30243e" },
     media: "browser",
     shots: [
@@ -117,9 +117,9 @@ export const projects: Project[] = [
     name: "Aegis Creek",
     discipline: ["Web Design", "Development", "LinkedIn Paid Media", "Content"],
     summary:
-      "A Silicon Valley advisory helping deep-tech companies raise SBIR, STTR and federal funding — given a site that reads like the technical partner it is, plus an always-on LinkedIn acquisition program.",
+      "A Silicon Valley advisory helping deep-tech companies raise SBIR, STTR and federal funding, given a site that reads like the technical partner it is, plus an always-on LinkedIn acquisition program.",
     solution:
-      "A dark, engineering-grade brand site that leads with the outcome — raising government funds for AI, cleantech and semiconductors — and separates core services from sector focus so a founder can self-qualify immediately. Underneath it, a LinkedIn paid program built around audience-matched creative, a structured campaign calendar and a booking-first conversion path.",
+      "A dark, engineering-grade brand site that leads with the outcome, raising government funds for AI, cleantech and semiconductors, and separates core services from sector focus so a founder can self-qualify immediately. Underneath it, a LinkedIn paid program built around audience-matched creative, a structured campaign calendar and a booking-first conversion path.",
     caseTheme: { accent: "#22d3ee", bg: "#0d2026", fg: "#e5f5f5" },
     media: "browser",
     shots: [
@@ -135,7 +135,7 @@ export const projects: Project[] = [
     name: "IntelliMaint AI",
     discipline: ["Product Design", "Web App", "AI/RAG", "Auth & Onboarding"],
     summary:
-      "An AI virtual mechanic for military and civilian maintenance teams — upload a manual, search a vast repository, and get guided repair instructions with vision analysis and voice agents.",
+      "An AI virtual mechanic for military and civilian maintenance teams, upload a manual, search a vast repository, and get guided repair instructions with vision analysis and voice agents.",
     solution:
       "Document intelligence that chunks, embeds and indexes uploaded manuals for retrieval, layered over a 60,000+ manual library with LLM fallback when the corpus comes up short. A photo of a faulty component returns diagnostic context; a voice agent handles hands-busy work. Account types separate civilian, military and student access at signup.",
     caseTheme: { accent: "#2558e3", bg: "#0d121c", fg: "#eef4ff" },
@@ -159,9 +159,9 @@ export const projects: Project[] = [
     name: "Team Smith Logistics",
     discipline: ["Web Design", "Development", "Content", "Local SEO"],
     summary:
-      "A Southern California transport and recovery operator — mobile EV charging, luxury vehicle transport, heavy recovery — given a site that names every service instead of hiding them behind 'logistics'.",
+      "A Southern California transport and recovery operator covering mobile EV charging, luxury vehicle transport and heavy recovery, given a site that names every service instead of hiding them behind 'logistics'.",
     solution:
-      "A service-led architecture where each capability gets its own named block, its own explanation and its own entry point — backed by a real gallery, an FAQ that answers dispatch questions, and service-area copy naming LA, Riverside and San Bernardino explicitly.",
+      "A service-led architecture where each capability gets its own named block, its own explanation and its own entry point, backed by a real gallery, an FAQ that answers dispatch questions, and service-area copy naming LA, Riverside and San Bernardino explicitly.",
     caseTheme: { accent: "#2788bd", bg: "#eaf1f5", fg: "#162c40" },
     media: "browser",
     shots: [
@@ -183,9 +183,9 @@ export const projects: Project[] = [
     name: "Cascadia Health",
     discipline: ["Strategy", "UX/UI", "Web", "Service Architecture"],
     summary:
-      "A healthcare staffing site that sorts facilities, clinicians and families in the first screen — one domain, three sides of care, each with its own way in.",
+      "A healthcare staffing site that sorts facilities, clinicians and families in the first screen, one domain, three sides of care, each with its own way in.",
     solution:
-      "Segmentation first: the homepage opens on three doors — Request Staff, Join the Talent Team, Request Family Support — each leading to its own seven-step intake that starts with the lightest possible ask. Six services sit on one ladder, from a single per-diem shift to a workforce partnership, with eleven clinical disciplines named on both sides of the market.",
+      "Segmentation first: the homepage opens on three doors. Request Staff, Join the Talent Team and Request Family Support each lead to their own seven-step intake that starts with the lightest possible ask. Six services sit on one ladder, from a single per-diem shift to a workforce partnership, with eleven clinical disciplines named on both sides of the market.",
     caseTheme: { accent: "#6e2a5a", bg: "#f6efe6", fg: "#14213d" },
     media: "browser",
     shots: [
@@ -201,7 +201,7 @@ export const projects: Project[] = [
     name: "Goldway Capital",
     discipline: ["Strategy", "UX/UI", "Web", "Content"],
     summary:
-      "A Georgia senior solutions company across Medicare, final expense, probate property and investment lending — four regulated services under one brand, made easy to follow.",
+      "A Georgia senior solutions company across Medicare, final expense, probate property and investment lending, four regulated services under one brand, made easy to follow.",
     solution:
       "Entry by situation rather than product: the homepage opens on questions like Turning 65? and Need Flexible Financing?, each leading to its own pathway. Five audience-specific forms ask only what a first conversation needs and say what not to send, with a disclosure written per page, licences published where a sceptic will look, and 28 plain-language articles.",
     caseTheme: { accent: "#c9a24a", bg: "#0f1b2d", fg: "#f3ecdc" },
@@ -219,9 +219,9 @@ export const projects: Project[] = [
     name: "Trident Foundation Systems",
     discipline: ["Brand Experience", "UX/UI", "Development", "Technical Storytelling"],
     summary:
-      "A single continuous experience for a foundation and structural engineering firm — connecting the crack a homeowner can see to the below-grade engineering they can't.",
+      "A single continuous experience for a foundation and structural engineering firm, connecting the crack a homeowner can see to the below-grade engineering they can't.",
     solution:
-      "Organised around translation rather than persuasion: four symptoms decoded in the visitor's own words, four systems named with verbs — Stabilize, Reinforce, Protect, Restore — and presented as one engineered sequence, below-grade work shown with numbered callouts, and an evaluation form where Not sure is a valid answer.",
+      "Organised around translation rather than persuasion: four symptoms decoded in the visitor's own words, four systems named with the verbs Stabilize, Reinforce, Protect and Restore and presented as one engineered sequence, below-grade work shown with numbered callouts, and an evaluation form where Not sure is a valid answer.",
     caseTheme: { accent: "#b4532a", bg: "#13202e", fg: "#f1ebe2" },
     media: "browser",
     shots: [
@@ -236,7 +236,7 @@ export const projects: Project[] = [
     name: "Gilbert & Sons",
     discipline: ["UX/UI", "Development", "Local SEO", "Conversion Strategy"],
     summary:
-      "A roofing and stucco site for Las Cruces, built for the moment someone finds water on their ceiling — every service on its own page, and call, text or estimate one tap away.",
+      "A roofing and stucco site for Las Cruces, built for the moment someone finds water on their ceiling, every service on its own page, and call, text or estimate one tap away.",
     solution:
       "Nine roofing services at their own URLs, each written for a different search, plus a Las Cruces page written for the climate and thirteen Southern New Mexico markets named. Call, text and estimate sit side by side at every decision point, backed by a six-field estimate form and sixteen question-led articles for the research stage.",
     caseTheme: { accent: "#b3261e", bg: "#161414", fg: "#f3eee8" },
@@ -254,9 +254,9 @@ export const projects: Project[] = [
     name: "Rob Does It",
     discipline: ["Creative Direction", "UX/UI", "Booking Experience", "Web"],
     summary:
-      "A site for a Los Angeles host, interviewer and professional crowd mover that moves the way the night does — showing the energy first, with booking never more than one tap away.",
+      "A site for a Los Angeles host, interviewer and professional crowd mover that moves the way the night does, showing the energy first, with booking never more than one tap away.",
     solution:
-      "Poster-scale type and real rooms above the fold, with Watch Rob and Book Rob open at once. A feed instead of a gallery — 31 clips tagged by platform, with nine filters that turn one library into audience-specific showreels — plus three openly priced access levels and a five-step availability check framed as a conversation.",
+      "Poster-scale type and real rooms above the fold, with Watch Rob and Book Rob open at once. A feed instead of a gallery, with 31 clips tagged by platform and nine filters that turn one library into audience-specific showreels, plus three openly priced access levels and a five-step availability check framed as a conversation.",
     caseTheme: { accent: "#d4a63a", bg: "#141210", fg: "#f2ece0" },
     media: "browser",
     shots: [

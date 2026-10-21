@@ -7,7 +7,7 @@ import { getAllPosts } from "@/lib/blog";
 export const revalidate = 1200;
 
 export const metadata: Metadata = {
-  title: "Blog — Insights on Web, SEO, Apps & Marketing",
+  title: "Blog Insights on Web, SEO, Apps & Marketing",
   description:
     "Guides and insights from BytesPlatform on web development, SEO, mobile apps, digital marketing and AI.",
   alternates: { canonical: "/blogs" },

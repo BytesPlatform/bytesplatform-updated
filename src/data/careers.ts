@@ -4,7 +4,7 @@ export type Role = { title: string; team: string; requirements: string[] };
 
 export const careers = {
   intro:
-    "Innovate, collaborate and grow alongside a passionate team — where your ideas matter, your growth is prioritized, and your well-being is part of our mission.",
+    "Innovate, collaborate and grow alongside a passionate team, where your ideas matter, your growth is prioritized, and your well-being is part of our mission.",
   statement: "Great products come from people who are trusted to do their best work. That's the team we're building.",
   perks: ["Competitive salary", "Health insurance", "Flexible working hours", "Professional development"],
   about:
