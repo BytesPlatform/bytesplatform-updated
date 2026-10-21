@@ -164,7 +164,7 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
           <div className={styles.views} data-group={openGroup ?? undefined}>
             <div className={styles.mainView} inert={openGroup !== null}>
               <div className={styles.heading}>Navigation</div>
-              <nav aria-label="Site navigation" className={styles.links}>
+              <nav aria-label="Site navigation" className={`${styles.links} ${styles.mainLinks}`} data-lenis-prevent>
                 {links.map((link, index) => (
                   <CurrentLink
                     key={link.href}
