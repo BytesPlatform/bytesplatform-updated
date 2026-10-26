@@ -157,4 +157,300 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
       body: "Book a free Byte Suites consultation, or talk to us about a custom ERP.",
     },
   },
+  "bytescon": {
+    slug: "bytescon",
+    meta: {
+      title: "Bytescon, Federal Contracting Intelligence",
+      description:
+        "Bytescon is a multi-tenant federal contracting intelligence platform for consulting firms that help small businesses find, qualify, win and perform government contracts. Opportunity discovery, calibrated win probability, compliance matrices, AI proposal drafting and post-award tracking in one workspace.",
+    },
+    hero: {
+      title: ["Bytescon"],
+      intro:
+        "From notice to award, in one place. SAM.gov and FPDS opportunities land every morning, scored for win probability, mapped to FAR and DFARS requirements and ready for a proposal, with every client's pipeline kept separate in a single workspace.",
+    },
+    statement: "Every outcome, won or lost, recalibrates the model. Bytescon learns where your firm actually wins, and makes the next bid start from evidence.",
+    action: "Book a consultation",
+    labels: { statement: "Why Bytescon", offer: "Features", highlights: "Who it's for", process: "How it works", faq: "FAQ" },
+    offer: {
+      heading: "Find, score, bid and perform",
+      items: [
+        {
+          title: "Opportunity discovery",
+          body: "Automated SAM.gov and FPDS ingestion across your NAICS codes, with new notices matched to each client and waiting in the dashboard every morning.",
+          tags: ["SAM.gov & FPDS sync", "NAICS filters", "State & municipal bids", "Grants & civilian programs"],
+        },
+        {
+          title: "Calibrated win probability",
+          body: "An eight-factor score on every opportunity, recalibrated against each client's own history, with the breakdown shown and a bid or no-bid decision engine behind it.",
+          tags: ["P(win) scoring", "Bid / no-bid engine", "Score breakdowns", "Backtesting"],
+        },
+        {
+          title: "Contract analysis & compliance",
+          body: "Upload a solicitation for AI clause extraction and a compliance matrix that stays current through every amendment, with gaps turned into bid guidance and penalty risk flagged.",
+          tags: ["Sections L & M mapping", "FAR / DFARS clauses", "Gap analysis", "Document requirements"],
+        },
+        {
+          title: "Proposal Studio",
+          body: "Requirements become outlines, win themes and full draft PDFs in minutes, benchmarked against public award history before you submit, and always handed to a person for approval.",
+          tags: ["AI outlines & drafts", "Pricing workspace", "Template library", "Human-approved"],
+        },
+        {
+          title: "Set-aside, teaming & market intelligence",
+          body: "Eligibility matching for SDVOSB, 8(a), HUBZone and WOSB, agency award rates, incumbent and competitor lookups from USAspending, and partner recommendations with evidence.",
+          tags: ["Set-aside scanner", "Teaming board", "Prime contacts", "Agency buying profiles"],
+        },
+        {
+          title: "Post-award performance",
+          body: "Deliverables, modifications, options, timekeeping, indirect rates and receivables tracked after award, so performance data feeds the next bid.",
+          tags: ["Contract administration", "Receivables & cash flow", "Timekeeping", "Audit readiness"],
+        },
+      ],
+    },
+    highlights: {
+      heading: "Built for firms that win on behalf of others",
+      body: "Nine opt-in agents, one audit trail, and every client's data kept apart.",
+      items: [
+        {
+          title: "GovCon consulting firms",
+          body: "Many clients, one workspace.",
+          points: ["Per-client pipelines with no crossed data", "Branded client portals and PDF reports", "Role-based seats for your whole team"],
+        },
+        {
+          title: "Small business contractors",
+          body: "Enterprise-grade intelligence without the enterprise tier.",
+          points: ["Opportunities matched to your NAICS and certifications", "Win probability you can defend", "Add only the modules you need"],
+        },
+        {
+          title: "Proposal & capture teams",
+          body: "From solicitation to submission, faster.",
+          points: ["Compliance matrices in minutes", "AI-drafted outlines and full proposals", "Pricing checked against public award data"],
+        },
+        {
+          title: "AI-first operators",
+          body: "Bytescon where your team already works.",
+          points: ["MCP servers for Claude, Cursor and other agents", "REST API for custom dashboards and CRMs", "Every tool call audited and tenant-scoped"],
+        },
+      ],
+    },
+    process: {
+      heading: "From notice to award",
+      body: "A loop that runs every morning, and gets sharper with every outcome.",
+      steps: [
+        { title: "Discover", body: "SAM.gov and FPDS notices land each morning, matched to each client's NAICS codes and set-aside eligibility." },
+        { title: "Qualify", body: "An eight-factor win probability, calibrated to the client, and a bid or no-bid decision with the reasoning shown." },
+        { title: "Comply", body: "Clause extraction and a FAR / DFARS compliance matrix that stays current through every amendment." },
+        { title: "Propose", body: "Outlines, win themes and full drafts, priced against public award history and approved by a human before submission." },
+        { title: "Perform", body: "Deliverables, modifications and receivables tracked after award, so the next bid starts from evidence." },
+      ],
+    },
+    faqs: [
+      { q: "What is Bytescon?", a: "A federal contracting intelligence platform for consulting firms and small businesses. It finds opportunities, scores win probability, builds compliance matrices, drafts proposals and tracks performance after award, all in one multi-tenant workspace." },
+      { q: "Where does the data come from?", a: "SAM.gov, FPDS and USAspending are synced automatically, with FAR and DFARS clause libraries built in. State and municipal portals, grants and civilian programs can be added as modules." },
+      { q: "Does it work with multiple clients?", a: "Yes. Bytescon is multi-tenant by design. Each client gets its own pipeline, portal and branded reports, with no data shared across clients." },
+      { q: "Can I use it from Claude or other AI tools?", a: "Yes. The API & MCP Access module provides MCP servers for opportunity search, knowledge, proposals and core platform data, plus a REST API for custom integrations." },
+      { q: "How is it priced?", a: "A base plan covers search, scoring and the decision engine. Feature modules are added individually from $29/mo, or unlocked together with All Access. Every plan starts with a fourteen-day free trial and every module enabled." },
+    ],
+    cta: {
+      heading: "Ready to win more federal contracts",
+      body: "Book a free Bytescon consultation and see your pipeline scored, mapped and ready to bid.",
+    },
+  },
+  "e-invoicing": {
+    slug: "e-invoicing",
+    meta: {
+      title: "E-Invoicing, UAE FTA-Ready Invoicing & ERP",
+      description:
+        "Bytes E-Invoicing is a UAE-compliant invoicing platform for SMEs. Bytes ERP runs your business, Bytes Oak builds and validates PINT AE (UBL 2.1) e-invoices, hands them to an accredited service provider for Peppol delivery and FTA reporting, and keeps the legal archive for the full retention period.",
+    },
+    hero: {
+      title: ["E-Invoicing"],
+      intro:
+        "Compliant with the UAE e-invoicing mandate, without changing how you work. Create invoices in Bytes ERP or your existing accounting software, and Bytes Oak validates every document, routes it through an accredited provider to Peppol and the FTA, tracks both states and archives the proof.",
+    },
+    statement: "A rejection after go-live costs money. A rejection before you send costs nothing. Bytes Oak validates locally, blocks what would fail and keeps every compliance artefact the FTA could ask for.",
+    action: "Book a consultation",
+    labels: { statement: "Why E-Invoicing", offer: "Features", highlights: "Who it's for", process: "How it works", faq: "FAQ" },
+    offer: {
+      heading: "Everything between your invoice and the FTA",
+      items: [
+        {
+          title: "PINT AE compliance engine",
+          body: "Every invoice and credit note is built as a PINT AE (UBL 2.1) document, schema-validated and checked against VAT business rules before it leaves. Failures are blocked locally with plain-English hints, never discovered at the ASP.",
+          tags: ["UBL 2.1 / PINT AE", "XSD validation", "VAT rule checks", "TRN validation"],
+        },
+        {
+          title: "Peppol & FTA delivery",
+          body: "Documents are handed to an accredited service provider for Peppol exchange and the FTA Tax Data Document. Peppol state and FTA state are tracked independently, so a buyer-delivered invoice the FTA rejected is never shown as a success.",
+          tags: ["Accredited ASP routing", "Two-state tracking", "Webhooks & polling", "Resubmit & credit notes"],
+        },
+        {
+          title: "Rejection worklist",
+          body: "Rejections grouped by error code with a hint for each, the master data to fix and one-click resubmission. Retries never duplicate at the provider thanks to idempotent submissions.",
+        },
+        {
+          title: "Inbound supplier e-invoices",
+          body: "Supplier bills arrive through the same hub, are 3-way matched against purchase orders and receipts, and post to accounts payable, with partial matches and exceptions flagged for review.",
+          tags: ["Inbound receipt", "3-way match", "AP posting"],
+        },
+        {
+          title: "Legal archive & retention",
+          body: "Write-once archive of every XML and PDF with SHA-256 hashes, per-tenant retention clocks (5 years general, 7 for real estate), legal hold and a compliance audit log on every tenant.",
+          tags: ["Write-once storage", "Legal hold", "Retention clock", "Audit log"],
+        },
+        {
+          title: "Bytes ERP",
+          body: "A multi-tenant ERP to run the business itself: double-entry ledger, VAT with mandatory categories, gapless numbering, customers and suppliers with TRN and Peppol endpoints, payments and cheques, with role-based access and MFA.",
+          tags: ["Double-entry ledger", "Gapless numbering", "5% / 0% / exempt / reverse charge", "MFA & RBAC"],
+        },
+      ],
+    },
+    highlights: {
+      heading: "Built for UAE SMEs",
+      body: "One compliance hub shared by every client, with each tenant's data fully isolated.",
+      items: [
+        {
+          title: "Real estate & property management",
+          body: "Our first vertical, built in.",
+          points: ["Properties, units, landlords and tenancy contracts", "Rent schedules, service charges and OA levies", "7-year retention handled by default"],
+        },
+        {
+          title: "Businesses on Odoo, QuickBooks or Xero",
+          body: "Keep your accounting software, add compliance.",
+          points: ["Bytes Oak works standalone over a simple HTTPS API", "Idempotent invoice submission with full timelines", "No XML to build on your side"],
+        },
+        {
+          title: "Finance & accounts teams",
+          body: "See compliance at a glance.",
+          points: ["Dashboard KPIs as events arrive", "Rejections grouped and explained", "Signed links to archived XML and PDF"],
+        },
+        {
+          title: "Growing SMEs",
+          body: "Start with invoicing, grow into a full ERP.",
+          points: ["Contracting, automotive and professional services verticals on the roadmap", "Supabase-hosted, UAE data residency documented", "Every tenant isolated with enforced row-level security"],
+        },
+      ],
+    },
+    process: {
+      heading: "From invoice to FTA",
+      body: "The same pipeline for every invoice, whichever system it starts in.",
+      steps: [
+        { title: "Create", body: "Raise the invoice in Bytes ERP or send it from your own ERP over HTTPS with an idempotency key." },
+        { title: "Validate", body: "Bytes Oak builds the PINT AE document and checks schema, VAT maths, TRN format and category rules. Anything that would be rejected is stopped here." },
+        { title: "Transmit", body: "The document goes to an accredited service provider, which exchanges it on Peppol and reports the Tax Data Document to the FTA." },
+        { title: "Track", body: "Peppol and FTA states update in real time through signed webhooks and polling. Rejections land in the worklist with hints." },
+        { title: "Archive", body: "XML and PDF are stored write-once with hashes, retention clock and legal hold, available through short-lived signed links." },
+      ],
+    },
+    faqs: [
+      { q: "Is Bytes Oak an Accredited Service Provider?", a: "No. Bytes Oak is our compliance hub. It builds, validates, tracks and archives e-invoices, then hands them to an accredited service provider that handles Peppol exchange and FTA reporting." },
+      { q: "Do I have to use Bytes ERP?", a: "No. Bytes Oak works on its own with any ERP or accounting software that is not accredited, such as Odoo, QuickBooks or Xero, through a simple HTTPS API." },
+      { q: "What formats and rules does it support?", a: "PINT AE (UBL 2.1) invoices and credit notes, including zero-rated, exempt, reverse-charge and foreign-currency cases, validated against the official UBL schema and UAE VAT rules before transmission." },
+      { q: "How long are invoices kept?", a: "Retention follows Cabinet Decision 74/2023: five years by default, seven for real estate, with a legal hold that suspends expiry during a dispute or audit. Retention is set per tenant." },
+      { q: "How do I get started?", a: "Book a free consultation. We'll review your invoicing flow, connect Bytes Oak to your ERP or set you up on Bytes ERP, and run certification samples before go-live." },
+    ],
+    cta: {
+      heading: "Ready for the UAE e-invoicing mandate",
+      body: "Book a free E-Invoicing consultation and see your first invoice validated, delivered and archived.",
+    },
+  },
+  "molarline-ai": {
+    slug: "molarline-ai",
+    meta: {
+      title: "MolarLine AI, AI Receptionist for Dental Practices",
+      description:
+        "MolarLine AI is a HIPAA-minded AI phone receptionist for dental practices. It answers every call, identifies the patient, books cleanings and exams into open chair time, confirms by text and hands anything clinical or financial to your team, with an audit log for every record it touches.",
+    },
+    hero: {
+      title: ["MolarLine AI"],
+      intro:
+        "Keep every chair full, without adding to the front desk. An AI receptionist for dental practices that answers every call, finds the patient, books into open chair time at the right office, confirms by text and hands anything clinical to your team. Built for HIPAA from the first line of code.",
+    },
+    statement: "Calls ring while your desk is busy, at lunch and after hours. MolarLine answers in under a second, books into the same schedule and never says a word it isn't allowed to.",
+    action: "Book a demo",
+    labels: { statement: "Why MolarLine AI", offer: "Features", highlights: "What it never does", process: "How it works", faq: "FAQ" },
+    offer: {
+      heading: "A receptionist that books, and knows its limits",
+      items: [
+        {
+          title: "Answers every call",
+          body: "Picks up in under a second, 24/7, with your practice name and the recording notice your state requires. No hold music, no voicemail box nobody checks.",
+          tags: ["24/7 answering", "< 1 s pickup", "State recording disclosure", "Overflow & after-hours rules"],
+        },
+        {
+          title: "Books into open chair time",
+          body: "Matches the patient by name and date of birth, offers up to three open slots with the right provider at the right office, and writes the appointment to your schedule. The slot is re-checked the instant it's booked, so two callers can never take the same chair.",
+          tags: ["Patient matching", "Multi-office", "Provider-aware slots", "Double-booking guard"],
+        },
+        {
+          title: "Confirms by text",
+          body: "A confirmation carrying only date, time, provider and office, with SMS consent logged in the words the patient heard. Nothing about the reason for the visit ever goes by text.",
+          tags: ["SMS confirmations", "Reminders", "Consent logging", "STOP handling"],
+        },
+        {
+          title: "Hands over cleanly",
+          body: "Warm transfer with a one-line summary during office hours, first emergency slot for a patient in pain, a booking queue your desk works within the hour, and voicemail turned into a task when a transfer isn't answered.",
+          tags: ["Warm transfer", "Emergency visits", "Booking queue", "Voicemail to task"],
+        },
+        {
+          title: "Audit log on every record",
+          body: "Who accessed which record, when, why and the outcome, written as codes and a pseudonym rather than free text, so the log itself holds no PHI. Your dashboard shows it live.",
+          tags: ["HIPAA audit log", "Signed BAA", "Signature-verified webhooks", "No PHI in logs"],
+        },
+        {
+          title: "Works with your practice software",
+          body: "Dentrix, Open Dental and Eaglesoft through NexHealth, or the built-in chair schedule to start before connecting anything. Daily summaries, weekly reports and missed-call alerts by email.",
+          tags: ["Dentrix via NexHealth", "Open Dental & Eaglesoft", "Built-in schedule", "Email reports"],
+        },
+      ],
+    },
+    highlights: {
+      heading: "It knows what it is not allowed to do",
+      body: "The assistant handles scheduling only. Everything else goes to a person.",
+      items: [
+        {
+          title: "No clinical advice",
+          body: "Scheduling only, never medicine.",
+          points: ["Pain, swelling, bleeding and medication questions go to your team", "Call summarised before the handover", "Emergency slot offered, never an answer"],
+        },
+        {
+          title: "No money talk",
+          body: "Plans accepted, and nothing more.",
+          points: ["Never discusses balances or claims", "Never says what insurance will pay", "Billing questions transferred to the desk"],
+        },
+        {
+          title: "No record reading",
+          body: "Only the appointment being booked.",
+          points: ["Never sees clinical notes or balances", "No match means no record is opened", "New patients set up instead of guessed"],
+        },
+        {
+          title: "No arguing",
+          body: "A person is always one ask away.",
+          points: ["Transfers when a caller insists on a human", "Takes a message with a callback promise", "Never books a procedure it hasn't been told about"],
+        },
+      ],
+    },
+    process: {
+      heading: "Live in under an hour",
+      body: "A guided setup inside the product, then a test call before your number is forwarded.",
+      steps: [
+        { title: "Tell it about your practice", body: "Your offices and hours, your providers and what each one does, appointment types and lengths, the insurance you accept, and the words it uses when it answers." },
+        { title: "Connect your schedule", body: "Link Dentrix, Open Dental or Eaglesoft through NexHealth, or start on the built-in chair schedule and connect later." },
+        { title: "Make a test call", body: "Phone the assistant yourself, hear it answer as your practice and watch the booking land on the dashboard." },
+        { title: "Forward your number", body: "You keep your number. Forward it always, after four rings, or outside office hours. Most practices start with overflow and after hours and widen it once they trust it." },
+        { title: "Watch it work", body: "A dashboard with the day's chair schedule per office, every call and what happened on it, the confirmations it sent and the audit log an auditor would ask for." },
+      ],
+    },
+    faqs: [
+      { q: "Is it HIPAA compliant?", a: "It is built to be a business associate: a signed BAA is part of every plan, every access to a patient record is written to an audit log, the assistant handles scheduling only and refers anything clinical, and recordings live under the same controls as the rest of your data." },
+      { q: "Does it replace my front desk?", a: "No. It answers the calls that ring while your desk is busy, at lunch or after hours, and books into the same schedule. Your team sees every booking with a note on what the caller said, and takes over any call that needs a person." },
+      { q: "Will it answer insurance questions?", a: "It states which plans you accept and nothing more. Balances, claims and what a plan will pay are always handed to your team." },
+      { q: "What does it cost?", a: "Plans start at $149/month for one office and 300 minutes, $349/month for three offices with practice software integration and 1,000 minutes, and from $799/month for groups with unlimited offices and 3,000 minutes. Overage is $0.25 per minute, with no setup fee and no contract longer than a month." },
+      { q: "How do I get started?", a: "Book a demo. It takes twenty minutes, we configure the assistant with your offices, providers and hours, and you call it yourself. Cancel any time and we forward your number back the same day." },
+    ],
+    cta: {
+      heading: "See it on your own schedule",
+      body: "Book a twenty-minute MolarLine AI demo. We set it up with your offices, providers and hours, then you call it.",
+    },
+  },
 };
