@@ -8,9 +8,12 @@ import { createCaseGallery } from './caseGallery';
 import { createCasePalette } from './casePalette';
 import { createCardCursor } from './cardCursor';
 import { projects } from '@/data/projects';
+import { casePath, caseSlug } from './caseRoute';
 
 // Enable to restore the camera transition and internal case studies.
-const CASE_STUDIES_ENABLED = false;
+const CASE_STUDIES_ENABLED = true;
+/** Flight progress where the case study starts fading in (see syncCaseReveal). */
+const CASE_FADE_FROM = .88;
 
 /**
  * Embedded version of shader-learning; the section owns scrolling and frames.
@@ -1589,12 +1592,12 @@ caseStudy.setAttribute('data-lenis-prevent', '');
 caseStudy.setAttribute('aria-labelledby', 'case-title');
 caseStudy.innerHTML = `<button class="case-close" aria-label="Close case study">← BACK</button>
   <article class="case-content">
-    <section class="case-stage"><header class="case-header">
+    <header class="case-header">
     <h2 id="case-title" data-case="title"></h2><div class="case-intro-columns"><div class="case-story"><p data-case="overview"></p><p data-case="approach"></p>
     <a class="case-project-link" target="_blank" rel="noopener noreferrer" hidden>Launch project ↗</a></div>
     <aside class="case-facts"><h2>Services</h2><ul class="case-services"></ul><div class="case-links"><h2>Links</h2><a class="case-site-link" target="_blank" rel="noopener noreferrer"></a></div></aside></div></header>
-    <figure class="case-hero"><img alt="" decoding="async"><figcaption class="case-caption" data-case="caption"></figcaption></figure></section>
-    <div class="case-gallery" aria-label="Project images"></div>
+    <section class="case-gallery" aria-label="Project images">
+    <figure class="case-slide case-slide--landscape case-hero"><img alt="" decoding="async"></figure></section>
     <footer class="case-end"><button class="case-next-project"><img class="case-next-preview" alt="" aria-hidden="true"><span class="case-next-title"></span><span class="case-next-label">Next project <span class="case-next-rule"></span><span aria-hidden="true">→</span></span></button></footer>
   </article>
   <div class="case-progress" aria-hidden="true"><div class="case-progress-fill"></div></div>`;
@@ -1648,7 +1651,7 @@ function updateFlightCamera() {
   camera.updateMatrixWorld(true);
 }
 function syncCaseReveal() {
-  const reveal = THREE.MathUtils.smoothstep(flight.progress, .88, 1);
+  const reveal = THREE.MathUtils.smoothstep(flight.progress, CASE_FADE_FROM, 1);
   caseStudy.style.setProperty('--case-reveal', String(reveal));
   caseStudy.style.setProperty('--case-back-reveal', String(THREE.MathUtils.smoothstep(flight.progress, .4, 1)));
   caseStudy.dataset.transitioning = String(caseBusy);
@@ -1690,7 +1693,11 @@ function nextCaseStudy() {
     caseStudy.querySelector('.case-close').focus({ preventScroll: true });
   } })
     .to(content, { opacity: 0, duration: reducedMotion.matches ? 0 : .22 })
-    .call(() => { populateCase((caseProjectIndex + 1) % projects.length); gallery.reset(); })
+    .call(() => {
+      populateCase((caseProjectIndex + 1) % projects.length);
+      showCaseUrl(caseProjectIndex, false);
+      gallery.reset();
+    })
     .to(content, { opacity: 1, duration: reducedMotion.matches ? 0 : .35 });
 }
 listen(caseImage, 'load', () => {
@@ -1700,6 +1707,34 @@ listen(caseImage, 'load', () => {
   }
 });
 caseImage.draggable = false;
+/*
+ * Each case study has its own URL, set with the History API so Next.js keeps
+ * the home page mounted: no navigation, no page transition, just the flight.
+ * Opening from a card pushes an entry, so the browser's back button flies back
+ * out; "Next project" replaces it. Arriving on a case URL directly (see
+ * app/work/[slug]) opens that case study with a fade, as there is no card on
+ * screen to fly out of.
+ */
+/** Whether the entry before this case URL is the home page it opened over. */
+let caseEntryPushed = false;
+function caseIndexFromUrl() {
+  const slug = caseSlug(window.location.pathname);
+  return slug ? projects.findIndex(project => project.slug === slug) : -1;
+}
+function showCaseUrl(index, push) {
+  const url = casePath(projects[index].slug);
+  if (window.location.pathname === url) return;
+  window.history[push ? 'pushState' : 'replaceState']({ caseStudy: true }, '', url);
+}
+function leaveCaseUrl() {
+  if (caseIndexFromUrl() < 0) return;
+  if (caseEntryPushed) {
+    caseEntryPushed = false;
+    window.history.back();
+  } else {
+    window.history.replaceState(null, '', `/${window.location.search}`);
+  }
+}
 function openCaseStudy(item) {
   if (caseBusy || caseStudy.open || !item || item !== activeCard) return;
   caseBusy = true;
@@ -1713,6 +1748,8 @@ function openCaseStudy(item) {
   syncCaseReveal();
   caseStudy.showModal();
   window.dispatchEvent(new CustomEvent('work:case-header', { detail: caseStudy }));
+  showCaseUrl(item.index, true);
+  caseEntryPushed = true;
   gallery.reset();
   renderer.domElement.style.cursor = '';
   playFlight(true, () => {
@@ -1721,16 +1758,89 @@ function openCaseStudy(item) {
     if (closeRequested) closeCaseStudy();
   });
 }
+/** Opens a case study reached by its URL: a fade in place, camera untouched. */
+function openCaseStudyDirect(index) {
+  if (disposed || caseBusy || caseStudy.open) return;
+  caseBusy = true;
+  closeRequested = false;
+  flightItem = null;
+  // Hold the camera where it is for as long as the case study is open.
+  scene.updateMatrixWorld(true);
+  flightFrom.copy(camera.position);
+  flightTo.copy(camera.position);
+  flightRotationFrom.copy(camera.quaternion);
+  flightFov = camera.fov;
+  flightDistance = 1;
+  savedFocus = document.activeElement;
+  releaseFlightScroll = lockScroll({ allowWithin: caseStudy });
+  populateCase(index);
+  // The reveal only runs over the flight's last stretch (syncCaseReveal).
+  flight.progress = CASE_FADE_FROM;
+  syncCaseReveal();
+  caseStudy.showModal();
+  window.dispatchEvent(new CustomEvent('work:case-header', { detail: caseStudy }));
+  showCaseUrl(index, false);
+  gallery.reset();
+  flightTween?.kill();
+  flightTween = gsap.to(flight, {
+    progress: 1,
+    duration: reducedMotion.matches ? 0 : .45,
+    ease: 'power1.out',
+    onUpdate: syncCaseReveal,
+    onComplete: () => {
+      if (disposed) return;
+      caseBusy = false;
+      syncCaseReveal();
+      caseStudy.querySelector('.case-close').focus({ preventScroll: true });
+      if (closeRequested) closeCaseStudy();
+    },
+  });
+}
+function finishCaseClose() {
+  window.dispatchEvent(new CustomEvent('work:case-header', { detail: null }));
+  caseStudy.close();
+  caseImage.removeAttribute('src');
+  releaseFlightScroll?.();
+  releaseFlightScroll = null;
+  savedFocus?.focus({ preventScroll: true });
+  flightItem = null;
+  caseBusy = false;
+}
 function closeCaseStudy() {
   if (!caseStudy.open) return;
   if (caseBusy) { closeRequested = true; return; }
+  leaveCaseUrl();
   caseSwitchTween?.kill();
   caseSwitchTween = null;
   caseSwitching = false;
   gsap.set(caseStudy.querySelector('.case-content'), { clearProps: 'opacity' });
-  // Reverse through the original collection card even after browsing projects.
-  if (flightItem && caseProjectIndex !== flightItem.index) populateCase(flightItem.index);
   caseBusy = true;
+  if (!flightItem) {
+    // Opened from its URL, so there is no card to fly back into: settle the
+    // page on Featured Work (or the link's anchor) under it, then fade out.
+    syncCaseReveal();
+    releaseFlightScroll?.();
+    releaseFlightScroll = null;
+    const destination = document.querySelector(pendingAnchor || '#work');
+    pendingAnchor = null;
+    if (destination) jumpTo(window.scrollY + destination.getBoundingClientRect().top);
+    flightTween?.kill();
+    flightTween = gsap.to(flight, {
+      progress: CASE_FADE_FROM,
+      duration: reducedMotion.matches ? 0 : .45,
+      ease: 'power1.in',
+      onUpdate: syncCaseReveal,
+      onComplete: () => {
+        if (disposed) return;
+        finishCaseClose();
+        flight.progress = 0;
+        syncCaseReveal();
+      },
+    });
+    return;
+  }
+  // Reverse through the original collection card even after browsing projects.
+  if (caseProjectIndex !== flightItem.index) populateCase(flightItem.index);
   gallery.reset();
   syncCaseReveal();
   playFlight(false, () => {
@@ -1738,14 +1848,7 @@ function closeCaseStudy() {
     camera.quaternion.copy(flightRotationFrom);
     camera.fov = flightFov;
     camera.updateProjectionMatrix();
-    window.dispatchEvent(new CustomEvent('work:case-header', { detail: null }));
-    caseStudy.close();
-    caseImage.removeAttribute('src');
-    releaseFlightScroll?.();
-    releaseFlightScroll = null;
-    savedFocus?.focus({ preventScroll: true });
-    flightItem = null;
-    caseBusy = false;
+    finishCaseClose();
     if (pendingAnchor) {
       const destination = document.querySelector(pendingAnchor);
       pendingAnchor = null;
@@ -1773,6 +1876,38 @@ listen(caseStudy, 'click', event => {
 const palette = createCasePalette(caseStudy);
 const gallery = createCaseGallery(caseStudy, { onClose: closeCaseStudy, isBusy: () => caseBusy || caseSwitching, reducedMotion });
 const cardCursor = createCardCursor(reducedMotion);
+listen(window, 'popstate', () => {
+  const index = caseIndexFromUrl();
+  if (index < 0) {
+    caseEntryPushed = false;
+    closeCaseStudy();
+    return;
+  }
+  if (caseStudy.open || !CASE_STUDIES_ENABLED) return;
+  // Forward again: the entry behind this one is the home page.
+  caseEntryPushed = true;
+  if (!suspended && activeCard?.index === index) openCaseStudy(activeCard);
+  else openCaseStudyDirect(index);
+});
+{
+  const index = caseIndexFromUrl();
+  if (index >= 0 && !CASE_STUDIES_ENABLED) window.history.replaceState(null, '', '/');
+  else if (index >= 0) {
+    // Wait for the site loader to finish: the modal would cover it.
+    const root = document.documentElement;
+    const open = () => openCaseStudyDirect(index);
+    if (!root.hasAttribute('data-site-transition')) open();
+    else {
+      const observer = new MutationObserver(() => {
+        if (root.hasAttribute('data-site-transition')) return;
+        observer.disconnect();
+        open();
+      });
+      observer.observe(root, { attributes: true, attributeFilter: ['data-site-transition'] });
+      events.signal.addEventListener('abort', () => observer.disconnect());
+    }
+  }
+}
 let mousePointer = false;
 const cardActionLabel = CASE_STUDIES_ENABLED ? 'Open current project case study' : 'Visit current project website (opens in a new tab)';
 function activateCard(item) {
@@ -1883,14 +2018,15 @@ function animate() {
   renderer.setRenderTarget(glassSceneTarget);
   renderer.clear();
   renderer.render(scene, camera);
-  renderer.setRenderTarget(caseStudy.open && caseBusy ? portal.captureTarget() : null);
-  renderer.toneMapping = caseStudy.open && caseBusy ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
+  const flying = caseStudy.open && caseBusy && flightItem;
+  renderer.setRenderTarget(flying ? portal.captureTarget() : null);
+  renderer.toneMapping = flying ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
   cardsGroup.visible = !caseStudy.open || caseBusy;
 
   renderer.clear();
   renderer.render(scene, camera);
 
-  if (caseStudy.open && caseBusy && flightItem) {
+  if (flying) {
     // Capture the destination backdrop separately from the bending
     // collection. The player is composited behind that foreground.
     cardsGroup.visible = false;

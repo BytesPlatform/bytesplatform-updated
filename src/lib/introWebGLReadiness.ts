@@ -1,3 +1,5 @@
+import { isHomePath } from "@/lib/work/caseRoute";
+
 /** One latched result per mounted intro. Subscribers survive StrictMode's
  * cleanup/remount; generation tokens prevent obsolete callbacks publishing. */
 export const INTRO_WEBGL_MAX_WAIT_MS = 8000;
@@ -36,7 +38,7 @@ export function isIntroWebGLReady() { return status === "ready"; }
 export function shouldWaitForIntro(pathname: string, reduced: boolean) {
   // app/page.tsx exclusively owns IntroExperience; don't rely on streamed DOM
   // having arrived when the root-layout loader hydrates.
-  return pathname === "/" && !reduced;
+  return isHomePath(pathname) && !reduced;
 }
 export function waitForIntroWebGLReady(signal: AbortSignal): Promise<void> {
   if (status !== "pending" || signal.aborted) return Promise.resolve();

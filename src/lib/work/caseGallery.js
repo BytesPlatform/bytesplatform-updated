@@ -5,6 +5,8 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
   const rail = dialog.querySelector('.case-gallery');
   const progress = dialog.querySelector('.case-progress-fill');
   const intro = dialog.querySelector('.case-header');
+  // The cover leads the rail; populate() refills the slides after it.
+  const hero = rail.querySelector('.case-hero');
   let introMotion = null;
   const events = new AbortController();
   let tween = null;
@@ -73,7 +75,7 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
   return {
     populate(project, cover, nextProject, nextCover) {
       stop();
-      rail.replaceChildren();
+      rail.replaceChildren(hero);
       const seen = new Set([cover.src]);
       // Alternate a pair of portrait screens with a landscape composition.
       const portraits = project.media === 'device' ? [...project.shots] : [];
@@ -102,9 +104,7 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
           figure.classList.toggle('case-slide--landscape', image.naturalHeight <= image.naturalWidth);
           update();
         }, { once: true });
-        const caption = document.createElement('figcaption');
-        caption.textContent = shot.caption;
-        figure.append(image, caption);
+        figure.append(image);
         rail.append(figure);
       });
       const link = dialog.querySelector('.case-project-link');
@@ -125,7 +125,7 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
       end.querySelector('.case-next-project').setAttribute('aria-label', `Next project: ${nextProject.name}`);
       end.querySelector('.case-next-preview').src = nextCover.src;
       end.querySelector('.case-next-preview').alt = '';
-      slides = [dialog.querySelector('.case-stage'), dialog.querySelector('.case-hero'), ...rail.children, dialog.querySelector('.case-end')];
+      slides = [...rail.children, dialog.querySelector('.case-end')];
       dialog.scrollLeft = 0;
       buildIntroMotion();
     },

@@ -6,6 +6,7 @@ import { site } from "@/data/site";
 import { serviceLinks } from "@/data/services";
 import { productLinks } from "@/data/products";
 import CurrentLink from "@/components/ui/CurrentLink";
+import { isHomePath } from "@/lib/work/caseRoute";
 
 // Plain anchors on purpose: the home page's scroll scenes are built for a fresh load.
 // Each row renders through CurrentLink, so the page being viewed shows as active text.
@@ -23,6 +24,17 @@ const trailingLinks = [
 ];
 
 /** Rows that slide in a sub-list of pages instead of navigating. */
+/**
+ * On the home page (or a case study over it) its own links stay in-page, so
+ * they never play the page transition or reload the scroll scenes. Inside a
+ * case study, "/" scrolls back to the top as the logo does there.
+ */
+const homeHref = (pathname: string, href: string) => {
+  if (!isHomePath(pathname)) return href;
+  if (href === "/#work") return "#work";
+  return href === "/" && pathname !== "/" ? "#top" : href;
+};
+
 const groups = [
   { key: "services", label: "Services", base: "/services/", items: serviceLinks },
   { key: "products", label: "Products", base: "/products/", items: productLinks },
@@ -168,7 +180,7 @@ export default function SiteMenu({ open, onClose, onOpened, onClosed }: SiteMenu
                 {links.map((link, index) => (
                   <CurrentLink
                     key={link.href}
-                    href={link.href}
+                    href={homeHref(pathname, link.href)}
                     className={styles.link}
                     tabIndex={open ? 0 : -1}
                     style={{ "--item-index": index } as React.CSSProperties}
