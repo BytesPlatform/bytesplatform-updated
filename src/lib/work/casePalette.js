@@ -1,8 +1,9 @@
 /** Live, per-project palette drafts. Copy the object into projects.ts. */
-export function createCasePalette(dialog) {
+export function createCasePalette(dialog, { showTool = true } = {}) {
   const drafts = new Map();
   const tool = document.createElement('details');
   tool.className = 'case-palette';
+  tool.hidden = !showTool;
   tool.innerHTML = `<summary>◐ Colors</summary><div class="case-palette-body"><strong>Case-study colors</strong><p class="case-palette-name"></p><div class="case-palette-fields"></div><textarea aria-label="Theme code to copy" readonly rows="5"></textarea><div class="case-palette-actions"><button type="button" data-copy>Copy code</button><button type="button" data-reset>Reset</button></div><span role="status" class="case-palette-status"></span></div>`;
   dialog.append(tool);
   let project = null;

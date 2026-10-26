@@ -1590,17 +1590,16 @@ const caseStudy = document.createElement('dialog');
 caseStudy.className = 'work-case-study';
 caseStudy.setAttribute('data-lenis-prevent', '');
 caseStudy.setAttribute('aria-labelledby', 'case-title');
-caseStudy.innerHTML = `<button class="case-close" aria-label="Close case study">← BACK</button>
+caseStudy.innerHTML = `<button class="case-close" aria-label="Close case study"><span class="case-close-arrow case-close-arrow--lead"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.657 8H2.343m0 0 4.984 4.984M2.343 8l4.984-4.984" /></svg></span><span class="case-close-label">Back</span><span class="case-close-arrow case-close-arrow--trail"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.657 8H2.343m0 0 4.984 4.984M2.343 8l4.984-4.984" /></svg></span></button>
   <article class="case-content">
     <header class="case-header">
     <h2 id="case-title" data-case="title"></h2><div class="case-intro-columns"><div class="case-story"><p data-case="overview"></p><p data-case="approach"></p>
-    <a class="case-project-link" target="_blank" rel="noopener noreferrer" hidden>Launch project ↗</a></div>
+    <a class="case-project-link" target="_blank" rel="noopener noreferrer" hidden><span class="case-project-label">Launch project</span><span class="case-project-arrow" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.2 12.8 12.8 3.2m0 0H5.4m7.4 0v7.4" /></svg><svg viewBox="0 0 16 16"><path d="M3.2 12.8 12.8 3.2m0 0H5.4m7.4 0v7.4" /></svg></span><span class="sr-only"> (opens in a new tab)</span></a></div>
     <aside class="case-facts"><h2>Services</h2><ul class="case-services"></ul><div class="case-links"><h2>Links</h2><a class="case-site-link" target="_blank" rel="noopener noreferrer"></a></div></aside></div></header>
     <section class="case-gallery" aria-label="Project images">
     <figure class="case-slide case-slide--landscape case-hero"><img alt="" decoding="async"></figure></section>
     <footer class="case-end"><button class="case-next-project"><img class="case-next-preview" alt="" aria-hidden="true"><span class="case-next-title"></span><span class="case-next-label">Next project <span class="case-next-rule"></span><span aria-hidden="true">→</span></span></button></footer>
-  </article>
-  <div class="case-progress" aria-hidden="true"><div class="case-progress-fill"></div></div>`;
+  </article>`;
 document.body.appendChild(caseStudy);
 const caseHero = caseStudy.querySelector('.case-hero');
 const caseImage = caseStudy.querySelector('.case-hero img');
@@ -1873,7 +1872,10 @@ listen(caseStudy, 'click', event => {
   pendingAnchor = link.getAttribute('href');
   closeCaseStudy();
 });
-const palette = createCasePalette(caseStudy);
+// The palette applies each project's caseTheme; its Colors tool for tuning
+// those colours is hidden on the live site.
+const SHOW_CASE_PALETTE = false;
+const palette = createCasePalette(caseStudy, { showTool: SHOW_CASE_PALETTE });
 const gallery = createCaseGallery(caseStudy, { onClose: closeCaseStudy, isBusy: () => caseBusy || caseSwitching, reducedMotion });
 const cardCursor = createCardCursor(reducedMotion);
 listen(window, 'popstate', () => {

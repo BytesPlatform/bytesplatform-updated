@@ -3,7 +3,6 @@ import gsap from 'gsap';
 /** Native horizontal gallery, with vertical-wheel input mapped onto the rail. */
 export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
   const rail = dialog.querySelector('.case-gallery');
-  const progress = dialog.querySelector('.case-progress-fill');
   const intro = dialog.querySelector('.case-header');
   // The cover leads the rail; populate() refills the slides after it.
   const hero = rail.querySelector('.case-hero');
@@ -14,8 +13,6 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
   let slides = [];
   const limit = () => Math.max(0, dialog.scrollWidth - dialog.clientWidth);
   function update() {
-    const fraction = dialog.scrollLeft / Math.max(1, limit());
-    progress.style.transform = `scaleX(${fraction})`;
     // Each intro element has its own scrubbed fade/movement duration.
     // Its fixed parent prevents native horizontal scrolling moving the CTA.
     introMotion?.time(dialog.scrollLeft / Math.max(1, dialog.clientWidth));
@@ -109,7 +106,7 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
       });
       const link = dialog.querySelector('.case-project-link');
       link.hidden = !project.link;
-      if (project.link) { link.href = project.link.href; link.textContent = 'Launch project ↗'; }
+      if (project.link) link.href = project.link.href;
       else link.removeAttribute('href');
       const services = dialog.querySelector('.case-services');
       services.replaceChildren(...project.discipline.map(service => {

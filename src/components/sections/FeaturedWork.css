@@ -9,17 +9,37 @@
 .work-case-study::backdrop { background: transparent; }
 .work-case-study::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--case-bg, #eeeff8); opacity: var(--case-reveal); }
 .work-case-study[data-transitioning="true"] { overflow: hidden; }
-.work-case-study .case-content, .work-case-study .case-close, .work-case-study .case-progress { opacity: var(--case-reveal); }
+.work-case-study .case-content, .work-case-study .case-close { opacity: var(--case-reveal); }
 .work-case-study[data-transitioning="true"] .case-content, .work-case-study[data-transitioning="true"] .case-close { pointer-events: none; }
 .case-content { display: flex; align-items: center; width: max-content; min-width: 100%; height: 100svh; gap: clamp(28px, 4vw, 80px); }
-.case-close { position: fixed; z-index: 3; top: var(--bp-gut); left: 50%; transform: translate(-50%, calc((1 - var(--case-back-reveal, 0)) * -18px)); padding: 10px 16px; border: 1px solid #fff9; border-radius: 30px; background: #fffffff0; color: #242731; cursor: pointer; font-size: 11px; }
+.case-close { position: fixed; z-index: 3; top: var(--bp-gut); left: 50%; transform: translate(-50%, calc((1 - var(--case-back-reveal, 0)) * -18px)); display: inline-flex; align-items: center; gap: .55rem; height: 3rem; padding: 0 1.2rem; overflow: hidden; border: 1px solid #e2e3eb; border-radius: 999px; background: #e2e3eb; color: #242731; cursor: pointer; font-size: .8125rem; font-weight: 650; letter-spacing: .01em; line-height: 1; text-transform: uppercase; white-space: nowrap; }
+/* Hover: the leading arrow slides out to the left while a second one slides
+   in from the right edge, and the label shifts over between them. */
+.case-close-arrow { display: grid; width: 1rem; height: 1rem; place-items: center; transition: transform 520ms cubic-bezier(.16, 1, .3, 1); }
+.case-close-arrow svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+.case-close-arrow--trail { position: absolute; right: 1.2rem; transform: translateX(2.6rem); }
+.case-close-label { display: block; transition: transform 520ms cubic-bezier(.16, 1, .3, 1); }
+.case-close:hover .case-close-arrow--lead, .case-close:focus-visible .case-close-arrow--lead { transform: translateX(-2.6rem); }
+.case-close:hover .case-close-arrow--trail, .case-close:focus-visible .case-close-arrow--trail { transform: none; }
+.case-close:hover .case-close-label, .case-close:focus-visible .case-close-label { transform: translateX(-1.55rem); }
+/* Sized with the nav's Menu pill (NavButton.module.css) at each breakpoint. */
+@media (max-width: 639px) { .case-close { font-size: .75rem; letter-spacing: .04em; } }
+@media (prefers-reduced-motion: reduce) { .case-close-arrow, .case-close-label, .case-project-arrow svg { transition: none; } }
 
 .case-header { position: absolute; left: var(--bp-gut); top: 50%; transform: translateY(-50%); width: 27vw; max-width: 460px; }
 
 .case-header h2 { font-size: clamp(30px, 3.4vw, 66px); letter-spacing: -.055em; line-height: 1.04; margin: 22px 0; font-weight: 500; }
 .work-case-study p { line-height: 1.65; }
 
-.case-project-link { display: inline-flex; color: #242731; background: white; border-radius: 30px; padding: 11px 18px; font-size: 11px; text-decoration: none; }
+/* Launch project: sized and set like the nav pills. On hover it darkens like
+   Menu, and the arrow flies out to the top right as a copy follows it in. */
+.case-project-link { display: inline-flex; align-items: center; gap: .6rem; height: 3rem; padding: 0 1.5rem; border-radius: 999px; background: #e2e3eb; color: #242731; font-size: .8125rem; font-weight: 650; letter-spacing: .01em; line-height: 1; text-transform: uppercase; white-space: nowrap; text-decoration: none; transition: background-color 420ms cubic-bezier(.16, 1, .3, 1), color 300ms ease; }
+.case-project-link:hover, .case-project-link:focus-visible { background: #292b36; color: #f0f1fa; }
+.case-project-arrow { position: relative; display: block; width: .85rem; height: .85rem; overflow: hidden; }
+.case-project-arrow svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; transition: transform 520ms cubic-bezier(.16, 1, .3, 1); }
+.case-project-arrow svg + svg { transform: translate(-110%, 110%); }
+.case-project-link:hover .case-project-arrow svg:first-child, .case-project-link:focus-visible .case-project-arrow svg:first-child { transform: translate(110%, -110%); }
+.case-project-link:hover .case-project-arrow svg + svg, .case-project-link:focus-visible .case-project-arrow svg + svg { transform: none; }
 .case-project-link[hidden] { display: none; }
 
 /* One rail of figures, cover first, with a single gap throughout. The fixed
@@ -30,11 +50,9 @@
 .case-slide--landscape { width: min(66vw, 112svh); aspect-ratio: 1500 / 937; }
 .case-slide--portrait { height: 100svh; width: calc(100svh * var(--image-ratio, .461)); }
 .case-end { flex: none; width: min(44vw, 720px); padding: 0 7vw 0 2vw; }
-.case-progress { position: fixed; bottom: 0; left: 0; right: 0; height: 3px; background: #24273112; }
-.case-progress-fill { height: 100%; background: var(--case-accent); transform: scaleX(0); transform-origin: left; }
 .work-case-study button:focus-visible, .case-project-link:focus-visible { outline: 2px solid var(--case-accent); outline-offset: 4px; }
 @media(max-width: 700px) {
-  .case-close { top: 88px; font-size: 10px; }
+  .case-close { top: 88px; }
 
   .case-header { top: auto; bottom: 13svh; transform: none; width: calc(100% - 2 * var(--bp-gut)); max-width: none; }
   .case-header h2 { font-size: 30px; margin: 10px 0; }
@@ -62,7 +80,7 @@
 .case-links { margin-top: 44px; }
 .case-links a { color: var(--case-fg); font-size: 12px; text-decoration: none; overflow-wrap: anywhere; }
 .case-links a:hover { color: var(--case-accent); }
-.case-project-link { margin-top: 20px; padding: 17px 24px; text-transform: uppercase; font-size: 11px; }
+.case-project-link { margin-top: 20px; }
 .case-slide--portrait img { border-radius: 0; }
 .case-palette { position: fixed; z-index: 4; bottom: 26px; left: var(--bp-gut); color: #242731; font: 12px/1.4 Arial, sans-serif; opacity: var(--case-reveal); }
 .work-case-study[data-transitioning="true"] .case-palette { pointer-events: none; }
@@ -89,7 +107,7 @@
   .case-facts h2 { font-size: 9px; }
   .case-services, .case-links a { font-size: 10px; }
   .case-links { margin-top: 24px; }
-  .case-project-link { font-size: 9px; padding: 12px 16px; margin-top: 4px; }
+  .case-project-link { height: 2.6rem; padding: 0 1.2rem; font-size: .75rem; letter-spacing: .04em; margin-top: 4px; }
   .case-palette { bottom: 26px; }
   .case-palette-body { width: min(290px, calc(100vw - 2 * var(--bp-gut))); }
 }
@@ -97,7 +115,7 @@
   .case-header { top: 23svh; }
   .case-header h2 { font-size: 40px; margin-bottom: 22px; }
   .case-story p { font-size: 11px; }
-  .case-project-link { margin-top: 4px; padding: 12px 18px; }
+  .case-project-link { margin-top: 4px; }
 }
 
 .work-case-study .case-close { opacity: var(--case-back-reveal, 0); }
