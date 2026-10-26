@@ -30,6 +30,7 @@ const TESTIMONIALS = [
     quote:
       "Matt has been helping me with my company’s website and the team has knocked it out of the park. Not only did they do my company’s website but they took on my company’s social media and excelled. Now I am giving them all of my other ventures.",
     name: "Robert Gilbert",
+    url: "https://www.trustpilot.com/reviews/6aa5d771903e5a5b22e6c734",
     role: "Business owner",
     date: "Sep 2026",
   },
@@ -38,6 +39,7 @@ const TESTIMONIALS = [
     quote:
       "They have taken the time to understand what we are trying to build rather than simply completing a list of technical tasks. Building a custom system from the ground up requires collaboration, flexibility, and trust, and so far Bytesplatform has demonstrated all three.",
     name: "Brenda Gatoru",
+    url: "https://www.trustpilot.com/reviews/6a9c1329e690edbd7f159f5d",
     role: "Custom platform client",
     date: "Sep 2026",
   },
@@ -46,6 +48,7 @@ const TESTIMONIALS = [
     quote:
       "Their team transformed our vision into powerful, professional digital platforms. Their commitment went beyond simply completing a project. They approached the work as a true technology partner invested in our success.",
     name: "George Wrighster",
+    url: "https://www.trustpilot.com/reviews/6a91e1a7610869a33ced841c",
     role: "Founder, QuantivaHQ",
     date: "Aug 2026",
   },
@@ -54,6 +57,7 @@ const TESTIMONIALS = [
     quote:
       "Communication was constant. He grasped the objective early and translated it into a working product without losing the intent behind it, and the turnaround from concept to finished deliverable was faster than I planned for.",
     name: "John Glamdon",
+    url: "https://www.trustpilot.com/reviews/6a90090b508fae6a228959ca",
     role: "GovCon software platform",
     date: "Aug 2026",
   },
@@ -149,22 +153,42 @@ export default function TestimonialsSection() {
           {TESTIMONIALS.map((review) => (
             <li key={review.name} data-review className="relative pt-5">
               <Rule />
-              <figure className="flex h-full flex-col">
-                <div data-review-part className="flex items-center justify-between gap-4">
-                  <Stars />
-                  <span className="text-[0.72rem] font-semibold uppercase tabular-nums tracking-[0.14em] text-ink-mute">{review.date}</span>
-                </div>
-                <p data-review-part className="mt-[clamp(1.5rem,2.5vw,2.25rem)] text-[clamp(1.35rem,1.9vw,1.9rem)] font-medium leading-[1.15] tracking-[-0.035em] text-ink">
-                  {review.title}
-                </p>
-                <blockquote data-review-part className="mt-4 max-w-[60ch] text-[clamp(1rem,1.15vw,1.15rem)] leading-[1.55] tracking-[-0.01em] text-ink-mute">
-                  <p>“{review.quote}”</p>
-                </blockquote>
-                <figcaption data-review-part className="mt-auto pt-[clamp(1.5rem,2.5vw,2.25rem)] text-[0.95rem] leading-[1.4]">
-                  <span className="block font-semibold tracking-[-0.01em] text-ink">{review.name}</span>
-                  <span className="block text-ink-mute">{review.role}</span>
-                </figcaption>
-              </figure>
+              {/* The whole review opens it on Trustpilot. On hover a blue rule
+                  draws over the hairline, the title takes the accent and a
+                  "Read on Trustpilot" cue slides in beside the reviewer. */}
+              <a
+                href={review.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block h-full outline-none"
+              >
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-blue transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100 group-focus-visible:scale-x-100"
+                />
+                <figure className="flex h-full flex-col">
+                  <div data-review-part className="flex items-center justify-between gap-4">
+                    <Stars />
+                    <span className="text-[0.72rem] font-semibold uppercase tabular-nums tracking-[0.14em] text-ink-mute">{review.date}</span>
+                  </div>
+                  <p data-review-part className="mt-[clamp(1.5rem,2.5vw,2.25rem)] text-[clamp(1.35rem,1.9vw,1.9rem)] font-medium leading-[1.15] tracking-[-0.035em] text-ink transition-colors duration-300 group-hover:text-blue group-focus-visible:text-blue">
+                    {review.title}
+                  </p>
+                  <blockquote data-review-part className="mt-4 max-w-[60ch] text-[clamp(1rem,1.15vw,1.15rem)] leading-[1.55] tracking-[-0.01em] text-ink-mute transition-colors duration-300 group-hover:text-ink group-focus-visible:text-ink">
+                    <p>“{review.quote}”</p>
+                  </blockquote>
+                  <figcaption data-review-part className="mt-auto flex items-end justify-between gap-4 pt-[clamp(1.5rem,2.5vw,2.25rem)] text-[0.95rem] leading-[1.4]">
+                    <span>
+                      <span className="block font-semibold tracking-[-0.01em] text-ink">{review.name}</span>
+                      <span className="block text-ink-mute">{review.role}</span>
+                    </span>
+                    <span className="inline-flex -translate-x-2 items-center gap-[0.4em] whitespace-nowrap text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-blue opacity-0 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
+                      Read on Trustpilot <span aria-hidden>↗</span>
+                    </span>
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </figcaption>
+                </figure>
+              </a>
             </li>
           ))}
         </ul>
