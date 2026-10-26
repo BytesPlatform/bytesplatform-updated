@@ -2,7 +2,7 @@
 export const site = {
   name: "BytesPlatform",
   legalName: "Bytes Platform LLC",
-  url: "https://bytesplatform.com",
+  url: "https://www.bytesplatform.com",
   email: "info@bytesplatform.com",
   phone: "+1 833 323 0371",
   phoneHref: "tel:+18333230371",
