@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import { usePathname } from "next/navigation";
 import { isHomePath } from "@/lib/work/caseRoute";
 import NavButton from "../ui/NavButton";
@@ -23,7 +23,11 @@ export default function HeroNav() {
   const onHome = isHomePath(pathname);
   const [caseHost, setCaseHost] = useState<HTMLElement | null>(null);
   useEffect(() => {
-    const moveHeader = (event: Event) => setCaseHost((event as CustomEvent<HTMLElement | null>).detail);
+    // Committed synchronously: the scene closes the dialog right after this
+    // event, and a deferred render would leave the header inside the hidden
+    // dialog for a frame, so it would blink as it moved back.
+    const moveHeader = (event: Event) =>
+      flushSync(() => setCaseHost((event as CustomEvent<HTMLElement | null>).detail));
     window.addEventListener("work:case-header", moveHeader);
     return () => window.removeEventListener("work:case-header", moveHeader);
   }, []);

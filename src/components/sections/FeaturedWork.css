@@ -4,12 +4,17 @@
 [data-featured-work], .pin-spacer:has(> [data-featured-work]) { pointer-events: none; }
 [data-intro-canvas]:focus-visible { outline: 2px solid #648fc3; outline-offset: -5px; }
 /* A horizontal, image-led case study over the shared scene. */
-.work-case-study { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; border: 0; --case-reveal: 0; padding: 0; background: transparent; color: var(--case-fg, #242731); overflow-x: auto; overflow-y: hidden; overscroll-behavior: contain; scrollbar-width: none; font-family: var(--font-sans), Arial, sans-serif; isolation: isolate; }
+.work-case-study { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; border: 0; --case-reveal: 0; --case-bg-reveal: 0; --case-hero-reveal: 0; padding: 0; background: transparent; color: var(--case-fg, #242731); overflow-x: auto; overflow-y: hidden; overscroll-behavior: contain; scrollbar-width: none; font-family: var(--font-sans), Arial, sans-serif; isolation: isolate; }
 .work-case-study::-webkit-scrollbar { display: none; }
 .work-case-study::backdrop { background: transparent; }
-.work-case-study::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--case-bg, #eeeff8); opacity: var(--case-reveal); }
+.work-case-study::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--case-bg, #eeeff8); opacity: var(--case-bg-reveal); }
 .work-case-study[data-transitioning="true"] { overflow: hidden; }
 .work-case-study .case-content, .work-case-study .case-close { opacity: var(--case-reveal); }
+/* After the colour wash: the intro rises in, then the first image follows,
+   lifting and settling from slightly smaller. `translate`/`scale` compose with
+   the transforms the gallery scrubs, so they never fight. */
+.work-case-study .case-header { translate: 0 calc((1 - var(--case-reveal)) * 28px); }
+.work-case-study .case-hero { opacity: var(--case-hero-reveal); translate: 0 calc((1 - var(--case-hero-reveal)) * 48px); scale: calc(.96 + .04 * var(--case-hero-reveal)); }
 .work-case-study[data-transitioning="true"] .case-content, .work-case-study[data-transitioning="true"] .case-close { pointer-events: none; }
 .case-content { display: flex; align-items: center; width: max-content; min-width: 100%; height: 100svh; gap: clamp(28px, 4vw, 80px); }
 .case-close { position: fixed; z-index: 3; top: var(--bp-gut); left: 50%; transform: translate(-50%, calc((1 - var(--case-back-reveal, 0)) * -18px)); display: inline-flex; align-items: center; gap: .55rem; height: 3rem; padding: 0 1.2rem; overflow: hidden; border: 1px solid #e2e3eb; border-radius: 999px; background: #e2e3eb; color: #242731; cursor: pointer; font-size: .8125rem; font-weight: 650; letter-spacing: .01em; line-height: 1; text-transform: uppercase; white-space: nowrap; }
@@ -70,7 +75,9 @@
 @media(prefers-reduced-motion: reduce) { .work-case-study * { animation: none !important; } }
 
 /* Project-specific presentation; the persistent site header keeps its controls. */
-.work-case-study [data-hero-nav] .hero-mark { color: var(--case-accent-ink, var(--case-accent)); }
+/* The logo eases from ink to the accent once the screen has gone dark, and
+   back before the nav returns to the page, so it never snaps. */
+.work-case-study [data-hero-nav] .hero-mark { color: color-mix(in srgb, var(--case-accent-ink, var(--case-accent)) calc(var(--case-logo-reveal, 0) * 100%), var(--color-ink)); }
 .case-header { top: 21svh; transform: none; width: 42vw; max-width: none; }
 .case-header h2 { font-size: clamp(42px, 4.5vw, 86px); font-weight: 400; margin: 0 0 48px; }
 .case-intro-columns { display: grid; grid-template-columns: minmax(0, 1fr) 12vw; gap: 5vw; }

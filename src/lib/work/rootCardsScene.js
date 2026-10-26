@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { lockScroll, jumpTo } from '@/lib/animation/scroll';
-import { createCardPortal } from './cardPortal';
 import { createCaseGallery } from './caseGallery';
 import { createCasePalette } from './casePalette';
 import { createCardCursor } from './cardCursor';
@@ -12,8 +11,21 @@ import { casePath, caseSlug } from './caseRoute';
 
 // Enable to restore the camera transition and internal case studies.
 const CASE_STUDIES_ENABLED = true;
-/** Flight progress where the case study starts fading in (see syncCaseReveal). */
-const CASE_FADE_FROM = .88;
+// Opening a case study is one progress value from 0 to 1, as in Lusion's: the
+// camera zooms into the card as its name fades and its glass clears to the
+// plain screenshot, the picture then darkens into the project's background
+// colour, and the logo, content, Back and first image follow.
+// Closing plays the same timeline in reverse.
+// The darkening gets the longest stretch, so the colour settles rather than
+// switching: about 0.6s of a 1.4s open.
+const CASE_ZOOM_END = .4;
+const CASE_NAME_FADE_END = .18;
+const CASE_FOCUS_END = .3;
+const CASE_BG_FROM = .3;
+const CASE_BG_END = .74;
+const CASE_CONTENT_FROM = .72;
+const CASE_OPEN_SECONDS = 1.4;
+const CASE_CLOSE_SECONDS = 1.05;
 
 /**
  * Embedded version of shader-learning; the section owns scrolling and frames.
@@ -228,7 +240,6 @@ const renderer = sharedRenderer ?? new THREE.WebGLRenderer({
     alpha: true
   });
 
-const portal = createCardPortal(renderer);
 
 if (ownsRenderer) {
   renderer.setSize(window.innerWidth, window.innerHeight, false);
@@ -601,7 +612,7 @@ resizeGlassTarget();
 const imageLoader = new THREE.TextureLoader();
 const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
 
-// `ready` and `aspect` stay on the media record so the card and portal
+// `ready` and `aspect` stay on the media record so the card shader
 // shaders can fall back to tinted glass and cover-fit once it loads.
 function createImageTexture(source) {
   const media = { ready: false, aspect: 16 / 9, texture: null };
@@ -645,6 +656,7 @@ function createGlassImageMaterial(
       uImageOpacity: { value: IMAGE_OPACITY },
       uImageAspect: { value: 16 / 9 },
       uHover: { value: 0 },
+      uFocus: { value: 0 },
       uPointer: { value: new THREE.Vector2(0.5, 0.5) },
       uTime: { value: 0 },
       // Card-local resolution keeps the SDF radius equal on both axes.
@@ -693,6 +705,7 @@ function createGlassImageMaterial(
       uniform float uImageOpacity;
       uniform float uImageAspect;
       uniform float uHover;
+      uniform float uFocus;
       uniform vec2 uPointer;
       uniform float uTime;
       uniform vec2 uResolution;
@@ -787,7 +800,9 @@ function createGlassImageMaterial(
         color += vec3(0.025, 0.035, 0.05) * veins;
         color += vec3(0.025, 0.055, 0.065) * caustic;
         // Back-facing glass never samples the image, including during a handoff.
-        float imageBlend = vCardFace > 0.999 ? smoothstep(0.0, 1.0, uImageBlend) * clamp(uImageOpacity, 0.0, 1.0) : 0.0;
+        // Opening a case study clears the front face to the plain screenshot.
+        float focus = uFocus * step(0.999, vCardFace);
+        float imageBlend = vCardFace > 0.999 ? smoothstep(0.0, 1.0, uImageBlend) * clamp(mix(uImageOpacity, 1.0, focus), 0.0, 1.0) : 0.0;
         if (uImageReady > 0.5 && imageBlend > 0.001) {
           vec3 imageColor = vec3(
             texture2D(uImage, clamp(imageUv + chromaticOffset, 0.0, 1.0)).r,
@@ -797,10 +812,10 @@ function createGlassImageMaterial(
           color = mix(color, imageColor, imageBlend);
         }
         float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
-        color = mix(vec3(luminance), color, uSaturation);
-        color = mix(vec3(0.18), color, 0.94);
-        color *= (1.0 - uGlassDarkness) * uBrightness;
-        color = mix(color, color * vec3(0.88, 0.96, 1.08) + vec3(0.006, 0.008, 0.018), 0.35);
+        color = mix(vec3(luminance), color, mix(uSaturation, 1.0, focus));
+        color = mix(vec3(0.18), color, mix(0.94, 1.0, focus));
+        color *= mix((1.0 - uGlassDarkness) * uBrightness, 1.0, focus);
+        color = mix(color, color * vec3(0.88, 0.96, 1.08) + vec3(0.006, 0.008, 0.018), 0.35 * (1.0 - focus));
 
         vec2 screenUv = gl_FragCoord.xy / uViewport;
         vec2 liquid = vec2(
@@ -813,7 +828,7 @@ function createGlassImageMaterial(
         bentUv += normalize(p + vec2(0.0001)) * bevel * uRimWidth * 0.15;
         vec3 behindGlass = blurredScene(bentUv, screenUv);
         behindGlass *= vec3(0.88, 0.94, 1.0) * uSceneBrightness;
-        color = mix(color, behindGlass, mix(uInactiveSceneMix, uSceneMix, imageBlend));
+        color = mix(color, behindGlass, mix(uInactiveSceneMix, uSceneMix, imageBlend) * (1.0 - focus));
 
         float fresnel = pow(1.0 - clamp(abs(dot(normalize(vNormal), normalize(vViewDirection))), 0.0, 1.0), 3.0);
         float edge = exp(-max(-distanceToEdge, 0.0) / 0.065);
@@ -849,7 +864,7 @@ function createGlassImageMaterial(
         float grain = hashNoise(floor(grainGrid)) - 0.5;
         float micrograin = noise(p * 75.0) - 0.5;
         float grainAA = 1.0 - smoothstep(0.7, 2.0, max(fwidth(grainGrid.x), fwidth(grainGrid.y)));
-        color += (grain * grainAA + micrograin * 0.55) * uNoiseStrength;
+        color += (grain * grainAA + micrograin * 0.55) * uNoiseStrength * (1.0 - focus * 0.8);
         gl_FragColor = vec4(max(color, 0.0), clamp(uAlpha, 0.0, 1.0) * mask);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -1406,6 +1421,8 @@ const clock =
 
 
 let previousCardTime = 0;
+let previousFrameElapsed = 0;
+let pausedSceneSeconds = 0;
 
 function updateCards(
   elapsed
@@ -1576,7 +1593,6 @@ function resize(width, height) {
     renderer.setSize(width, height, false);
   }
   resizeGlassTarget();
-  portal.resize();
 }
 
 // Case study copy comes straight from the shared project data.
@@ -1631,14 +1647,15 @@ function aimFlight(item) {
   // moving to the card's normal would flatten the angled view of the slab.
   const backward = new THREE.Vector3(0, 0, 1).applyQuaternion(flightRotationFrom);
   const depth = center.clone().sub(flightFrom).dot(backward) * -1;
-  // The reference enlarges the card roughly 1.7x while shifting it into
-  // view. Retain more distance on narrow screens to keep it readable.
-  const portraitDistance = CARD_WIDTH / (2 * Math.tan(THREE.MathUtils.degToRad(flightFov / 2)) * camera.aspect * 1.15);
-  flightDistance = Math.min(depth, Math.max(depth * .58, portraitDistance));
+  // Close enough that the card overfills the screen on both axes, so the
+  // zoom ends inside the picture before the colour wash takes over.
+  const halfHeight = Math.tan(THREE.MathUtils.degToRad(flightFov / 2));
+  const coverDistance = Math.min(CARD_WIDTH / (2 * halfHeight * camera.aspect), CARD_HEIGHT / (2 * halfHeight));
+  flightDistance = Math.min(depth, Math.max(coverDistance * .82, camera.near * 4));
   flightTo.copy(center).addScaledVector(backward, flightDistance);
 }
 function updateFlightCamera() {
-  const approach = THREE.MathUtils.smoothstep(flight.progress, 0, .7);
+  const approach = THREE.MathUtils.smoothstep(flight.progress, 0, CASE_ZOOM_END);
   // Interpolating distance exponentially gives a steady perceived approach.
   const distance = flightFrom.distanceTo(flightTo);
   const ratio = flightDistance / (distance + flightDistance);
@@ -1650,23 +1667,35 @@ function updateFlightCamera() {
   camera.updateMatrixWorld(true);
 }
 function syncCaseReveal() {
-  const reveal = THREE.MathUtils.smoothstep(flight.progress, CASE_FADE_FROM, 1);
-  caseStudy.style.setProperty('--case-reveal', String(reveal));
-  caseStudy.style.setProperty('--case-back-reveal', String(THREE.MathUtils.smoothstep(flight.progress, .4, 1)));
+  const progress = flight.progress;
+  const stage = (from, to) => String(THREE.MathUtils.smoothstep(progress, from, to));
+  caseStudy.style.setProperty('--case-bg-reveal', stage(CASE_BG_FROM, CASE_BG_END));
+  // Once dark: the logo takes the accent, then content, Back and the first
+  // image arrive a beat apart.
+  caseStudy.style.setProperty('--case-logo-reveal', stage(.6, .86));
+  caseStudy.style.setProperty('--case-reveal', stage(CASE_CONTENT_FROM, .92));
+  caseStudy.style.setProperty('--case-back-reveal', stage(.76, .94));
+  caseStudy.style.setProperty('--case-hero-reveal', stage(.8, 1));
   caseStudy.dataset.transitioning = String(caseBusy);
+  if (flightItem) {
+    flightItem.textLayer.material.uniforms.uOpacity.value =
+      CARD_TEXT_OPACITY * (1 - THREE.MathUtils.smoothstep(progress, 0, CASE_NAME_FADE_END));
+    flightItem.material.uniforms.uFocus.value = THREE.MathUtils.smoothstep(progress, 0, CASE_FOCUS_END);
+  }
 }
 function playFlight(forward, complete) {
   flightTween?.kill();
   flightTween = gsap.to(flight, {
     progress: forward ? 1 : 0,
-    duration: reducedMotion.matches ? 0 : forward ? .75 : .75,
+    duration: reducedMotion.matches ? 0 : forward ? CASE_OPEN_SECONDS : CASE_CLOSE_SECONDS,
     ease: 'none',
     onUpdate: syncCaseReveal,
     onComplete: () => {
       if (disposed) return;
+      // complete() clears caseBusy first; syncing after it drops the
+      // transitioning flag that disables Back and the content.
       complete();
       syncCaseReveal();
-      portal.release();
     },
   });
 }
@@ -1773,8 +1802,8 @@ function openCaseStudyDirect(index) {
   savedFocus = document.activeElement;
   releaseFlightScroll = lockScroll({ allowWithin: caseStudy });
   populateCase(index);
-  // The reveal only runs over the flight's last stretch (syncCaseReveal).
-  flight.progress = CASE_FADE_FROM;
+  // No card to zoom into: start at the colour wash (syncCaseReveal).
+  flight.progress = CASE_BG_FROM;
   syncCaseReveal();
   caseStudy.showModal();
   window.dispatchEvent(new CustomEvent('work:case-header', { detail: caseStudy }));
@@ -1783,8 +1812,8 @@ function openCaseStudyDirect(index) {
   flightTween?.kill();
   flightTween = gsap.to(flight, {
     progress: 1,
-    duration: reducedMotion.matches ? 0 : .45,
-    ease: 'power1.out',
+    duration: reducedMotion.matches ? 0 : CASE_OPEN_SECONDS * (1 - CASE_BG_FROM),
+    ease: 'none',
     onUpdate: syncCaseReveal,
     onComplete: () => {
       if (disposed) return;
@@ -1825,9 +1854,9 @@ function closeCaseStudy() {
     if (destination) jumpTo(window.scrollY + destination.getBoundingClientRect().top);
     flightTween?.kill();
     flightTween = gsap.to(flight, {
-      progress: CASE_FADE_FROM,
-      duration: reducedMotion.matches ? 0 : .45,
-      ease: 'power1.in',
+      progress: CASE_BG_FROM,
+      duration: reducedMotion.matches ? 0 : CASE_CLOSE_SECONDS * (1 - CASE_BG_FROM),
+      ease: 'none',
       onUpdate: syncCaseReveal,
       onComplete: () => {
         if (disposed) return;
@@ -1988,18 +2017,23 @@ function animate() {
 
   const elapsed =
     clock.getElapsedTime();
+  // The orbit and slab bob run on a clock that stops while a case study is
+  // open, so on close they resume exactly where the flight left them.
+  if (caseStudy.open) pausedSceneSeconds += elapsed - previousFrameElapsed;
+  previousFrameElapsed = elapsed;
+  const sceneTime = elapsed - pausedSceneSeconds;
 
 
   if (caseStudy.open) {
     updateFlightCamera();
-    // Freeze the orbit/slabs during the flight; only the camera advances.
-    previousCardTime = elapsed;
-    previousFovTime = elapsed;
+    previousCardTime = sceneTime;
+    previousFovTime = sceneTime;
+    previousCameraTime = sceneTime;
   } else {
-    updateCamera(elapsed);
-    updateCards(elapsed);
+    updateCamera(sceneTime);
+    updateCards(sceneTime);
     updateActiveCard();
-    updateCameraFov(elapsed);
+    updateCameraFov(sceneTime);
   }
 
 
@@ -2020,28 +2054,12 @@ function animate() {
   renderer.setRenderTarget(glassSceneTarget);
   renderer.clear();
   renderer.render(scene, camera);
-  const flying = caseStudy.open && caseBusy && flightItem;
-  renderer.setRenderTarget(flying ? portal.captureTarget() : null);
-  renderer.toneMapping = flying ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
+  renderer.setRenderTarget(null);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
   cardsGroup.visible = !caseStudy.open || caseBusy;
 
   renderer.clear();
   renderer.render(scene, camera);
-
-  if (flying) {
-    // Capture the destination backdrop separately from the bending
-    // collection. The player is composited behind that foreground.
-    cardsGroup.visible = false;
-    renderer.toneMapping = THREE.NoToneMapping;
-    renderer.setRenderTarget(portal.behindTarget());
-    renderer.clear();
-    renderer.render(scene, camera);
-    cardsGroup.visible = true;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.setRenderTarget(null);
-    renderer.clear();
-    portal.render(flight.progress, flightItem.texture, flightItem.media, caseHero.getBoundingClientRect(), canvas.getBoundingClientRect());
-  }
   cardsGroup.visible = true;
 
   renderer.toneMapping = toneMapping;
@@ -2086,9 +2104,10 @@ return {
     cardCursor.dispose();
     flightTween?.kill();
     releaseFlightScroll?.();
-    portal.dispose();
     caseHero.getAnimations().forEach(animation => animation.cancel());
-    window.dispatchEvent(new CustomEvent('work:case-header', { detail: null }));
+    // dispose() runs inside React's cleanup, where the header can't commit
+    // its move synchronously, so hand it back just after.
+    queueMicrotask(() => window.dispatchEvent(new CustomEvent('work:case-header', { detail: null })));
     caseSwitchTween?.kill();
     palette.dispose();
     gallery.dispose();
