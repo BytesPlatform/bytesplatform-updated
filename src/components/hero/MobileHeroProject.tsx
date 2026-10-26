@@ -109,7 +109,7 @@ export default function MobileHeroProject() {
       </svg>
       <div ref={blobRef} className={styles.blob} style={{ clipPath: `url(#${clipId})` }}>
         <img
-          src="/hero/mobile-blob-image.png"
+          src="/hero/mobile-blob-image-1.png"
           alt=""
           className={styles.image}
           draggable={false}
