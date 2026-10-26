@@ -620,13 +620,13 @@ export default function IntroExperience() {
         aria-hidden
         className="pointer-events-none invisible fixed inset-0 z-[100] flex items-center justify-center opacity-0 [will-change:clip-path]"
       >
-        <h2
+        <div
           data-dive-title
           className="overflow-hidden px-[0.08em] pb-[0.1em] text-center text-[clamp(3.5rem,9vw,9rem)] font-medium leading-none tracking-[-0.07em] text-paper"
         >
           <span data-dive-title-word className="inline-block">Featured</span>{" "}
           <span data-dive-title-word className="inline-block">Work</span>
-        </h2>
+        </div>
       </div>
       <FeaturedWork />
       {/* The closing sheet: slides up over Work (which stays put), then lifts

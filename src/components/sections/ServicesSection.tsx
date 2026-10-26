@@ -58,7 +58,7 @@ function ServiceCard({ index }: { index: number }) {
   return <a href={service.href} className="service-orbit-card" style={{ "--card-angle": `${-index * 60}deg` } as CSSProperties}>
     <div className="service-orbit-card__surface">
       <span className="service-orbit-card__number">{String(index + 1).padStart(2, "0")}</span>
-      <div className="service-orbit-card__copy"><h3>{service.label}</h3><p>{DESCRIPTIONS[index]}</p></div>
+      <div className="service-orbit-card__copy"><div className="service-orbit-card__title">{service.label}</div><p>{DESCRIPTIONS[index]}</p></div>
       <Workflow index={index} />
       <span className="service-orbit-card__open" aria-hidden="true">Explore service ↗</span>
     </div>

@@ -1590,7 +1590,7 @@ caseStudy.setAttribute('aria-labelledby', 'case-title');
 caseStudy.innerHTML = `<button class="case-close" aria-label="Close case study">← BACK</button>
   <article class="case-content">
     <section class="case-stage"><header class="case-header">
-    <h1 id="case-title" data-case="title"></h1><div class="case-intro-columns"><div class="case-story"><p data-case="overview"></p><p data-case="approach"></p>
+    <h2 id="case-title" data-case="title"></h2><div class="case-intro-columns"><div class="case-story"><p data-case="overview"></p><p data-case="approach"></p>
     <a class="case-project-link" target="_blank" rel="noopener noreferrer" hidden>Launch project ↗</a></div>
     <aside class="case-facts"><h2>Services</h2><ul class="case-services"></ul><div class="case-links"><h2>Links</h2><a class="case-site-link" target="_blank" rel="noopener noreferrer"></a></div></aside></div></header>
     <figure class="case-hero"><img alt="" decoding="async"><figcaption class="case-caption" data-case="caption"></figcaption></figure></section>

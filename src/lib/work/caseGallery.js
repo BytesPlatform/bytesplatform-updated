@@ -23,7 +23,7 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
     introMotion?.kill();
     const width = dialog.clientWidth || window.innerWidth;
     const distance = reducedMotion.matches ? 0 : width;
-    const title = intro.querySelector('h1');
+    const title = intro.querySelector('h2');
     const paragraphs = intro.querySelectorAll('.case-story p');
     const facts = intro.querySelector('.case-facts');
     const launch = intro.querySelector('.case-project-link');
