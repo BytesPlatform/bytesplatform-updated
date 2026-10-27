@@ -157,21 +157,21 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
       body: "Book a free Byte Suites consultation, or talk to us about a custom ERP.",
     },
   },
-  "bytescon": {
-    slug: "bytescon",
+  "bytesgov": {
+    slug: "bytesgov",
     meta: {
-      title: "Bytescon, Federal Contracting Intelligence",
+      title: "BytesGov, Federal Contracting Intelligence",
       description:
-        "Bytescon is a multi-tenant federal contracting intelligence platform for consulting firms that help small businesses find, qualify, win and perform government contracts. Opportunity discovery, calibrated win probability, compliance matrices, AI proposal drafting and post-award tracking in one workspace.",
+        "BytesGov is a multi-tenant federal contracting intelligence platform for consulting firms that help small businesses find, qualify, win and perform government contracts. Opportunity discovery, calibrated win probability, compliance matrices, AI proposal drafting and post-award tracking in one workspace.",
     },
     hero: {
-      title: ["Bytescon"],
+      title: ["BytesGov"],
       intro:
         "From notice to award, in one place. SAM.gov and FPDS opportunities land every morning, scored for win probability, mapped to FAR and DFARS requirements and ready for a proposal, with every client's pipeline kept separate in a single workspace.",
     },
-    statement: "Every outcome, won or lost, recalibrates the model. Bytescon learns where your firm actually wins, and makes the next bid start from evidence.",
+    statement: "Every outcome, won or lost, recalibrates the model. BytesGov learns where your firm actually wins, and makes the next bid start from evidence.",
     action: "Book a consultation",
-    labels: { statement: "Why Bytescon", offer: "Features", highlights: "Who it's for", process: "How it works", faq: "FAQ" },
+    labels: { statement: "Why BytesGov", offer: "Features", highlights: "Who it's for", process: "How it works", faq: "FAQ" },
     offer: {
       heading: "Find, score, bid and perform",
       items: [
@@ -228,7 +228,7 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
         },
         {
           title: "AI-first operators",
-          body: "Bytescon where your team already works.",
+          body: "BytesGov where your team already works.",
           points: ["MCP servers for Claude, Cursor and other agents", "REST API for custom dashboards and CRMs", "Every tool call audited and tenant-scoped"],
         },
       ],
@@ -245,32 +245,32 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
       ],
     },
     faqs: [
-      { q: "What is Bytescon?", a: "A federal contracting intelligence platform for consulting firms and small businesses. It finds opportunities, scores win probability, builds compliance matrices, drafts proposals and tracks performance after award, all in one multi-tenant workspace." },
+      { q: "What is BytesGov?", a: "A federal contracting intelligence platform for consulting firms and small businesses. It finds opportunities, scores win probability, builds compliance matrices, drafts proposals and tracks performance after award, all in one multi-tenant workspace." },
       { q: "Where does the data come from?", a: "SAM.gov, FPDS and USAspending are synced automatically, with FAR and DFARS clause libraries built in. State and municipal portals, grants and civilian programs can be added as modules." },
-      { q: "Does it work with multiple clients?", a: "Yes. Bytescon is multi-tenant by design. Each client gets its own pipeline, portal and branded reports, with no data shared across clients." },
+      { q: "Does it work with multiple clients?", a: "Yes. BytesGov is multi-tenant by design. Each client gets its own pipeline, portal and branded reports, with no data shared across clients." },
       { q: "Can I use it from Claude or other AI tools?", a: "Yes. The API & MCP Access module provides MCP servers for opportunity search, knowledge, proposals and core platform data, plus a REST API for custom integrations." },
       { q: "How is it priced?", a: "A base plan covers search, scoring and the decision engine. Feature modules are added individually from $29/mo, or unlocked together with All Access. Every plan starts with a fourteen-day free trial and every module enabled." },
     ],
     cta: {
       heading: "Ready to win more federal contracts",
-      body: "Book a free Bytescon consultation and see your pipeline scored, mapped and ready to bid.",
+      body: "Book a free BytesGov consultation and see your pipeline scored, mapped and ready to bid.",
     },
   },
-  "e-invoicing": {
-    slug: "e-invoicing",
+  "bytesbilling": {
+    slug: "bytesbilling",
     meta: {
-      title: "E-Invoicing, UAE FTA-Ready Invoicing & ERP",
+      title: "BytesBilling, UAE FTA-Ready Invoicing & ERP",
       description:
-        "Bytes E-Invoicing is a UAE-compliant invoicing platform for SMEs. Bytes ERP runs your business, Bytes Oak builds and validates PINT AE (UBL 2.1) e-invoices, hands them to an accredited service provider for Peppol delivery and FTA reporting, and keeps the legal archive for the full retention period.",
+        "BytesBilling is a UAE-compliant invoicing platform for SMEs. Bytes ERP runs your business, BytesBilling builds and validates PINT AE (UBL 2.1) e-invoices, hands them to an accredited service provider for Peppol delivery and FTA reporting, and keeps the legal archive for the full retention period.",
     },
     hero: {
-      title: ["E-Invoicing"],
+      title: ["BytesBilling"],
       intro:
-        "Compliant with the UAE e-invoicing mandate, without changing how you work. Create invoices in Bytes ERP or your existing accounting software, and Bytes Oak validates every document, routes it through an accredited provider to Peppol and the FTA, tracks both states and archives the proof.",
+        "Compliant with the UAE e-invoicing mandate, without changing how you work. Create invoices in Bytes ERP or your existing accounting software, and BytesBilling validates every document, routes it through an accredited provider to Peppol and the FTA, tracks both states and archives the proof.",
     },
-    statement: "A rejection after go-live costs money. A rejection before you send costs nothing. Bytes Oak validates locally, blocks what would fail and keeps every compliance artefact the FTA could ask for.",
+    statement: "A rejection after go-live costs money. A rejection before you send costs nothing. BytesBilling validates locally, blocks what would fail and keeps every compliance artefact the FTA could ask for.",
     action: "Book a consultation",
-    labels: { statement: "Why E-Invoicing", offer: "Features", highlights: "Who it's for", process: "How it works", faq: "FAQ" },
+    labels: { statement: "Why BytesBilling", offer: "Features", highlights: "Who it's for", process: "How it works", faq: "FAQ" },
     offer: {
       heading: "Everything between your invoice and the FTA",
       items: [
@@ -317,7 +317,7 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
         {
           title: "Businesses on Odoo, QuickBooks or Xero",
           body: "Keep your accounting software, add compliance.",
-          points: ["Bytes Oak works standalone over a simple HTTPS API", "Idempotent invoice submission with full timelines", "No XML to build on your side"],
+          points: ["BytesBilling works standalone over a simple HTTPS API", "Idempotent invoice submission with full timelines", "No XML to build on your side"],
         },
         {
           title: "Finance & accounts teams",
@@ -336,39 +336,39 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
       body: "The same pipeline for every invoice, whichever system it starts in.",
       steps: [
         { title: "Create", body: "Raise the invoice in Bytes ERP or send it from your own ERP over HTTPS with an idempotency key." },
-        { title: "Validate", body: "Bytes Oak builds the PINT AE document and checks schema, VAT maths, TRN format and category rules. Anything that would be rejected is stopped here." },
+        { title: "Validate", body: "BytesBilling builds the PINT AE document and checks schema, VAT maths, TRN format and category rules. Anything that would be rejected is stopped here." },
         { title: "Transmit", body: "The document goes to an accredited service provider, which exchanges it on Peppol and reports the Tax Data Document to the FTA." },
         { title: "Track", body: "Peppol and FTA states update in real time through signed webhooks and polling. Rejections land in the worklist with hints." },
         { title: "Archive", body: "XML and PDF are stored write-once with hashes, retention clock and legal hold, available through short-lived signed links." },
       ],
     },
     faqs: [
-      { q: "Is Bytes Oak an Accredited Service Provider?", a: "No. Bytes Oak is our compliance hub. It builds, validates, tracks and archives e-invoices, then hands them to an accredited service provider that handles Peppol exchange and FTA reporting." },
-      { q: "Do I have to use Bytes ERP?", a: "No. Bytes Oak works on its own with any ERP or accounting software that is not accredited, such as Odoo, QuickBooks or Xero, through a simple HTTPS API." },
+      { q: "Is BytesBilling an Accredited Service Provider?", a: "No. BytesBilling is our compliance hub. It builds, validates, tracks and archives e-invoices, then hands them to an accredited service provider that handles Peppol exchange and FTA reporting." },
+      { q: "Do I have to use Bytes ERP?", a: "No. BytesBilling works on its own with any ERP or accounting software that is not accredited, such as Odoo, QuickBooks or Xero, through a simple HTTPS API." },
       { q: "What formats and rules does it support?", a: "PINT AE (UBL 2.1) invoices and credit notes, including zero-rated, exempt, reverse-charge and foreign-currency cases, validated against the official UBL schema and UAE VAT rules before transmission." },
       { q: "How long are invoices kept?", a: "Retention follows Cabinet Decision 74/2023: five years by default, seven for real estate, with a legal hold that suspends expiry during a dispute or audit. Retention is set per tenant." },
-      { q: "How do I get started?", a: "Book a free consultation. We'll review your invoicing flow, connect Bytes Oak to your ERP or set you up on Bytes ERP, and run certification samples before go-live." },
+      { q: "How do I get started?", a: "Book a free consultation. We'll review your invoicing flow, connect BytesBilling to your ERP or set you up on Bytes ERP, and run certification samples before go-live." },
     ],
     cta: {
       heading: "Ready for the UAE e-invoicing mandate",
-      body: "Book a free E-Invoicing consultation and see your first invoice validated, delivered and archived.",
+      body: "Book a free BytesBilling consultation and see your first invoice validated, delivered and archived.",
     },
   },
-  "molarline-ai": {
-    slug: "molarline-ai",
+  "bytesagentic": {
+    slug: "bytesagentic",
     meta: {
-      title: "MolarLine AI, AI Receptionist for Dental Practices",
+      title: "BytesAgentic, AI Receptionist for Dental Practices",
       description:
-        "MolarLine AI is a HIPAA-minded AI phone receptionist for dental practices. It answers every call, identifies the patient, books cleanings and exams into open chair time, confirms by text and hands anything clinical or financial to your team, with an audit log for every record it touches.",
+        "BytesAgentic is a HIPAA-minded AI phone receptionist for dental practices. It answers every call, identifies the patient, books cleanings and exams into open chair time, confirms by text and hands anything clinical or financial to your team, with an audit log for every record it touches.",
     },
     hero: {
-      title: ["MolarLine AI"],
+      title: ["BytesAgentic"],
       intro:
         "Keep every chair full, without adding to the front desk. An AI receptionist for dental practices that answers every call, finds the patient, books into open chair time at the right office, confirms by text and hands anything clinical to your team. Built for HIPAA from the first line of code.",
     },
-    statement: "Calls ring while your desk is busy, at lunch and after hours. MolarLine answers in under a second, books into the same schedule and never says a word it isn't allowed to.",
+    statement: "Calls ring while your desk is busy, at lunch and after hours. BytesAgentic answers in under a second, books into the same schedule and never says a word it isn't allowed to.",
     action: "Book a demo",
-    labels: { statement: "Why MolarLine AI", offer: "Features", highlights: "What it never does", process: "How it works", faq: "FAQ" },
+    labels: { statement: "Why BytesAgentic", offer: "Features", highlights: "What it never does", process: "How it works", faq: "FAQ" },
     offer: {
       heading: "A receptionist that books, and knows its limits",
       items: [
@@ -450,7 +450,7 @@ export const productContent: Record<ProductSlug, ServiceContent> = {
     ],
     cta: {
       heading: "See it on your own schedule",
-      body: "Book a twenty-minute MolarLine AI demo. We set it up with your offices, providers and hours, then you call it.",
+      body: "Book a twenty-minute BytesAgentic demo. We set it up with your offices, providers and hours, then you call it.",
     },
   },
 };

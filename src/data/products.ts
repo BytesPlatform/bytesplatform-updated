@@ -2,9 +2,9 @@
 export const productLinks = [
   { slug: "byte-bots", label: "Byte Bots" },
   { slug: "byte-suites", label: "Byte Suites" },
-  { slug: "bytescon", label: "Bytescon" },
-  { slug: "e-invoicing", label: "E-Invoicing" },
-  { slug: "molarline-ai", label: "MolarLine AI" },
+  { slug: "bytesgov", label: "BytesGov" },
+  { slug: "bytesbilling", label: "BytesBilling" },
+  { slug: "bytesagentic", label: "BytesAgentic" },
 ] as const;
 
 export type ProductSlug = (typeof productLinks)[number]["slug"];
