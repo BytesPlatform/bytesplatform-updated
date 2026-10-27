@@ -5,27 +5,26 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { lockScroll, jumpTo } from '@/lib/animation/scroll';
 import { createCaseGallery } from './caseGallery';
 import { createCasePalette } from './casePalette';
+import { createCaseTrail } from './caseTrail';
 import { createCardCursor } from './cardCursor';
 import { projects } from '@/data/projects';
 import { casePath, caseSlug } from './caseRoute';
 
 // Enable to restore the camera transition and internal case studies.
 const CASE_STUDIES_ENABLED = true;
-// Opening a case study is one progress value from 0 to 1, as in Lusion's: the
-// camera zooms into the card as its name fades and its glass clears to the
-// plain screenshot, the picture then darkens into the project's background
-// colour, and the logo, content, Back and first image follow.
+// Opening a case study is one progress value from 0 to 1: the camera zooms
+// into the card as its name fades and its glass clears, while the whole view
+// darkens into the project's background colour from the first frame; the
+// logo, content, Back and first image follow once it has settled.
 // Closing plays the same timeline in reverse.
-// The darkening gets the longest stretch, so the colour settles rather than
-// switching: about 0.6s of a 1.4s open.
-const CASE_ZOOM_END = .4;
-const CASE_NAME_FADE_END = .18;
-const CASE_FOCUS_END = .3;
-const CASE_BG_FROM = .3;
-const CASE_BG_END = .74;
+const CASE_ZOOM_END = 1;
+const CASE_NAME_FADE_END = .5;
+const CASE_FOCUS_END = .6;
+const CASE_BG_FROM = .4;
+const CASE_BG_END = .7;
 const CASE_CONTENT_FROM = .72;
-const CASE_OPEN_SECONDS = 1.4;
-const CASE_CLOSE_SECONDS = 1.05;
+const CASE_OPEN_SECONDS = .65;
+const CASE_CLOSE_SECONDS = .55;
 
 /**
  * Embedded version of shader-learning; the section owns scrolling and frames.
@@ -1614,7 +1613,7 @@ caseStudy.innerHTML = `<button class="case-close" aria-label="Close case study">
     <aside class="case-facts"><h2>Services</h2><ul class="case-services"></ul><div class="case-links"><h2>Links</h2><a class="case-site-link" target="_blank" rel="noopener noreferrer"></a></div></aside></div></header>
     <section class="case-gallery" aria-label="Project images">
     <figure class="case-slide case-slide--landscape case-hero"><img alt="" decoding="async"></figure></section>
-    <footer class="case-end"><button class="case-next-project"><img class="case-next-preview" alt="" aria-hidden="true"><span class="case-next-title"></span><span class="case-next-label">Next project <span class="case-next-rule"></span><span aria-hidden="true">→</span></span></button></footer>
+    <footer class="case-end"><button class="case-next-project"><span class="case-next-title"></span><span class="case-next-label">Next project <span class="case-next-rule"><span class="case-next-fill"></span></span><svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2 8h12m0 0-5.865 6M14 8 8.135 2"></path></svg></span></button></footer>
   </article>`;
 document.body.appendChild(caseStudy);
 const caseHero = caseStudy.querySelector('.case-hero');
@@ -1705,28 +1704,91 @@ function populateCase(index) {
   const data = CASE_STUDIES[index];
   caseStudy.querySelectorAll('[data-case]').forEach(el => { el.textContent = data[el.dataset.case]; });
   palette.setProject(projects[index]);
-  gallery.populate(projects[index], PROJECT_COVERS[index], projects[nextIndex], PROJECT_COVERS[nextIndex]);
+  gallery.populate(projects[index], PROJECT_COVERS[index], projects[nextIndex]);
   caseHero.style.setProperty('--image-ratio', String(cardPivots[index].media.aspect || 1500 / 937));
   caseImage.src = PROJECT_COVERS[index].src;
   caseImage.alt = `${data.title}, ${data.caption}`;
 }
+/**
+ * "Next project", as in Lusion's: the end panel sweeps across the screen as it
+ * takes the next project's colours, carrying the project's name left with it;
+ * then the name rises and grows into the title's place and the case study
+ * arrives around it. A sheet and a copy of the name carry the move over the
+ * content. The copy is laid out once at the title's size and width, so its
+ * line breaks never change; it only moves and scales (the panel's name is
+ * sized to match it, see caseGallery).
+ */
+let caseSwitchLayers = [];
 function nextCaseStudy() {
   if (caseBusy || caseSwitching) return;
   caseSwitching = true;
-  const content = caseStudy.querySelector('.case-content');
-  caseSwitchTween = gsap.timeline({ onComplete: () => {
+  const quick = reducedMotion.matches;
+  const nextIndex = (caseProjectIndex + 1) % projects.length;
+  const theme = projects[nextIndex].caseTheme;
+  const end = caseStudy.querySelector('.case-end');
+  const name = end.querySelector('.case-next-title');
+  const title = caseStudy.querySelector('#case-title');
+  const panel = end.getBoundingClientRect();
+  const from = name.getBoundingClientRect();
+  const titleStyle = getComputedStyle(title);
+  const titleLeft = caseStudy.querySelector('.case-header').getBoundingClientRect().left;
+  const scale = parseFloat(getComputedStyle(name).fontSize) / parseFloat(titleStyle.fontSize);
+  const sheet = document.createElement('div');
+  sheet.className = 'case-next-sheet';
+  sheet.style.backgroundColor = getComputedStyle(end).backgroundColor;
+  sheet.style.clipPath = `inset(0px 0px 0px ${Math.max(0, panel.left)}px)`;
+  const ghost = document.createElement('span');
+  ghost.className = 'case-next-ghost';
+  ghost.setAttribute('aria-hidden', 'true');
+  ghost.textContent = name.textContent;
+  Object.assign(ghost.style, {
+    left: `${titleLeft}px`, top: `${from.top}px`, width: `${title.clientWidth}px`,
+    fontSize: titleStyle.fontSize, lineHeight: titleStyle.lineHeight, letterSpacing: titleStyle.letterSpacing,
+    fontWeight: titleStyle.fontWeight, color: getComputedStyle(name).color,
+  });
+  gsap.set(ghost, { transformOrigin: '0 0', x: from.left - titleLeft, y: 0, scale });
+  caseStudy.append(sheet, ghost);
+  caseSwitchLayers = [sheet, ghost];
+  const finish = () => {
+    caseSwitchLayers.forEach(layer => layer.remove());
+    caseSwitchLayers = [];
     caseSwitching = false;
     caseSwitchTween = null;
-    gsap.set(content, { clearProps: 'opacity' });
+    syncCaseReveal();
     caseStudy.querySelector('.case-close').focus({ preventScroll: true });
-  } })
-    .to(content, { opacity: 0, duration: reducedMotion.matches ? 0 : .22 })
-    .call(() => {
-      populateCase((caseProjectIndex + 1) % projects.length);
-      showCaseUrl(caseProjectIndex, false);
-      gallery.reset();
-    })
-    .to(content, { opacity: 1, duration: reducedMotion.matches ? 0 : .35 });
+  };
+  const arrive = () => {
+    // Swap in the next project under the sheet (its colours now match), with
+    // its content held back, and find where its title settles.
+    caseStudy.style.setProperty('--case-reveal', '1');
+    caseStudy.style.setProperty('--case-hero-reveal', '1');
+    populateCase(nextIndex);
+    showCaseUrl(nextIndex, false);
+    gallery.reset();
+    const to = caseStudy.querySelector('#case-title').getBoundingClientRect();
+    caseStudy.style.setProperty('--case-reveal', '0');
+    caseStudy.style.setProperty('--case-hero-reveal', '0');
+    sheet.remove();
+    const reveal = { content: 0, hero: 0 };
+    const showContent = () => {
+      caseStudy.style.setProperty('--case-reveal', String(reveal.content));
+      caseStudy.style.setProperty('--case-hero-reveal', String(reveal.hero));
+    };
+    caseSwitchTween = gsap.timeline({ onComplete: finish })
+      .to(ghost, { x: to.left - titleLeft, y: to.top - from.top, scale: 1, duration: quick ? 0 : .75, ease: 'power3.inOut' })
+      // The real title fades in under its copy, then the rest follows.
+      .to(reveal, { content: 1, duration: quick ? 0 : .55, ease: 'power2.out', onUpdate: showContent }, quick ? 0 : .65)
+      .to(ghost, { opacity: 0, duration: quick ? 0 : .3 }, quick ? 0 : .7)
+      .to(reveal, { hero: 1, duration: quick ? 0 : .7, ease: 'power2.out', onUpdate: showContent }, quick ? 0 : .8);
+  };
+  // The logo and the nav's hover fill read these, so they shift with the sheet.
+  const accentInk = theme.accent.toLowerCase() === theme.bg.toLowerCase() ? theme.fg : theme.accent;
+  caseSwitchTween = gsap.timeline({ onComplete: arrive })
+    .to(sheet, { clipPath: 'inset(0px 0px 0px 0px)', duration: quick ? 0 : .8, ease: 'power3.inOut' })
+    .to(ghost, { x: 0, duration: quick ? 0 : .8, ease: 'power3.inOut' }, 0)
+    .to(sheet, { backgroundColor: theme.bg, duration: quick ? 0 : .7, ease: 'power1.inOut' }, quick ? 0 : .2)
+    .to(ghost, { color: theme.fg, duration: quick ? 0 : .7, ease: 'power1.inOut' }, quick ? 0 : .2)
+    .to(caseStudy, { '--case-accent': theme.accent, '--case-accent-ink': accentInk, duration: quick ? 0 : .7, ease: 'power1.inOut' }, quick ? 0 : .2);
 }
 listen(caseImage, 'load', () => {
   if (caseImage.naturalWidth && caseImage.naturalHeight) {
@@ -1776,6 +1838,7 @@ function openCaseStudy(item) {
   syncCaseReveal();
   caseStudy.showModal();
   window.dispatchEvent(new CustomEvent('work:case-header', { detail: caseStudy }));
+  startCaseTrail();
   showCaseUrl(item.index, true);
   caseEntryPushed = true;
   gallery.reset();
@@ -1807,6 +1870,7 @@ function openCaseStudyDirect(index) {
   syncCaseReveal();
   caseStudy.showModal();
   window.dispatchEvent(new CustomEvent('work:case-header', { detail: caseStudy }));
+  startCaseTrail();
   showCaseUrl(index, false);
   gallery.reset();
   flightTween?.kill();
@@ -1824,7 +1888,16 @@ function openCaseStudyDirect(index) {
     },
   });
 }
+// The pearl cursor trail, shown over case studies on mouse-driven screens.
+// Made on the first open, so pages that never open one never pay for it.
+let caseTrail = null;
+function startCaseTrail() {
+  if (reducedMotion.matches || window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+  caseTrail ??= createCaseTrail(caseStudy);
+  caseTrail.start();
+}
 function finishCaseClose() {
+  caseTrail?.stop();
   window.dispatchEvent(new CustomEvent('work:case-header', { detail: null }));
   caseStudy.close();
   caseImage.removeAttribute('src');
@@ -1841,6 +1914,8 @@ function closeCaseStudy() {
   caseSwitchTween?.kill();
   caseSwitchTween = null;
   caseSwitching = false;
+  caseSwitchLayers.forEach(layer => layer.remove());
+  caseSwitchLayers = [];
   gsap.set(caseStudy.querySelector('.case-content'), { clearProps: 'opacity' });
   caseBusy = true;
   if (!flightItem) {
@@ -1905,7 +1980,7 @@ listen(caseStudy, 'click', event => {
 // those colours is hidden on the live site.
 const SHOW_CASE_PALETTE = false;
 const palette = createCasePalette(caseStudy, { showTool: SHOW_CASE_PALETTE });
-const gallery = createCaseGallery(caseStudy, { onClose: closeCaseStudy, isBusy: () => caseBusy || caseSwitching, reducedMotion });
+const gallery = createCaseGallery(caseStudy, { onClose: closeCaseStudy, onNext: nextCaseStudy, isBusy: () => caseBusy || caseSwitching, reducedMotion });
 const cardCursor = createCardCursor(reducedMotion);
 listen(window, 'popstate', () => {
   const index = caseIndexFromUrl();
@@ -2110,6 +2185,7 @@ return {
     queueMicrotask(() => window.dispatchEvent(new CustomEvent('work:case-header', { detail: null })));
     caseSwitchTween?.kill();
     palette.dispose();
+    caseTrail?.dispose();
     gallery.dispose();
     caseStudy.close();
     caseStudy.remove();

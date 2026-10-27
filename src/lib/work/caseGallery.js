@@ -1,7 +1,7 @@
 import gsap from 'gsap';
 
 /** Native horizontal gallery, with vertical-wheel input mapped onto the rail. */
-export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
+export function createCaseGallery(dialog, { onClose, onNext, isBusy, reducedMotion }) {
   const rail = dialog.querySelector('.case-gallery');
   const intro = dialog.querySelector('.case-header');
   // The cover leads the rail; populate() refills the slides after it.
@@ -11,6 +11,46 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
   let tween = null;
   let target = 0;
   let slides = [];
+  // Image cards play their entrance every time they enter view (see the
+  // .case-slide rules); leaving view resets them while they're off screen.
+  const reveal = new IntersectionObserver(entries => {
+    for (const entry of entries) entry.target.classList.toggle('is-in', entry.isIntersecting);
+  }, { root: dialog });
+  function watchSlides() {
+    reveal.disconnect();
+    rail.querySelectorAll('.case-slide').forEach(slide => {
+      slide.classList.remove('is-in');
+      void slide.offsetWidth; // Commit the reset so a re-entry animates again.
+      reveal.observe(slide);
+    });
+  }
+  // Scrolling on at the very end fills the "Next project" line; stop and it
+  // drains. A full line hands over to the next project (onNext).
+  const end = dialog.querySelector('.case-end');
+  const NEXT_TRAVEL = 3000; // Wheel pixels past the end that fill the line.
+  let nextProgress = 0;
+  let lastPush = 0;
+  let drainFrame = 0;
+  function setNextProgress(value) {
+    nextProgress = Math.max(0, Math.min(1, value));
+    end.style.setProperty('--next-progress', String(nextProgress));
+  }
+  function drain() {
+    drainFrame = 0;
+    if (performance.now() - lastPush > 160) setNextProgress(nextProgress - .03);
+    if (nextProgress > 0) drainFrame = requestAnimationFrame(drain);
+  }
+  function pushNext(delta) {
+    setNextProgress(nextProgress + delta / NEXT_TRAVEL);
+    lastPush = performance.now();
+    if (nextProgress >= 1) {
+      cancelAnimationFrame(drainFrame);
+      drainFrame = 0;
+      onNext();
+      return;
+    }
+    if (!drainFrame) drainFrame = requestAnimationFrame(drain);
+  }
   const limit = () => Math.max(0, dialog.scrollWidth - dialog.clientWidth);
   function update() {
     // Each intro element has its own scrubbed fade/movement duration.
@@ -18,7 +58,23 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
     introMotion?.time(dialog.scrollLeft / Math.max(1, dialog.clientWidth));
     intro.inert = dialog.scrollLeft > dialog.clientWidth * .92;
   }
+  // The end panel shows the next project's name as a scaled-down copy of the
+  // title: same line breaks, smaller. nextCaseStudy() then only has to move
+  // and grow it into place (see rootCardsScene).
+  const nextName = end.querySelector('.case-next-title');
+  function sizeNextName() {
+    const title = intro.querySelector('h2');
+    const width = title.clientWidth;
+    if (!width || !end.clientWidth) return;
+    const style = getComputedStyle(title);
+    const room = end.clientWidth - 2 * parseFloat(getComputedStyle(nextName).left);
+    const scale = Math.min(1, room / width);
+    end.style.setProperty('--next-width', `${width * scale}px`);
+    end.style.setProperty('--next-font', `${parseFloat(style.fontSize) * scale}px`);
+    end.style.setProperty('--next-weight', style.fontWeight);
+  }
   function buildIntroMotion() {
+    sizeNextName();
     introMotion?.kill();
     const width = dialog.clientWidth || window.innerWidth;
     const distance = reducedMotion.matches ? 0 : width;
@@ -47,7 +103,13 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
   }
   function step(direction) {
     const x = dialog.scrollLeft;
-    const points = slides.map((slide, index) => index === 0 ? 0 : Math.max(0, Math.min(limit(), slide.getBoundingClientRect().left + x - (dialog.clientWidth - slide.offsetWidth) / 2)));
+    // Centre on each slide's middle: unlike its edges, that stays put while an
+    // off-screen card waits scaled down for its entrance.
+    const points = slides.map((slide, index) => {
+      if (index === 0) return 0;
+      const box = slide.getBoundingClientRect();
+      return Math.max(0, Math.min(limit(), box.left + box.width / 2 + x - dialog.clientWidth / 2));
+    });
     move(direction > 0 ? points.find(point => point > x + 8) ?? limit() : points.reverse().find(point => point < x - 8) ?? 0);
   }
   dialog.addEventListener('wheel', event => {
@@ -55,6 +117,8 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
     event.preventDefault();
     const delta = (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY) * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? dialog.clientWidth : 1);
     if (dialog.scrollLeft <= 1 && !tween && delta < -18) { onClose(); return; }
+    const atEnd = limit() > 0 && (tween ? target : dialog.scrollLeft) >= limit() - 2;
+    if (atEnd && (delta > 0 || nextProgress > 0)) { pushNext(delta); return; }
     move((tween ? target : dialog.scrollLeft) + delta);
   }, { passive: false, signal: events.signal });
   dialog.addEventListener('keydown', event => {
@@ -70,7 +134,7 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
   dialog.addEventListener('scroll', update, { passive: true, signal: events.signal });
   window.addEventListener('resize', buildIntroMotion, { signal: events.signal });
   return {
-    populate(project, cover, nextProject, nextCover) {
+    populate(project, cover, nextProject) {
       stop();
       rail.replaceChildren(hero);
       const seen = new Set([cover.src]);
@@ -117,17 +181,16 @@ export function createCaseGallery(dialog, { onClose, isBusy, reducedMotion }) {
       if (project.link) {
         const site = links.querySelector('a'); site.href = project.link.href; site.textContent = project.link.label;
       }
-      const end = dialog.querySelector('.case-end');
       end.querySelector('.case-next-title').textContent = nextProject.name;
       end.querySelector('.case-next-project').setAttribute('aria-label', `Next project: ${nextProject.name}`);
-      end.querySelector('.case-next-preview').src = nextCover.src;
-      end.querySelector('.case-next-preview').alt = '';
       slides = [...rail.children, dialog.querySelector('.case-end')];
       dialog.scrollLeft = 0;
+      setNextProgress(0);
+      watchSlides();
       buildIntroMotion();
     },
-    reset() { stop(); dialog.scrollLeft = 0; update(); },
+    reset() { stop(); setNextProgress(0); dialog.scrollLeft = 0; sizeNextName(); update(); },
     refresh: buildIntroMotion,
-    dispose() { stop(); introMotion?.kill(); events.abort(); },
+    dispose() { stop(); cancelAnimationFrame(drainFrame); introMotion?.kill(); reveal.disconnect(); events.abort(); },
   };
 }
