@@ -5,7 +5,7 @@ export default function TermsContent() {
   return (
     <>
       <p>
-        These Terms and Conditions ("Agreement") govern your use of <strong>www.bytesplatform.com</strong>{" "}
+        These Terms and Conditions ("Agreement") govern your use of <strong>bytesplatform.com</strong>{" "}
         ("Website") and any products, digital content, or services ("Services") provided by Bytes Platform
         ("Bytes Platform," "we," "us," or "our"). By accessing this Website or using our Services, you agree to
         these Terms. If you do not agree, you must not use the Website or our Services.
@@ -71,7 +71,7 @@ export default function TermsContent() {
         For any inquiries about these Terms or our Services, please contact:<br />
         <strong>Bytes Platform</strong><br />
         Email: <a href="mailto:info@bytesplatform.com">info@bytesplatform.com</a><br />
-        Website: <a href="https://www.bytesplatform.com" target="_blank" rel="noopener noreferrer">www.bytesplatform.com</a>
+        Website: <a href="https://bytesplatform.com" target="_blank" rel="noopener noreferrer">bytesplatform.com</a>
       </p>
 
     </>

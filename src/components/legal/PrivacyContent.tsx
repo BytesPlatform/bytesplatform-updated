@@ -6,7 +6,7 @@ export default function PrivacyContent() {
     <>
       <p>
         This Privacy Policy explains how Bytes Platform ("Bytes Platform," "we," "us," or "our") collects,
-        uses, discloses, and safeguards your information when you visit <strong>www.bytesplatform.com</strong>{" "}
+        uses, discloses, and safeguards your information when you visit <strong>bytesplatform.com</strong>{" "}
         ("Website") or use any of our products or services ("Services").
       </p>
 
