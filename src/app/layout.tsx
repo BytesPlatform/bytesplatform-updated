@@ -15,6 +15,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
+  // Google Search Console ownership check.
+  verification: { google: "rl2IGjb2-1Ljfgxs0D_OWf_nP52hLtDoMw5oHBfBUHw" },
   title: {
     default: "BytesPlatform. We Build Intelligent Digital Experiences",
     template: "%s · BytesPlatform",
